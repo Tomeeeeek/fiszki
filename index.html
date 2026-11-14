@@ -102,11 +102,12 @@ body {
 .pinscroll h4.current { color: var(--accent); }
 .pinscroll .tbl td { padding: 5px 0; font-size: 14.5px; }
 .pinscroll .tbl td:first-child { font-size: 17px; }
-@media (min-width: 1000px) {
-  body.pinwide #app, body.pinwide #v-study.pinned { max-width: 1320px; }
-  #v-study.pinned { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
-  /* contain: size – panel nie rośnie od listy, tylko dopasowuje się do wysokości kolumny z fiszką */
-  #v-study.pinned .pinpanel { order: 0; height: auto; contain: size; }
+@media (min-width: 1240px) {
+  /* fiszka zostaje na środku ekranu, a lista zajmuje wolne miejsce przy lewej krawędzi;
+     wysokość listy = wysokość kolumny z fiszką, resztę przewija się w okienku */
+  #v-study.pinned { position: relative; }
+  #v-study.pinned .pinpanel { position: absolute; top: 0; bottom: 0; height: auto;
+    left: calc((100% - 100vw) / 2 + 24px); width: min(640px, calc((100vw - 100%) / 2 - 48px)); }
 }
 @media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn { grid-column: 2; } }
 button { font: inherit; cursor: pointer; }
