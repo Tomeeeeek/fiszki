@@ -554,11 +554,62 @@ const ORTOPEDIA = [
   ]},
 ];
 
+const NEUROLOGIA = [
+  { id: "n1", name: "Porcja 1", range: "akinesis – myalgia", words: [
+    ["akinesis", "bezruch"],
+    ["amnesia", "utrata pamięci, niepamięć"],
+    ["aphasia", "niepamięć"],
+    ["apoplexia cerebri", "udar mózgu"],
+    ["ataxia", "niezborność ruchów"],
+    ["brachialgia", "rwa ramienna"],
+    ["commotio", "wstrząśnienie"],
+    ["contusio", "stłuczenie"],
+    ["dystrophia", "zaburzenie odżywcze, zanik"],
+    ["embolia", "zator"],
+    ["encephalitis", "zapalenie mózgu"],
+    ["epilepsia", "padaczka"],
+    ["hemiparesis", "niedowład połowiczy"],
+    ["hemiplegia", "porażenie połowicze"],
+    ["hydrocephalus", "wodogłowie"],
+    ["insultus cerebri", "udar mózgowy"],
+    ["ischialgia", "rwa kulszowa"],
+    ["laesio", "uszkodzenie"],
+    ["meningocele", "przepuklina oponowa"],
+    ["monoparesis", "niedowład jednej kończyny"],
+    ["monoplegia", "porażenie jednej kończyny"],
+    ["myalgia", "ból mięśniowy"],
+  ]},
+  { id: "n2", name: "Porcja 2", range: "neuralgia – tonus", words: [
+    ["neuralgia", "nerwoból"],
+    ["neuritis", "zapalenie nerwu"],
+    ["neurolysis", "uwolnienie nerwu"],
+    ["neurotomia", "przecięcie nerwu"],
+    ["parasthesia", "zaburzenie czucia, złudne odczucie"],
+    ["paralysis", "porażenie"],
+    ["paraparesis", "niedowład obu kończyn jednoimiennych"],
+    ["paraplegia", "porażenie obu kończyn jednoimiennych"],
+    ["paresis", "niedowład"],
+    ["quadriparesis", "niedowład kończyn górnych i dolnych"],
+    ["quadriplegia", "porażenie kończyn górnych i dolnych"],
+    ["radicalgia", "ból korzeniowy"],
+    ["radiculitis", "zapalenie korzeni nerwowych"],
+    ["reflexus", "odruch"],
+    ["spasmus", "kurcz, skurcz"],
+    ["spasticus", "skurczowy, spastyczny"],
+    ["spina bifida", "rozszczep kręgosłupa, tarń dwudzielna"],
+    ["triparesis", "niedowład trzech kończyn"],
+    ["triplegia", "porażenie trzech kończyn"],
+    ["thrombus", "zakrzep"],
+    ["tonus", "napięcie"],
+  ]},
+];
+
 // Grupy słówek. Każda grupa dostaje na końcu "Powtórkę całości".
 // Uwaga: id porcji muszą być unikalne – pod nimi zapisuje się postęp.
 const GROUPS = [
   { id: "rozne", name: "Określenia medyczne różne", range: "activus – vulnus", rounds: ROZNE, allId: "all" },
   { id: "orto", name: "Określenia w ortopedii", range: "abductio – synovectomia", rounds: ORTOPEDIA, allId: "orto-all" },
+  { id: "neuro", name: "Określenia stosowane w neurologii", range: "akinesis – tonus", rounds: NEUROLOGIA, allId: "neuro-all" },
 ];
 for (const g of GROUPS) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
@@ -918,7 +969,7 @@ function renderGroups() {
       <span class="num">${ROMAN[i] || i + 1}</span>
       <span class="name">${g.name}</span>
       <span class="meta">${chip}</span>
-      <span class="range">${g.range} · ${words} słówek</span>
+      <span class="range">${g.range} · ${words} ${plural(words, "słówko", "słówka", "słówek")}</span>
     </button>`;
   }).join("");
   show("groups");
@@ -937,7 +988,7 @@ $("h-back").addEventListener("click", renderGroups);
 function renderHome() {
   const parts = ROUNDS.length - 1;
   $("h-title").textContent = G.name;
-  $("h-sub").textContent = `${G.range} · ${ROUNDS[ROUNDS.length - 1].words.length} słówek w ${parts} porcjach`;
+  $("h-sub").textContent = `${G.range} · ${ROUNDS[ROUNDS.length - 1].words.length} ${plural(ROUNDS[ROUNDS.length - 1].words.length, "słówko", "słówka", "słówek")} w ${parts} ${parts === 1 ? "porcji" : "porcjach"}`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
   $("rounds").innerHTML = ROUNDS.map((r, i) => {
@@ -948,7 +999,7 @@ function renderHome() {
       const { c, total } = counts(st);
       chip = `<span class="chip prog">${c[MASTER]}/${total} opanowane</span>`;
       bar = `<span class="minibar">${c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}"></span>`).join("")}</span>`;
-    } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} słówek</span>`;
+    } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} ${plural(r.words.length, "słówko", "słówka", "słówek")}</span>`;
     const reset = st ? `<span class="reset" role="button" tabindex="0" data-reset="${r.id}">zacznij od nowa</span>` : "";
     const num = r.id === G.allId ? "∑" : i + 1;
     return `<button type="button" class="round${r.id === G.allId ? " all" : ""}" data-round="${i}">
@@ -1080,7 +1131,7 @@ function finishRound() {
   syncProgress();
   $("d-title").textContent = r.name + " ukończona";
   const errs = st.cards.reduce((s, c) => s + c.err, 0);
-  $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>słówek</span></div>
+  $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>${plural(st.cards.length, "słówko", "słówka", "słówek")}</span></div>
     <div><b>${st.answers}</b><span>odpowiedzi</span></div><div><b>${errs}</b><span>pomyłek</span></div>`;
   const score = c => c.err + (c.half || 0) / 2;
   const hard = st.cards.filter(score).sort((a, b) => score(b) - score(a)).slice(0, 8);
