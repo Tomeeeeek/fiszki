@@ -75,6 +75,7 @@ body {
 }
 .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 #app > section { width: 100%; min-width: 0; }
+.adminswitch { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 5; align-self: center; box-shadow: var(--shadow); }
 button { font: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -217,6 +218,10 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </head>
 <body>
 <div class="wrap" id="app">
+  <div class="seg adminswitch" id="adminswitch" role="group" aria-label="Przełącz widok" hidden>
+    <button type="button" data-to="fiszki">Fiszki</button>
+    <button type="button" data-to="admin">Użytkownicy</button>
+  </div>
   <!-- LOGOWANIE -->
   <section id="v-login" class="wrap" style="gap:22px" hidden>
     <header class="top">
@@ -562,7 +567,15 @@ function variants(ans) {
 
 // ---------- logika powtórek ----------
 const $ = id => document.getElementById(id);
-const show = v => ["login", "admin", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+let lastView = "groups";   // ostatni widok fiszek – tu wraca przełącznik administratora
+function show(v) {
+  ["login", "admin", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+  if (v !== "admin" && v !== "login") lastView = v;
+  const isAdm = v !== "login" && !!user && isAdminName(user.name);
+  $("adminswitch").hidden = !isAdm;
+  $("adminswitch").querySelectorAll("button").forEach(b =>
+    b.setAttribute("aria-pressed", String((b.dataset.to === "admin") === (v === "admin"))));
+}
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function freshState(round) {
@@ -696,7 +709,17 @@ async function loadAdmin() {
   } finally { $("a-refresh").disabled = false; }
 }
 $("a-refresh").addEventListener("click", loadAdmin);
-$("a-back").addEventListener("click", () => renderGroups());
+function backToCards() {
+  if (lastView === "groups") renderGroups();
+  else if (lastView === "home") renderHome();
+  else show(lastView);   // nauka/lista wracają dokładnie tam, gdzie były
+}
+$("a-back").addEventListener("click", backToCards);
+$("adminswitch").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.to === "admin") adminPass ? loadAdmin() : showLogin(user.name);
+  else backToCards();
+});
 
 // ---------- grupy ----------
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
