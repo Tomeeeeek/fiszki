@@ -79,6 +79,7 @@ body {
 }
 .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 #app > section { width: 100%; min-width: 0; }
+.testbanner { align-self: center; font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; text-align: center; color: var(--mid); background: var(--mid-soft); border: 1px dashed var(--mid); border-radius: 999px; padding: 5px 14px; }
 .topbar { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 5; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; pointer-events: none; }
 .topbar > * { pointer-events: auto; }
 .adminswitch { grid-column: 2; box-shadow: var(--shadow); }
@@ -265,6 +266,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </head>
 <body>
 <div class="wrap" id="app">
+  <div class="testbanner" id="testbanner" hidden>WERSJA TESTOWA · zmiany nie są widoczne na stronie głównej</div>
   <div class="topbar" id="topbar" hidden>
     <div class="seg adminswitch" id="adminswitch" role="group" aria-label="Przełącz widok" hidden>
       <button type="button" data-to="fiszki">Fiszki</button>
@@ -445,6 +447,22 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </div>
 
 <script>
+// ---------- środowisko ----------
+// Wersja testowa: tomeeeeek.github.io/fiszki-test (oraz plik otwarty lokalnie).
+// Ma osobną bazę danych i osobne miejsce w pamięci przeglądarki,
+// więc testy nie zmieniają danych strony głównej.
+const IS_TEST = location.pathname.startsWith("/fiszki-test") || location.protocol === "file:"
+  || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const ENV = IS_TEST ? {
+  supabaseUrl: "",   // baza testowa (projekt Supabase „fiszki-test”) – do uzupełnienia
+  supabaseKey: "",
+  suffix: "-test",
+} : {
+  supabaseUrl: "https://xiyitawyctgpniijufir.supabase.co",
+  supabaseKey: "sb_publishable_7Qx1nwV8gTyVdaYw_Nkzig_u6RKnbOd",
+  suffix: "",
+};
+if (IS_TEST) document.title = "[TEST] " + document.title;
 const ROZNE = [
   { id: "z1", name: "Porcja 1", range: "punctio – vulnus", words: [
     ["punctio", "nakłucie (diagnostyczne lub lecznicze)"],
@@ -724,7 +742,7 @@ const units = (n, sec = S) => plural(n, ...sec.unit);
 const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
 const MASTER = GAPS.length;       // pudełko = opanowane
 const MAX_ACTIVE = 8;             // ile nowych słówek naraz w nauce
-const KEY = "fiszki-lacina-v1";
+const KEY = "fiszki-lacina-v1" + ENV.suffix;
 const BOXCOL = ["var(--box0)", "var(--box1)", "var(--box2)", "var(--box3)", "var(--box4)"];
 const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opanowane"];
 
@@ -827,15 +845,15 @@ function counts(st) {
 }
 
 // ---------- użytkownicy (Supabase) ----------
-const SUPABASE_URL = "https://xiyitawyctgpniijufir.supabase.co";   // adres projektu, np. https://abcd.supabase.co
-const SUPABASE_KEY = "sb_publishable_7Qx1nwV8gTyVdaYw_Nkzig_u6RKnbOd";   // klucz publiczny (anon / publishable) – może być jawny
+const SUPABASE_URL = ENV.supabaseUrl;   // adres projektu Supabase (zależy od środowiska)
+const SUPABASE_KEY = ENV.supabaseKey;   // klucz publiczny (anon / publishable) – może być jawny
 const ADMIN_NAME = "tomek grupa";
-const USER_KEY = "fiszki-uzytkownik";
+const USER_KEY = "fiszki-uzytkownik" + ENV.suffix;
 let user = null, adminPass = null, lastPing = 0;
 try { user = JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) {}
-try { adminPass = sessionStorage.getItem("fiszki-admin"); } catch (e) {}
+try { adminPass = sessionStorage.getItem("fiszki-admin" + ENV.suffix); } catch (e) {}
 const saveUser = () => { try { user ? localStorage.setItem(USER_KEY, JSON.stringify(user)) : localStorage.removeItem(USER_KEY); } catch (e) {} };
-const saveAdminPass = () => { try { adminPass ? sessionStorage.setItem("fiszki-admin", adminPass) : sessionStorage.removeItem("fiszki-admin"); } catch (e) {} };
+const saveAdminPass = () => { try { adminPass ? sessionStorage.setItem("fiszki-admin" + ENV.suffix, adminPass) : sessionStorage.removeItem("fiszki-admin" + ENV.suffix); } catch (e) {} };
 const isAdminName = n => norm(n || "") === ADMIN_NAME;
 const device = () => /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "telefon" : "komputer";
 const plural = (n, a, b, c) => n === 1 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
@@ -1353,6 +1371,7 @@ $("showlist").addEventListener("click", () => {
 });
 $("l-back").addEventListener("click", renderHome);
 
+$("testbanner").hidden = !IS_TEST;
 if (user && user.name) { lastPing = Date.now(); report(true); renderSections(); }
 else showLogin();
 </script>
