@@ -207,7 +207,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .prompt { font-family: var(--f-display); font-size: clamp(34px, 8vw, 50px); line-height: 1.08; text-align: center; margin: 14px 0 4px; overflow-wrap: anywhere; text-wrap: balance; }
 .prompt.lat { font-style: italic; }
 .cimg { position: relative; align-self: center; max-width: 100%; line-height: 0; }
-.cimg img { display: block; max-width: 100%; max-height: 440px; width: auto; height: auto; border-radius: 10px; background: #ffffff; }
+.cimg img { display: block; max-width: 100%; max-height: min(600px, 64vh); width: auto; height: auto; border-radius: 10px; background: #ffffff; }
 .cimg svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .cimg svg line { stroke: #e2401c; stroke-width: 3.2; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
@@ -737,7 +737,52 @@ for (const g of GROUPS) {
 // Fiszka obrazkowa: [opis, nazwa struktury, { img: "ścieżka do obrazka", hl: [[x1, y1, x2, y2], ...] }]
 // img – rysunek kości bez podpisów; hl – (opcjonalnie) odcinki do pogrubienia, w % szerokości/wysokości obrazka.
 const KONCZYNA_GORNA = [
-  { id: "kg-ramienna", name: "Kość ramienna", range: "humerus", words: [] },
+  { id: "kg-ramienna", name: "Kość ramienna", range: "humerus", words: [
+    ["kość ramienna (przód) – koniec bliższy", "Koniec bliższy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 4.86, 53.38, 4.86], [14.7, 5.38, 15.37, 4.86], [15.37, 20.37, 45.27, 20.37], [14.7, 19.86, 15.37, 20.37], [14.7, 5.48, 14.7, 12.1], [14.7, 12.93, 14.7, 19.65], [14.7, 12.1, 12.33, 12.51], [12.33, 12.51, 14.7, 12.93]]}],
+    ["kość ramienna (przód) – trzon", "Trzon", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 20.37, 45.27, 20.37], [14.7, 20.89, 15.37, 20.37], [15.37, 77.87, 46.62, 77.87], [14.7, 77.35, 15.37, 77.87], [14.7, 20.99, 14.7, 48.6], [14.7, 49.43, 14.7, 77.15], [14.7, 48.6, 12.33, 49.02], [12.33, 49.02, 14.7, 49.43]]}],
+    ["kość ramienna (przód) – koniec dalszy", "Koniec dalszy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 77.87, 46.62, 77.87], [14.7, 78.39, 15.37, 77.87], [15.37, 94.73, 48.14, 94.73], [14.7, 94.21, 15.37, 94.73], [14.7, 78.49, 14.7, 85.83], [14.7, 86.66, 14.7, 94.11], [14.7, 85.83, 12.33, 86.25], [12.33, 86.25, 14.7, 86.66]]}],
+    ["kość ramienna (przód) – guzek mniejszy", "Guzek mniejszy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[53.55, 3.41, 52.53, 8.69]]}],
+    ["kość ramienna (przód) – głowa", "Głowa (kości ramiennej)", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[66.89, 5.48, 60.14, 8.27]]}],
+    ["kość ramienna (przód) – guzek większy", "Guzek większy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[36.49, 10.24, 41.55, 11.58]]}],
+    ["kość ramienna (przód) – szyjka anatomiczna", "Szyjka anatomiczna", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[68.41, 12.93, 58.78, 11.79]]}],
+    ["kość ramienna (przód) – bruzda międzyguzkowa", "Bruzda międzyguzkowa", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[36.66, 16.13, 47.3, 14.48]]}],
+    ["kość ramienna (przód) – szyjka chirurgiczna", "Szyjka chirurgiczna", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[67.57, 20.99, 57.09, 21.51]]}],
+    ["kość ramienna (przód) – grzebień guzka większego", "Grzebień guzka większego", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[43.24, 28.23, 47.97, 26.37]]}],
+    ["kość ramienna (przód) – grzebień guzka mniejszego", "Grzebień guzka mniejszego", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[66.39, 27.4, 54.39, 24.92]]}],
+    ["kość ramienna (przód) – brzeg przyśrodkowy trzonu", "Brzeg przyśrodkowy trzonu", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[67.57, 38.37, 59.63, 38.26]]}],
+    ["kość ramienna (przód) – guzowatość naramienna", "Guzowatość naramienna", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[43.92, 42.19, 49.83, 43.12]]}],
+    ["kość ramienna (przód) – otwór odżywczy", "Otwór odżywczy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[67.4, 46.74, 58.45, 46.64]]}],
+    ["kość ramienna (przód) – brzeg boczny trzonu", "Brzeg boczny trzonu", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[44.09, 52.74, 49.16, 52.95]]}],
+    ["kość ramienna (przód) – powierzchnia przednio-przyśrodkowa trzonu", "Powierzchnia przednio-przyśrodkowa trzonu", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[67.91, 56.26, 57.94, 55.02]]}],
+    ["kość ramienna (przód) – powierzchnia przednio-boczna trzonu", "Powierzchnia przednio-boczna trzonu", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[45.27, 62.25, 52.7, 61.53]]}],
+    ["kość ramienna (przód) – grzebień nadkłykciowy boczny", "Grzebień nadkłykciowy boczny", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[43.07, 75.59, 47.47, 78.7]]}],
+    ["kość ramienna (przód) – grzebień nadkłykciowy przyśrodkowy", "Grzebień nadkłykciowy przyśrodkowy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[70.95, 80.87, 65.2, 82.94]]}],
+    ["kość ramienna (przód) – dół promieniowy", "Dół promieniowy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[39.86, 83.76, 52.36, 86.76]]}],
+    ["kość ramienna (przód) – dół dziobiasty", "Dół dziobiasty", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[74.83, 85.32, 61.99, 87.59]]}],
+    ["kość ramienna (przód) – nadkłykieć boczny", "Nadkłykieć boczny (kości ramiennej)", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[39.02, 89.97, 44.43, 89.87]]}],
+    ["kość ramienna (przód) – nadkłykieć przyśrodkowy", "Nadkłykieć przyśrodkowy (kości ramiennej)", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[74.16, 91.93, 69.43, 90.07]]}],
+    ["kość ramienna (przód) – główka", "Główka (kości ramiennej)", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[43.75, 97.21, 48.31, 93.8]]}],
+    ["kość ramienna (przód) – bloczek", "Bloczek (kości ramiennej)", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[60.47, 97.0, 58.28, 92.97]]}],
+    ["kość ramienna (tył) – koniec bliższy", "Koniec bliższy", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[11.29, 8.09, 47.63, 8.09], [10.64, 8.59, 11.29, 8.09], [11.29, 22.98, 49.43, 22.98], [10.64, 22.48, 11.29, 22.98], [10.64, 8.69, 10.64, 15.08], [10.64, 15.88, 10.64, 22.28], [10.64, 15.08, 8.35, 15.48], [8.35, 15.48, 10.64, 15.88]]}],
+    ["kość ramienna (tył) – trzon", "Trzon", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[11.29, 22.98, 49.43, 22.98], [10.64, 23.48, 11.29, 22.98], [11.29, 78.52, 43.7, 78.52], [10.64, 78.02, 11.29, 78.52], [10.64, 23.78, 10.64, 50.45], [10.64, 51.25, 10.64, 77.92], [10.64, 50.45, 8.35, 50.85], [8.35, 50.85, 10.64, 51.25]]}],
+    ["kość ramienna (tył) – koniec dalszy", "Koniec dalszy", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[11.29, 78.52, 43.7, 78.52], [10.64, 79.02, 11.29, 78.52], [11.29, 94.91, 41.73, 94.91], [10.64, 94.41, 11.29, 94.91], [10.64, 79.42, 10.64, 86.41], [10.64, 87.21, 10.64, 94.21], [10.64, 86.41, 8.35, 86.81], [8.35, 86.81, 10.64, 87.21]]}],
+    ["kość ramienna (tył) – szyjka anatomiczna", "Szyjka anatomiczna", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[64.98, 8.49, 59.41, 11.59]]}],
+    ["kość ramienna (tył) – głowa", "Głowa (kości ramiennej)", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[40.75, 14.09, 46.97, 13.59]]}],
+    ["kość ramienna (tył) – guzek większy", "Guzek większy", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[74.3, 12.49, 64.65, 13.19]]}],
+    ["kość ramienna (tył) – szyjka chirurgiczna", "Szyjka chirurgiczna", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[65.79, 27.27, 56.96, 24.78]]}],
+    ["kość ramienna (tył) – bruzda nerwu promieniowego", "Bruzda nerwu promieniowego", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[42.06, 37.26, 53.36, 36.96]]}],
+    ["kość ramienna (tył) – guzowatość naramienna", "Guzowatość naramienna", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[65.47, 39.66, 60.72, 39.86]]}],
+    ["kość ramienna (tył) – powierzchnia tylna trzonu", "Powierzchnia tylna trzonu", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[42.39, 50.05, 52.05, 51.75]]}],
+    ["kość ramienna (tył) – brzeg przyśrodkowy trzonu", "Brzeg przyśrodkowy trzonu", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[42.06, 63.84, 45.99, 63.84]]}],
+    ["kość ramienna (tył) – brzeg boczny trzonu", "Brzeg boczny trzonu", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[64.48, 62.24, 57.45, 63.44]]}],
+    ["kość ramienna (tył) – grzebień nadkłykciowy boczny", "Grzebień nadkłykciowy boczny", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[65.47, 79.02, 59.25, 81.22]]}],
+    ["kość ramienna (tył) – grzebień nadkłykciowy przyśrodkowy", "Grzebień nadkłykciowy przyśrodkowy", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[39.61, 82.52, 43.37, 82.72]]}],
+    ["kość ramienna (tył) – dół wyrostka łokciowego", "Dół wyrostka łokciowego", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[68.09, 85.81, 51.23, 87.81]]}],
+    ["kość ramienna (tył) – nadkłykieć przyśrodkowy", "Nadkłykieć przyśrodkowy (kości ramiennej)", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[32.08, 90.71, 39.28, 89.61]]}],
+    ["kość ramienna (tył) – nadkłykieć boczny", "Nadkłykieć boczny (kości ramiennej)", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[67.76, 92.91, 60.56, 91.61]]}],
+    ["kość ramienna (tył) – bruzda nerwu łokciowego", "Bruzda nerwu łokciowego", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[37.81, 96.3, 41.57, 92.61]]}],
+    ["kość ramienna (tył) – bloczek", "Bloczek (kości ramiennej)", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[49.26, 99.4, 49.1, 92.81]]}],
+  ] },
   { id: "kg-lokciowa", name: "Kość łokciowa", range: "ulna", words: [] },
   { id: "kg-promieniowa", name: "Kość promieniowa", range: "radius", words: [] },
   { id: "kg-reka", name: "Kości nadgarstka i ręki", range: "ossa carpi, metacarpi et phalanges", words: [] },
@@ -1278,7 +1323,7 @@ function nextCard() {
   const dir = isImg ? "lp" : store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
-  $("c-lang").textContent = lat ? S.sides.a : S.sides.b;
+  $("c-lang").textContent = isImg && card.x.view ? `${S.sides.a} · widok ${card.x.view}` : lat ? S.sides.a : S.sides.b;
   $("c-prompt").hidden = isImg;
   $("c-img").hidden = !isImg;
   if (isImg) {
