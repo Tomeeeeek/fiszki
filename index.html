@@ -156,6 +156,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); margin-right: 7px; vertical-align: 1px; }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; margin: 0; }
+.ascroll { overflow-y: auto; overscroll-behavior: contain; padding-block: 8px; }
 .ulist { list-style: none; margin: 0; padding: 0; }
 .urow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); cursor: pointer; }
 .urow:first-child { border-top: 0; padding-top: 2px; }
@@ -302,9 +303,10 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <div class="title">Panel administratora<small id="a-sub"></small></div>
       <button type="button" class="back" id="a-refresh">Odśwież</button>
     </div>
-    <div class="panel">
-      <div class="tblwrap" id="a-body"></div>
+    <div class="panel ascroll" id="a-panel">
+      <div id="a-body"></div>
     </div>
+    <p class="note" id="a-legend"><span class="dot on"></span>na stronie teraz &nbsp; <span class="dot"></span>nieaktywny ponad 2 min</p>
   </section>
 
   <!-- MOJE STATYSTYKI -->
@@ -1025,10 +1027,24 @@ function renderAdmin(list) {
         </div>
         <div class="upct"><b>${sm ? pct(sm.mastered, sm.words) : "–"}</b><small>opanowane</small></div>
       </li>`;
-    }).join("")}</ul>
-    <p class="note" style="margin-top:12px"><span class="dot on"></span>na stronie teraz &nbsp; <span class="dot"></span>nieaktywny ponad 2 min</p>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
+    }).join("")}</ul>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
+  $("a-legend").hidden = !list.length;
+  const wasHidden = $("v-admin").hidden, y = $("a-panel").scrollTop;
   show("admin");
+  if (wasHidden) window.scrollTo(0, 0);
+  fitAdminList();
+  $("a-panel").scrollTop = wasHidden ? 0 : y;   // odświeżanie nie gubi miejsca na liście
 }
+// Lista użytkowników przewija się w swoim okienku, a strona zostaje w miejscu:
+// okienko sięga do dołu ekranu (ale nie mniej niż 220 px).
+function fitAdminList() {
+  if ($("v-admin").hidden) return;
+  const panel = $("a-panel");
+  const top = panel.getBoundingClientRect().top + window.scrollY;
+  const below = ($("a-legend").hidden ? 0 : $("a-legend").offsetHeight + 16) + 48 + 4;
+  panel.style.maxHeight = Math.max(220, window.innerHeight - top - below) + "px";
+}
+window.addEventListener("resize", fitAdminList);
 async function loadAdmin() {
   $("a-refresh").disabled = true;
   try { renderAdmin(await rpc("lista_uzytkownikow", { p_haslo: adminPass })); }
@@ -1044,7 +1060,7 @@ setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany wid
   if (!adminPass || (!onList && !onUser) || document.visibilityState !== "visible") return;
   try {
     const list = await rpc("lista_uzytkownikow", { p_haslo: adminPass });
-    if (onList && !$("v-admin").hidden) { const y = window.scrollY; renderAdmin(list); window.scrollTo(0, y); }
+    if (onList && !$("v-admin").hidden) renderAdmin(list);
     else if (onUser && !$("v-user").hidden) {
       adminList = list;
       const i = list.findIndex(u => u.imie_nazwisko === viewedUser);
