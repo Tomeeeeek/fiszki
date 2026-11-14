@@ -75,7 +75,13 @@ body {
 }
 .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 #app > section { width: 100%; min-width: 0; }
-.adminswitch { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 5; align-self: center; box-shadow: var(--shadow); }
+.topbar { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 5; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; pointer-events: none; }
+.topbar > * { pointer-events: auto; }
+.adminswitch { grid-column: 2; box-shadow: var(--shadow); }
+.statsbtn { grid-column: 3; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
+.statsbtn svg { width: 15px; height: 15px; }
+.statsbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn { grid-column: 2; } }
 button { font: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -236,9 +242,14 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </head>
 <body>
 <div class="wrap" id="app">
-  <div class="seg adminswitch" id="adminswitch" role="group" aria-label="Przełącz widok" hidden>
-    <button type="button" data-to="fiszki">Fiszki</button>
-    <button type="button" data-to="admin">Użytkownicy</button>
+  <div class="topbar" id="topbar" hidden>
+    <div class="seg adminswitch" id="adminswitch" role="group" aria-label="Przełącz widok" hidden>
+      <button type="button" data-to="fiszki">Fiszki</button>
+      <button type="button" data-to="admin">Użytkownicy</button>
+    </div>
+    <button type="button" class="back statsbtn" id="statsbtn" aria-pressed="false">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2v5Zm5 0h2V3H7v10Zm5 0h2V6h-2v7ZM1 14.5h14v1H1z"/></svg>Statystyki
+    </button>
   </div>
   <!-- LOGOWANIE -->
   <section id="v-login" class="wrap" style="gap:22px" hidden>
@@ -272,6 +283,15 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <div class="panel">
       <div class="tblwrap" id="a-body"></div>
     </div>
+  </section>
+
+  <!-- MOJE STATYSTYKI -->
+  <section id="v-me" class="wrap" style="gap:16px" hidden>
+    <div class="studybar">
+      <button type="button" class="back" id="me-back">← Wróć</button>
+      <div class="title">Twoje statystyki<small id="me-sub"></small></div>
+    </div>
+    <div class="wrap" id="me-body" style="gap:16px; width:100%"></div>
   </section>
 
   <!-- POSTĘP UŻYTKOWNIKA -->
@@ -597,8 +617,10 @@ function variants(ans) {
 const $ = id => document.getElementById(id);
 let lastView = "groups";   // ostatni widok fiszek – tu wraca przełącznik administratora
 function show(v) {
-  ["login", "admin", "user", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
-  if (v !== "admin" && v !== "user" && v !== "login") lastView = v;
+  ["login", "admin", "user", "me", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+  if (!["admin", "user", "login", "me"].includes(v)) lastView = v;
+  $("topbar").hidden = v === "login" || !user;
+  $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
   const isAdm = v !== "login" && !!user && isAdminName(user.name);
   $("adminswitch").hidden = !isAdm;
   $("adminswitch").querySelectorAll("button").forEach(b =>
@@ -771,15 +793,8 @@ function summarize(pg) {
     parts: parts.length, yes: sum("yes"), mid: sum("mid"), no: sum("no"),
   };
 }
-function renderUser(i) {
-  const u = adminList[i]; if (!u) return;
-  viewedUser = u.imie_nazwisko;
-  const pg = u.postep, sm = summarize(pg);
-  $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
-  if (!sm) {
-    $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
-    return show("user");
-  }
+// Wspólny widok statystyk: panel administratora i „Statystyki” użytkownika
+function progressHTML(pg, sm) {
   const ans = sm.yes + sm.mid + sm.no;
   const tiles = `<div class="tiles">
     <div class="tile"><span class="k">Opanowane słówka</span><b>${pct(sm.mastered, sm.words)}</b><small>${sm.mastered} z ${sm.words}</small></div>
@@ -789,7 +804,7 @@ function renderUser(i) {
   </div>`;
   const split = ans ? `<div class="panel" style="gap:8px">
     <div class="split"><span style="width:${sm.yes / ans * 100}%;background:var(--ok)"></span><span style="width:${sm.mid / ans * 100}%;background:var(--mid)"></span><span style="width:${sm.no / ans * 100}%;background:var(--bad)"></span></div>
-    <div class="legend"><span><i style="background:var(--ok)"></i>pamiętał ${sm.yes} (${pct(sm.yes, ans)})</span><span><i style="background:var(--mid)"></i>średnio ${sm.mid} (${pct(sm.mid, ans)})</span><span><i style="background:var(--bad)"></i>nie pamiętał ${sm.no} (${pct(sm.no, ans)})</span></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>dobrze ${sm.yes} (${pct(sm.yes, ans)})</span><span><i style="background:var(--mid)"></i>średnio ${sm.mid} (${pct(sm.mid, ans)})</span><span><i style="background:var(--bad)"></i>źle ${sm.no} (${pct(sm.no, ans)})</span></div>
   </div>` : "";
   const groups = pg.groups.map(g => `<div class="panel"><h3>${esc(g.name)}</h3>${g.rounds.map(r => {
     const a = (r.yes || 0) + (r.mid || 0) + (r.no || 0);
@@ -804,7 +819,18 @@ function renderUser(i) {
   const hard = pg.hard && pg.hard.length ? `<div class="panel"><h3>Najtrudniejsze słówka</h3><table class="tbl">${pg.hard.map(h =>
     `<tr><td>${esc(h.l)}</td><td>${esc(h.p)}</td><td style="text-align:right;white-space:nowrap" class="c">${h.n % 1 ? h.n.toFixed(1).replace(".", ",") : h.n} ${plural(Math.ceil(h.n), "błąd", "błędy", "błędów")}</td></tr>`).join("")}</table>
     <p class="note">„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.</p></div>` : "";
-  $("ud-body").innerHTML = tiles + split + groups + hard +
+  return tiles + split + groups + hard;
+}
+function renderUser(i) {
+  const u = adminList[i]; if (!u) return;
+  viewedUser = u.imie_nazwisko;
+  const pg = u.postep, sm = summarize(pg);
+  $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
+  if (!sm) {
+    $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
+    return show("user");
+  }
+  $("ud-body").innerHTML = progressHTML(pg, sm) +
     `<p class="note" style="text-align:center">Dane z przeglądarki użytkownika, zapisane ${ago(u.postep_aktualizacja || pg.t)}.</p>`;
   show("user");
 }
@@ -856,6 +882,18 @@ function backToCards() {
   else show(lastView);   // nauka/lista wracają dokładnie tam, gdzie były
 }
 $("a-back").addEventListener("click", backToCards);
+// ---------- moje statystyki (tylko dane z tej przeglądarki) ----------
+function renderMe() {
+  const pg = buildProgress(), sm = summarize(pg);
+  const ans = sm.yes + sm.mid + sm.no;
+  $("me-sub").textContent = `${user.name} · postęp zapisany w tej przeglądarce`;
+  $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Nie masz jeszcze odpowiedzi. Wybierz porcję i odpowiedz na kilka fiszek, a statystyki pojawią się tutaj.</p></div>`)
+    + progressHTML(pg, sm);
+  show("me");
+  window.scrollTo(0, 0);
+}
+$("statsbtn").addEventListener("click", () => $("v-me").hidden ? renderMe() : backToCards());
+$("me-back").addEventListener("click", () => backToCards());
 $("adminswitch").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.to === "admin") adminPass ? loadAdmin() : showLogin(user.name);
