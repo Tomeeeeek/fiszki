@@ -279,7 +279,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
 <script>
 const ROUNDS = [
-  { id: "z1", name: "Zdjęcie 1", range: "punctio – vulnus", words: [
+  { id: "z1", name: "Porcja 1", range: "punctio – vulnus", words: [
     ["punctio", "nakłucie (diagnostyczne lub lecznicze)"],
     ["regio", "okolica"],
     ["rehabilitatio", "usprawnianie, rehabilitacja"],
@@ -300,7 +300,7 @@ const ROUNDS = [
     ["validus", "zdrowy, silny"],
     ["vulnus", "rana"],
   ]},
-  { id: "z2", name: "Zdjęcie 2", range: "activus – etiologia", words: [
+  { id: "z2", name: "Porcja 2", range: "activus – etiologia", words: [
     ["activus", "czynny"],
     ["acutus", "ostry"],
     ["astaticus", "niestatyczny, niemogący stać"],
@@ -320,7 +320,7 @@ const ROUNDS = [
     ["elevatio", "podniesienie"],
     ["etiologia", "nauka o przyczynach chorób"],
   ]},
-  { id: "z3", name: "Zdjęcie 3", range: "exercitatio – pronatio", words: [
+  { id: "z3", name: "Porcja 3", range: "exercitatio – pronatio", words: [
     ["exercitatio", "ćwiczenie"],
     ["febris", "gorączka"],
     ["fixatio", "ustalenie, umocowanie"],
@@ -343,7 +343,7 @@ const ROUNDS = [
     ["pronatio", "nawracanie, pronacja"],
   ]},
 ];
-ROUNDS.push({ id: "all", name: "Powtórka całości", range: "wszystkie trzy zdjęcia",
+ROUNDS.push({ id: "all", name: "Powtórka całości", range: "wszystkie trzy porcje",
   words: ROUNDS.flatMap(r => r.words) });
 
 const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
@@ -553,7 +553,7 @@ function finishRound() {
   const r = ROUNDS[cur.ri], st = cur.st;
   if (!store.done.includes(r.id)) store.done.push(r.id);
   delete store.rounds[r.id]; save();
-  $("d-title").textContent = r.name + " opanowane";
+  $("d-title").textContent = r.name + " ukończona";
   const errs = st.cards.reduce((s, c) => s + c.err, 0);
   $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>słówek</span></div>
     <div><b>${st.answers}</b><span>odpowiedzi</span></div><div><b>${errs}</b><span>pomyłek</span></div>`;

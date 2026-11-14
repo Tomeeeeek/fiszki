@@ -4,7 +4,7 @@ Fiszki z łacińskich określeń medycznych. Słówka, które znasz, wracają co
 
 **Strona:** https://tomeeeeek.github.io/fiszki/
 
-- 3 tury (po jednej na zdjęcie z zeszytu) + powtórka całości
+- 3 porcje słówek + powtórka całości
 - kierunek łacina → polski, polski → łacina albo na zmianę
 - ocena: nie pamiętałem / średnio / pamiętałem, wykrywanie literówek
 - postęp zapisywany w przeglądarce
