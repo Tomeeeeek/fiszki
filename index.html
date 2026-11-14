@@ -125,6 +125,9 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .minibar { display: flex; width: 92px; height: 5px; border-radius: 3px; overflow: hidden; background: var(--grid); }
 .minibar span { display: block; height: 100%; }
 .round.all .num { font-size: 26px; }
+.subhead { padding: 12px 18px 8px; border-top: 1px solid var(--line); background: var(--bg); font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.subhead:first-child { border-top: 0; }
+.subhead + .round { border-top: 0; }
 .round.soon { cursor: default; opacity: .6; }
 .round.soon:hover { background: transparent; }
 /* dziedziny: osobne karty z odstępem zamiast jednej wspólnej listy */
@@ -757,7 +760,43 @@ for (const g of GROUPS) {
 // Fiszka obrazkowa: [opis, nazwa struktury, { img: "ścieżka do obrazka", hl: [[x1, y1, x2, y2], ...] }]
 // img – rysunek kości bez podpisów; hl – (opcjonalnie) odcinki do pogrubienia, w % szerokości/wysokości obrazka.
 const KONCZYNA_GORNA = [
-  { id: "kg-ramienna", name: "Kość ramienna", range: "humerus", words: [
+  { id: "kg-lopatka", sub: "Obręcz barkowa", name: "Łopatka", range: "scapula", words: [
+    ["łopatka (przód) – powierzchnia stawowa wyrostka barkowego", "Powierzchnia stawowa wyrostka barkowego", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[31.89, 7.37, 29.56, 13.84]]}],
+    ["łopatka (przód) – wyrostek barkowy", "Wyrostek barkowy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[19.0, 12.5, 25.33, 17.08]]}],
+    ["łopatka (przód) – wyrostek kruczy", "Wyrostek kruczy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[46.0, 15.18, 47.56, 20.98]]}],
+    ["łopatka (przód) – wcięcie", "Wcięcie (łopatki)", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[56.44, 15.74, 54.33, 26.34]]}],
+    ["łopatka (przód) – brzeg górny", "Brzeg górny", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[66.56, 15.74, 64.67, 22.77]]}],
+    ["łopatka (przód) – kąt górny", "Kąt górny", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[77.11, 15.85, 73.11, 20.65]]}],
+    ["łopatka (przód) – guzek nadpanewkowy", "Guzek nadpanewkowy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[24.56, 26.67, 34.0, 23.77]]}],
+    ["łopatka (przód) – wydrążenie stawowe", "Wydrążenie stawowe", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[25.11, 33.04, 34.67, 31.92]]}],
+    ["łopatka (przód) – kąt boczny", "Kąt boczny", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[26.22, 39.06, 35.78, 37.95]]}],
+    ["łopatka (przód) – guzek podpanewkowy", "Guzek podpanewkowy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[31.11, 43.64, 34.11, 41.52]]}],
+    ["łopatka (przód) – szyjka", "Szyjka (łopatki)", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[34.11, 50.11, 39.33, 39.51]]}],
+    ["łopatka (przód) – dół podłopatkowy", "Dół podłopatkowy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[38.89, 57.14, 51.67, 45.87]]}],
+    ["łopatka (przód) – brzeg boczny", "Brzeg boczny", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[44.33, 66.29, 48.44, 63.73]]}],
+    ["łopatka (przód) – powierzchnia żebrowa", "Powierzchnia żebrowa", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[50.22, 78.57, 57.89, 73.21]]}],
+    ["łopatka (przód) – kąt dolny", "Kąt dolny", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[68.0, 93.75, 67.0, 86.61]]}],
+    ["łopatka (przód) – brzeg przyśrodkowy", "Brzeg przyśrodkowy", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[84.56, 46.65, 80.33, 45.76]]}],
+    ["łopatka (przód) – kresy mięśniowe", "Kresy mięśniowe", {"img": "anatomia/lopatka-przod.webp", "view": "z przodu", "hl": [[82.33, 59.38, 70.44, 50.45], [82.44, 59.49, 68.22, 61.5]]}],
+    ["łopatka (tył) – kąt górny", "Kąt górny", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[26.78, 10.24, 30.8, 15.71]]}],
+    ["łopatka (tył) – brzeg górny", "Brzeg górny", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[38.39, 10.36, 40.0, 19.88]]}],
+    ["łopatka (tył) – wcięcie", "Wcięcie (łopatki)", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[47.82, 10.12, 49.43, 21.9]]}],
+    ["łopatka (tył) – wyrostek kruczy", "Wyrostek kruczy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[58.74, 10.0, 56.78, 16.43]]}],
+    ["łopatka (tył) – wyrostek barkowy", "Wyrostek barkowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[87.82, 10.24, 81.15, 13.21]]}],
+    ["łopatka (tył) – kąt barkowy", "Kąt barkowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[78.62, 24.88, 72.3, 22.14]]}],
+    ["łopatka (tył) – kąt boczny", "Kąt boczny", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[78.62, 31.19, 73.33, 30.6]]}],
+    ["łopatka (tył) – szyjka", "Szyjka (łopatki)", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[77.13, 38.57, 69.77, 34.52]]}],
+    ["łopatka (tył) – guzek podpanewkowy", "Guzek podpanewkowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[73.79, 45.36, 71.84, 40.71]]}],
+    ["łopatka (tył) – dół nadgrzebieniowy", "Dół nadgrzebieniowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[20.34, 20.36, 31.49, 24.4]]}],
+    ["łopatka (tył) – grzebień", "Grzebień (łopatki)", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[19.43, 29.05, 36.09, 33.81]]}],
+    ["łopatka (tył) – trójkąt grzebienia", "Trójkąt grzebienia (łopatki)", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[20.23, 37.14, 25.52, 37.14]]}],
+    ["łopatka (tył) – brzeg przyśrodkowy", "Brzeg przyśrodkowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[19.66, 47.02, 24.02, 46.79]]}],
+    ["łopatka (tył) – dół podgrzebieniowy", "Dół podgrzebieniowy", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[19.89, 57.26, 32.64, 56.19]]}],
+    ["łopatka (tył) – brzeg boczny", "Brzeg boczny", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[60.0, 69.29, 56.09, 66.67]]}],
+    ["łopatka (tył) – kąt dolny", "Kąt dolny", {"img": "anatomia/lopatka-tyl.webp", "view": "z tyłu", "hl": [[36.78, 93.1, 37.47, 87.86]]}],
+  ] },
+  { id: "kg-obojczyk", sub: "Obręcz barkowa", name: "Obojczyk", range: "clavicula", words: [] },
+  { id: "kg-ramienna", sub: "Część wolna kończyny górnej", name: "Kość ramienna", range: "humerus", words: [
     ["kość ramienna (przód) – koniec bliższy", "Koniec bliższy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 4.86, 53.38, 4.86], [14.7, 5.38, 15.37, 4.86], [15.37, 20.37, 45.27, 20.37], [14.7, 19.86, 15.37, 20.37], [14.7, 5.48, 14.7, 12.1], [14.7, 12.93, 14.7, 19.65], [14.7, 12.1, 12.33, 12.51], [12.33, 12.51, 14.7, 12.93]]}],
     ["kość ramienna (przód) – trzon", "Trzon", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 20.37, 45.27, 20.37], [14.7, 20.89, 15.37, 20.37], [15.37, 77.87, 46.62, 77.87], [14.7, 77.35, 15.37, 77.87], [14.7, 20.99, 14.7, 48.6], [14.7, 49.43, 14.7, 77.15], [14.7, 48.6, 12.33, 49.02], [12.33, 49.02, 14.7, 49.43]]}],
     ["kość ramienna (przód) – koniec dalszy", "Koniec dalszy", {"img": "anatomia/kosc-ramienna-przod.webp", "view": "z przodu", "hl": [[15.37, 77.87, 46.62, 77.87], [14.7, 78.39, 15.37, 77.87], [15.37, 94.73, 48.14, 94.73], [14.7, 94.21, 15.37, 94.73], [14.7, 78.49, 14.7, 85.83], [14.7, 86.66, 14.7, 94.11], [14.7, 85.83, 12.33, 86.25], [12.33, 86.25, 14.7, 86.66]]}],
@@ -803,7 +842,7 @@ const KONCZYNA_GORNA = [
     ["kość ramienna (tył) – bruzda nerwu łokciowego", "Bruzda nerwu łokciowego", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[37.81, 96.3, 41.57, 92.61]]}],
     ["kość ramienna (tył) – bloczek", "Bloczek (kości ramiennej)", {"img": "anatomia/kosc-ramienna-tyl.webp", "view": "z tyłu", "hl": [[49.26, 99.4, 49.1, 92.81]]}],
   ] },
-  { id: "kg-lokciowa", name: "Kość łokciowa", range: "ulna", words: [
+  { id: "kg-lokciowa", sub: "Część wolna kończyny górnej", name: "Kość łokciowa", range: "ulna", words: [
     ["kość łokciowa (przód) – koniec bliższy", "Koniec bliższy", {"img": "anatomia/kosc-lokciowa-przod.webp", "view": "z przodu", "hl": [[3.8, 1.69, 40.62, 1.69], [2.85, 2.19, 3.8, 1.69], [3.8, 16.35, 42.52, 16.35], [2.85, 15.85, 3.8, 16.35], [2.85, 2.29, 2.85, 8.57], [2.85, 9.37, 2.85, 15.75], [2.85, 8.57, 0.0, 8.97], [0.0, 8.97, 2.85, 9.37]]}],
     ["kość łokciowa (przód) – trzon", "Trzon", {"img": "anatomia/kosc-lokciowa-przod.webp", "view": "z przodu", "hl": [[3.8, 16.35, 42.52, 16.35], [2.85, 16.85, 3.8, 16.35], [3.8, 82.55, 46.32, 82.55], [2.85, 82.05, 3.8, 82.55], [2.85, 17.05, 2.85, 49.15], [2.85, 49.95, 2.85, 82.05], [2.85, 49.15, 0.0, 49.55], [0.0, 49.55, 2.85, 49.95]]}],
     ["kość łokciowa (przód) – koniec dalszy", "Koniec dalszy", {"img": "anatomia/kosc-lokciowa-przod.webp", "view": "z przodu", "hl": [[3.8, 82.55, 46.32, 82.55], [2.85, 83.05, 3.8, 82.55], [3.8, 91.63, 53.92, 91.63], [2.85, 91.13, 3.8, 91.63], [2.85, 83.25, 2.85, 86.74], [2.85, 87.54, 2.85, 91.03], [2.85, 86.74, 0.0, 87.14], [0.0, 87.14, 2.85, 87.54]]}],
@@ -827,7 +866,7 @@ const KONCZYNA_GORNA = [
     ["kość łokciowa (przyśrodkowo) – wyrostek rylcowaty", "Wyrostek rylcowaty (kości łokciowej)", {"img": "anatomia/kosc-lokciowa-przysrodkowo.webp", "view": "przyśrodkowy", "hl": [[49.87, 97.65, 53.88, 93.56]]}],
     ["kość łokciowa (przyśrodkowo) – obwód stawowy głowy", "Obwód stawowy głowy (kości łokciowej)", {"img": "anatomia/kosc-lokciowa-przysrodkowo.webp", "view": "przyśrodkowy", "hl": [[63.66, 97.85, 61.65, 93.16]]}],
   ] },
-  { id: "kg-promieniowa", name: "Kość promieniowa", range: "radius", words: [
+  { id: "kg-promieniowa", sub: "Część wolna kończyny górnej", name: "Kość promieniowa", range: "radius", words: [
     ["kość promieniowa (przód) – koniec bliższy", "Koniec bliższy", {"img": "anatomia/kosc-promieniowa-przod.webp", "view": "z przodu", "hl": [[2.78, 10.06, 46.48, 10.06], [2.04, 10.56, 2.78, 10.06], [2.78, 15.04, 45.56, 15.04], [2.04, 14.54, 2.78, 15.04], [2.04, 10.66, 2.04, 12.15], [2.04, 12.95, 2.04, 14.44], [2.04, 12.15, -0.19, 12.55], [-0.19, 12.55, 2.04, 12.95]]}],
     ["kość promieniowa (przód) – trzon", "Trzon", {"img": "anatomia/kosc-promieniowa-przod.webp", "view": "z przodu", "hl": [[2.78, 15.04, 45.56, 15.04], [2.04, 15.54, 2.78, 15.04], [2.78, 77.29, 36.67, 77.29], [2.04, 76.79, 2.78, 77.29], [2.04, 15.74, 2.04, 45.82], [2.04, 46.61, 2.04, 76.69], [2.04, 45.82, -0.19, 46.22], [-0.19, 46.22, 2.04, 46.61]]}],
     ["kość promieniowa (przód) – koniec dalszy", "Koniec dalszy", {"img": "anatomia/kosc-promieniowa-przod.webp", "view": "z przodu", "hl": [[2.78, 77.29, 36.67, 77.29], [2.04, 77.79, 2.78, 77.29], [2.78, 91.73, 34.26, 91.73], [2.04, 91.24, 2.78, 91.73], [2.04, 77.99, 2.04, 84.16], [2.04, 84.96, 2.04, 91.14], [2.04, 84.16, -0.19, 84.56], [-0.19, 84.56, 2.04, 84.96]]}],
@@ -856,7 +895,7 @@ const KONCZYNA_GORNA = [
     ["kość promieniowa (tył) – powierzchnia stawowa nadgarstkowa", "Powierzchnia stawowa nadgarstkowa", {"img": "anatomia/kosc-promieniowa-tyl.webp", "view": "z tyłu", "hl": [[51.43, 93.73, 51.97, 86.54]]}],
     ["kość promieniowa (tył) – wyrostek rylcowaty", "Wyrostek rylcowaty (kości promieniowej)", {"img": "anatomia/kosc-promieniowa-tyl.webp", "view": "z tyłu", "hl": [[66.49, 89.0, 61.47, 87.67]]}],
   ] },
-  { id: "kg-reka", name: "Kości ręki", range: "nadgarstek, śródręcze, paliczki", words: [
+  { id: "kg-reka", sub: "Część wolna kończyny górnej", name: "Kości ręki", range: "nadgarstek, śródręcze, paliczki", words: [
     ["nadgarstek – kość łódeczkowata", "Kość łódeczkowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[40.27, 17.23, 37.95, 29.59]]}],
     ["nadgarstek – kość księżycowata", "Kość księżycowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[62.6, 17.6, 60.14, 29.78]]}],
     ["nadgarstek – kość trójgraniasta", "Kość trójgraniasta", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[79.32, 29.03, 78.63, 35.77]]}],
@@ -882,7 +921,7 @@ const ANATOMIA = [
 ];
 for (const g of ANATOMIA) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie kości razem",
-    words: g.rounds.flatMap(r => r.words) });
+    sub: g.rounds.some(r => r.sub) ? "Powtórka" : undefined, words: g.rounds.flatMap(r => r.words) });
 }
 
 // Dziedziny (sekcje strony). Każda dziedzina ma własne grupy fiszek.
@@ -1346,7 +1385,10 @@ function renderHome() {
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
   $("dir").hidden = !!S.images;   // fiszki obrazkowe mają jeden kierunek
-  $("rounds").innerHTML = ROUNDS.map((r, i) => {
+  $("rounds").innerHTML = ROUNDS.map((r, i) =>
+    (r.sub && r.sub !== (ROUNDS[i - 1] || {}).sub ? `<div class="subhead">${esc(r.sub)}</div>` : "") + roundHTML(r, i)).join("");
+  show("home");
+  function roundHTML(r, i) {
     if (!r.words.length) return `<div class="round soon${r.id === G.allId ? " all" : ""}" aria-disabled="true">
       <span class="num">${r.id === G.allId ? "∑" : i + 1}</span><span class="name">${esc(r.name)}</span>
       <span class="meta"><span class="chip">wkrótce</span></span><span class="range">${esc(r.range)}</span></div>`;
@@ -1366,8 +1408,7 @@ function renderHome() {
       <span class="meta">${chip}${bar}${reset}</span>
       <span class="range">${r.range}</span>
     </button>`;
-  }).join("");
-  show("home");
+  }
 }
 $("dir").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
