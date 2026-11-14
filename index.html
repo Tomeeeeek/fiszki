@@ -686,8 +686,11 @@ store.stats = store.stats || {}; store.hard = store.hard || {};
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
 
 // ---------- porównywanie odpowiedzi ----------
-const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-  .replace(/ł/g, "l").replace(/[.!?]/g, "").replace(/\s+/g, " ").trim();
+// Sprawdzanie jest wyrozumiałe: wielkość liter, polskie znaki, interpunkcja, nadmiarowe
+// spacje i podwójne litery nie mają znaczenia, a drobne literówki są zaliczane.
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  .replace(/ł/g, "l").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+const squeeze = s => s.replace(/(.)\1+/g, "$1");          // "ranaa" -> "rana"
 function lev(a, b) {
   const d = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
@@ -700,23 +703,40 @@ function lev(a, b) {
   }
   return d[b.length];
 }
-// Prawie dobrze = 1–2 literówki (przy krótkich słowach tylko 1)
-function nearMiss(typed, ans) {
-  const t = norm(typed);
-  return [...variants(ans)].some(v => lev(t, v) <= (v.length >= 7 ? 2 : 1));
-}
+// Wszystkie akceptowalne formy odpowiedzi: całość, części rozdzielone , / ; oraz wersje bez nawiasów
 function variants(ans) {
-  let parts = new Set([norm(ans)]);
-  for (const sep of [",", "/", ";"]) {
-    for (const p of [...parts]) p.split(sep).forEach(x => parts.add(x.trim()));
+  const raw = new Set([ans]);
+  for (const sep of [",", "/", ";"]) for (const p of [...raw]) p.split(sep).forEach(x => raw.add(x));
+  for (const p of [...raw]) if (p.includes("(")) { raw.add(p.split("(")[0]); raw.add(p.replace(/[()]/g, " ")); }
+  const out = new Set([...raw].map(norm));
+  out.delete("");
+  return out;
+}
+// Ile literówek wybaczamy: krótkie słowa (do 3 liter) – żadnej, do 7 liter – jedną, dłuższe – dwie
+const tolerance = len => len <= 3 ? 0 : len <= 7 ? 1 : 2;
+const ANSWER_CACHE = {};
+function otherAnswers(dir) {   // wszystkie odpowiedzi w danym kierunku (polskie albo łacińskie)
+  if (!ANSWER_CACHE[dir]) {
+    const words = GROUPS.flatMap(g => g.rounds.flatMap(r => r.words));
+    const list = new Set();
+    for (const [l, p] of words) for (const v of variants(dir === "lp" ? p : l)) list.add(squeeze(v));
+    ANSWER_CACHE[dir] = [...list];
   }
-  for (const p of [...parts]) if (p.includes("(")) {
-    const before = p.split("(")[0].trim();
-    if (before) parts.add(before);
-    parts.add(p.replace(/[()]/g, "").replace(/\s+/g, " ").trim());
-  }
-  parts.delete("");
-  return parts;
+  return ANSWER_CACHE[dir];
+}
+// Wynik: "ok" (dobrze), "typo" (dobrze, z drobną literówką) albo "bad"
+function checkAnswer(typed, ans, dir) {
+  const t = squeeze(norm(typed || ""));
+  if (!t) return "bad";
+  const mine = [...variants(ans)].map(squeeze);
+  if (mine.includes(t)) return "ok";
+  const dMine = Math.min(...mine.map(v => lev(t, v)));
+  if (!mine.some(v => lev(t, v) <= tolerance(v.length))) return "bad";
+  // literówka zaliczona tylko wtedy, gdy wpis jest bliżej tej odpowiedzi niż jakiejkolwiek innej
+  // (np. "coxa valga" nie zaliczy "coxa vara")
+  const mineSet = new Set(mine);
+  const dOther = Math.min(Infinity, ...otherAnswers(dir).filter(v => !mineSet.has(v)).map(v => lev(t, v)));
+  return dMine < dOther ? "typo" : "bad";
 }
 
 // ---------- logika powtórek ----------
@@ -1136,16 +1156,16 @@ function reveal(typed) {
   $("c-answer").hidden = false;
   $("f-input").disabled = true;
   const v = $("c-verdict");
-  if (typed && variants(ans).has(norm(typed))) {
-    v.hidden = false; v.className = "verdict ok"; v.textContent = "✓ Dobrze!";
+  const result = typed ? checkAnswer(typed, ans, dir) : "bad";
+  if (result !== "bad") {
+    v.hidden = false; v.className = "verdict ok";
+    v.textContent = result === "ok" ? "✓ Dobrze!" : "✓ Dobrze! Drobną literówkę pominięto: " + typed;
     setPhase("next");
     document.activeElement && document.activeElement.blur();
   } else {
-    const near = typed && nearMiss(typed, ans);
-    if (near) { v.hidden = false; v.className = "verdict mid"; v.textContent = "Prawie! Literówka w: " + typed; }
-    else if (typed) { v.hidden = false; v.className = "verdict bad"; v.textContent = "Twoja odpowiedź: " + typed; }
+    if (typed) { v.hidden = false; v.className = "verdict bad"; v.textContent = "Twoja odpowiedź: " + typed; }
     else v.hidden = true;
-    $("b-mid").classList.toggle("suggest", !!near);
+    $("b-mid").classList.remove("suggest");
     setPhase("grade");
     document.activeElement && document.activeElement.blur();
   }
