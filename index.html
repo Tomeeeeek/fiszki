@@ -122,6 +122,11 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .round.all .num { font-size: 26px; }
 .round.soon { cursor: default; opacity: .6; }
 .round.soon:hover { background: transparent; }
+/* dziedziny: osobne karty z odstępem zamiast jednej wspólnej listy */
+.rounds.separate { background: none; border: 0; box-shadow: none; overflow: visible; border-radius: 0; gap: 14px; }
+.rounds.separate .round { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.rounds.separate .round:hover { background: var(--accent-soft); }
+.rounds.separate .round.soon:hover { background: var(--paper); }
 .reset { border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; padding: 0; }
 .reset:hover { color: var(--bad); }
 .linkbtn { align-self: flex-start; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 16px; font-size: 14px; }
@@ -318,7 +323,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <button type="button" class="textbtn" id="u-logout">Wyloguj</button>
     </div>
     <span class="eyebrow">Wybierz dziedzinę</span>
-    <div class="rounds" id="sections"></div>
+    <div class="rounds separate" id="sections"></div>
     <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
   </section>
 
