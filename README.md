@@ -1,12 +1,17 @@
-# Fiszki łacińskie
+# Fiszki do nauki
 
-Fiszki z łacińskich określeń medycznych. Słówka, które znasz, wracają coraz rzadziej, a te, których nie pamiętasz, pojawiają się po chwili ponownie (powtórki rozłożone w czasie, system pudełek Leitnera).
+Strona z fiszkami z różnych dziedzin. Fiszki, które znasz, wracają coraz rzadziej, a te, których nie pamiętasz, pojawiają się po chwili ponownie (powtórki rozłożone w czasie, system pudełek Leitnera).
 
 **Strona:** https://tomeeeeek.github.io/fiszki/
 
-- grupy słówek (określenia medyczne różne, w ortopedii, w neurologii, inne dziedziny medyczne), każda podzielona na porcje + powtórka całości
-- kierunek łacina → polski, polski → łacina albo na zmianę
-- ocena: nie pamiętałem / średnio / pamiętałem, wykrywanie literówek
-- postęp zapisywany w przeglądarce
+Struktura: **dziedzina → grupa → porcja**.
 
-Słówka są w pliku `index.html`, w tablicach `ROZNE`, `ORTOPEDIA`, `NEUROLOGIA` i `CHOROBY`, a lista grup w `GROUPS`.
+- Łacina medyczna: określenia medyczne różne, w ortopedii, w neurologii, w innych dziedzinach medycznych
+- Anatomia prawidłowa: w przygotowaniu
+
+Funkcje:
+- kierunek pytań w obie strony albo na zmianę
+- ocena: nie pamiętałem / średnio / pamiętałem; drobne literówki są zaliczane
+- statystyki dla każdego użytkownika, panel administratora z postępem wszystkich osób (Supabase)
+
+Dane fiszek są w `index.html`: dziedziny w `SECTIONS`, grupy łaciny w `GROUPS`.

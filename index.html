@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Fiszki z łacińskich określeń medycznych – nauka metodą powtórek rozłożonych w czasie.">
-<title>Fiszki łacińskie</title>
+<meta name="description" content="Fiszki z różnych dziedzin – nauka metodą powtórek rozłożonych w czasie.">
+<title>Fiszki do nauki</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -120,6 +120,8 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .minibar { display: flex; width: 92px; height: 5px; border-radius: 3px; overflow: hidden; background: var(--grid); }
 .minibar span { display: block; height: 100%; }
 .round.all .num { font-size: 26px; }
+.round.soon { cursor: default; opacity: .6; }
+.round.soon:hover { background: transparent; }
 .reset { border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; padding: 0; }
 .reset:hover { color: var(--bad); }
 .linkbtn { align-self: flex-start; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 16px; font-size: 14px; }
@@ -254,8 +256,8 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <!-- LOGOWANIE -->
   <section id="v-login" class="wrap" style="gap:22px" hidden>
     <header class="top">
-      <span class="eyebrow">Łacina medyczna · wejściówki</span>
-      <h1>Fiszki <em>łacińskie</em></h1>
+      <span class="eyebrow">Nauka metodą powtórek</span>
+      <h1>Fiszki <em>do nauki</em></h1>
       <p>Wpisz swoje imię i nazwisko, żeby zacząć naukę.</p>
     </header>
     <form class="panel" id="login-form" novalidate>
@@ -303,36 +305,48 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <div class="wrap" id="ud-body" style="gap:16px; width:100%"></div>
   </section>
 
-  <!-- GRUPY -->
-  <section id="v-groups" class="wrap" style="gap:22px" hidden>
+  <!-- DZIEDZINY -->
+  <section id="v-sections" class="wrap" style="gap:22px" hidden>
     <header class="top">
-      <span class="eyebrow">Łacina medyczna · wejściówki</span>
-      <h1>Fiszki <em>łacińskie</em></h1>
-      <p>Słówka, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Słówko jest opanowane po czterech udanych powtórkach z rzędu.</p>
+      <span class="eyebrow">Nauka metodą powtórek</span>
+      <h1>Fiszki <em>do nauki</em></h1>
+      <p>Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu.</p>
     </header>
     <div class="userbar">
       <span>Zalogowany: <b id="u-name"></b></span>
       <button type="button" class="textbtn" id="u-admin" hidden>Panel administratora</button>
       <button type="button" class="textbtn" id="u-logout">Wyloguj</button>
     </div>
-    <span class="eyebrow">Wybierz grupę słówek</span>
-    <div class="rounds" id="groups"></div>
+    <span class="eyebrow">Wybierz dziedzinę</span>
+    <div class="rounds" id="sections"></div>
     <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
+  </section>
+
+  <!-- GRUPY -->
+  <section id="v-groups" class="wrap" style="gap:22px" hidden>
+    <div class="studybar"><button type="button" class="back" id="g-back">← Dziedziny</button></div>
+    <header class="top">
+      <span class="eyebrow">Dziedzina</span>
+      <h1 class="group" id="g-title"></h1>
+      <p id="g-sub"></p>
+    </header>
+    <span class="eyebrow">Wybierz grupę</span>
+    <div class="rounds" id="groups"></div>
   </section>
 
   <!-- MENU GRUPY -->
   <section id="v-home" class="wrap" style="gap:22px" hidden>
     <div class="studybar"><button type="button" class="back" id="h-back">← Grupy</button></div>
     <header class="top">
-      <span class="eyebrow">Grupa słówek</span>
+      <span class="eyebrow" id="h-eyebrow">Grupa</span>
       <h1 class="group" id="h-title"></h1>
       <p id="h-sub"></p>
     </header>
 
     <div class="settings">
       <div class="seg" role="group" aria-label="Kierunek pytań" id="dir">
-        <button type="button" data-dir="lp">łacina → polski</button>
-        <button type="button" data-dir="pl">polski → łacina</button>
+        <button type="button" data-dir="lp" id="dir-lp">łacina → polski</button>
+        <button type="button" data-dir="pl" id="dir-pl">polski → łacina</button>
         <button type="button" data-dir="mix">na zmianę</button>
       </div>
       <label class="check"><input type="checkbox" id="shuffle"> losowa kolejność</label>
@@ -402,7 +416,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <section id="v-list" class="wrap" style="gap:16px" hidden>
     <div class="studybar">
       <button type="button" class="back" id="l-back">← Menu</button>
-      <div class="title" id="l-title">Wszystkie słówka</div>
+      <div class="title" id="l-title">Wszystkie fiszki</div>
     </div>
     <div class="wordlist" id="l-body"></div>
   </section>
@@ -670,7 +684,20 @@ for (const g of GROUPS) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
     words: g.rounds.flatMap(r => r.words) });
 }
-let G = GROUPS[0], ROUNDS = G.rounds;
+
+// Dziedziny (sekcje strony). Każda dziedzina ma własne grupy fiszek.
+// sides: nazwy stron karty – a = pierwszy element pary w danych, b = drugi.
+const SECTIONS = [
+  { id: "lacina", name: "Łacina medyczna", desc: "Określenia łacińskie z tłumaczeniem na polski",
+    sides: { a: "łacina", b: "polski", aIn: "po łacinie", bIn: "po polsku", italicA: true },
+    unit: ["słówko", "słówka", "słówek"], groups: GROUPS },
+  { id: "anatomia", name: "Anatomia prawidłowa", desc: "Fiszki w przygotowaniu", soon: true,
+    sides: { a: "pojęcie", b: "odpowiedź", aIn: "pojęcie", bIn: "odpowiedź", italicA: false },
+    unit: ["fiszka", "fiszki", "fiszek"], groups: [] },
+];
+const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
+let S = SECTIONS[0], G = GROUPS[0], ROUNDS = G.rounds;
+const units = (n, sec = S) => plural(n, ...sec.unit);
 
 const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
 const MASTER = GAPS.length;       // pudełko = opanowane
@@ -717,7 +744,7 @@ const tolerance = len => len <= 3 ? 0 : len <= 7 ? 1 : 2;
 const ANSWER_CACHE = {};
 function otherAnswers(dir) {   // wszystkie odpowiedzi w danym kierunku (polskie albo łacińskie)
   if (!ANSWER_CACHE[dir]) {
-    const words = GROUPS.flatMap(g => g.rounds.flatMap(r => r.words));
+    const words = ALL_GROUPS.flatMap(g => g.rounds.flatMap(r => r.words));
     const list = new Set();
     for (const [l, p] of words) for (const v of variants(dir === "lp" ? p : l)) list.add(squeeze(v));
     ANSWER_CACHE[dir] = [...list];
@@ -741,9 +768,9 @@ function checkAnswer(typed, ans, dir) {
 
 // ---------- logika powtórek ----------
 const $ = id => document.getElementById(id);
-let lastView = "groups";   // ostatni widok fiszek – tu wraca przełącznik administratora
+let lastView = "sections";   // ostatni widok fiszek – tu wraca przełącznik administratora
 function show(v) {
-  ["login", "admin", "user", "me", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+  ["login", "admin", "user", "me", "sections", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
   if (!["admin", "user", "login", "me"].includes(v)) lastView = v;
   $("topbar").hidden = v === "login" || !user;
   $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
@@ -809,11 +836,11 @@ async function report(newVisit) {
   } catch (e) { /* brak sieci – nauka działa dalej */ }
 }
 // ---------- podsumowanie postępu wysyłane do bazy (widzi je administrator) ----------
-const WORD_PL = new Map(GROUPS.flatMap(g => g.rounds.flatMap(r => r.words)));
+const WORD_PL = new Map(ALL_GROUPS.flatMap(g => g.rounds.flatMap(r => r.words)));
 function buildProgress() {
   return {
     v: 1, t: new Date().toISOString(),
-    groups: GROUPS.map(g => ({ id: g.id, name: g.name, rounds: g.rounds.map(r => {
+    groups: ALL_GROUPS.map(g => ({ id: g.id, name: g.name, section: g.section.name, rounds: g.rounds.map(r => {
       const st = store.rounds[r.id], x = store.stats[r.id] || {}, total = r.words.length;
       const done = store.done.includes(r.id);
       return { id: r.id, name: r.name, range: r.range, all: r.id === g.allId, total,
@@ -883,7 +910,7 @@ $("login-form").addEventListener("submit", async e => {
     return;
   }
   signIn(name);
-  renderGroups();
+  renderSections();
 });
 function signIn(name) {
   const same = user && norm(user.name) === norm(name);
@@ -923,7 +950,7 @@ function summarize(pg) {
 function progressHTML(pg, sm) {
   const ans = sm.yes + sm.mid + sm.no;
   const tiles = `<div class="tiles">
-    <div class="tile"><span class="k">Opanowane słówka</span><b>${pct(sm.mastered, sm.words)}</b><small>${sm.mastered} z ${sm.words}</small></div>
+    <div class="tile"><span class="k">Opanowane fiszki</span><b>${pct(sm.mastered, sm.words)}</b><small>${sm.mastered} z ${sm.words}</small></div>
     <div class="tile"><span class="k">Porcje ukończone</span><b>${sm.partsDone}/${sm.parts}</b><small>bez powtórek całości</small></div>
     <div class="tile"><span class="k">Odpowiedzi</span><b>${ans}</b><small>łącznie we wszystkich porcjach</small></div>
     <div class="tile"><span class="k">Skuteczność</span><b>${pct(sm.yes, ans)}</b><small>odpowiedzi „pamiętałem”</small></div>
@@ -932,7 +959,7 @@ function progressHTML(pg, sm) {
     <div class="split"><span style="width:${sm.yes / ans * 100}%;background:var(--ok)"></span><span style="width:${sm.mid / ans * 100}%;background:var(--mid)"></span><span style="width:${sm.no / ans * 100}%;background:var(--bad)"></span></div>
     <div class="legend"><span><i style="background:var(--ok)"></i>dobrze ${sm.yes} (${pct(sm.yes, ans)})</span><span><i style="background:var(--mid)"></i>średnio ${sm.mid} (${pct(sm.mid, ans)})</span><span><i style="background:var(--bad)"></i>źle ${sm.no} (${pct(sm.no, ans)})</span></div>
   </div>` : "";
-  const groups = pg.groups.map(g => `<div class="panel"><h3>${esc(g.name)}</h3>${g.rounds.map(r => {
+  const groups = pg.groups.map(g => `<div class="panel">${g.section ? `<span class="eyebrow">${esc(g.section)}</span>` : ""}<h3>${esc(g.name)}</h3>${g.rounds.map(r => {
     const a = (r.yes || 0) + (r.mid || 0) + (r.no || 0);
     const chip = r.status === "ukończona" ? `<span class="chip done">✓ ukończona${r.done > 1 ? ` ×${r.done}` : ""}</span>`
       : r.status === "w trakcie" ? `<span class="chip prog">w trakcie</span>` : `<span class="chip">nie zaczęta</span>`;
@@ -942,7 +969,7 @@ function progressHTML(pg, sm) {
       <span class="pstat">${r.mastered}/${r.total} opanowane · ${a ? `${a} ${plural(a, "odpowiedź", "odpowiedzi", "odpowiedzi")} · ${pct(r.yes || 0, a)} dobrze` : "brak odpowiedzi"}</span>
     </div>`;
   }).join("")}</div>`).join("");
-  const hard = pg.hard && pg.hard.length ? `<div class="panel"><h3>Najtrudniejsze słówka</h3><table class="tbl">${pg.hard.map(h =>
+  const hard = pg.hard && pg.hard.length ? `<div class="panel"><h3>Najtrudniejsze fiszki</h3><table class="tbl">${pg.hard.map(h =>
     `<tr><td>${esc(h.l)}</td><td>${esc(h.p)}</td><td style="text-align:right;white-space:nowrap" class="c">${h.n % 1 ? h.n.toFixed(1).replace(".", ",") : h.n} ${plural(Math.ceil(h.n), "błąd", "błędy", "błędów")}</td></tr>`).join("")}</table>
     <p class="note">„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.</p></div>` : "";
   return tiles + split + groups + hard;
@@ -1003,7 +1030,8 @@ setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany wid
   } catch (e) {}
 }, 30000);
 function backToCards() {
-  if (lastView === "groups") renderGroups();
+  if (lastView === "sections") renderSections();
+  else if (lastView === "groups") renderGroups();
   else if (lastView === "home") renderHome();
   else show(lastView);   // nauka/lista wracają dokładnie tam, gdzie były
 }
@@ -1026,13 +1054,41 @@ $("adminswitch").addEventListener("click", e => {
   else backToCards();
 });
 
+// ---------- dziedziny ----------
+function renderSections() {
+  if (!user) return showLogin();
+  $("u-name").textContent = user.name;
+  $("u-admin").hidden = !isAdminName(user.name);
+  $("sections").innerHTML = SECTIONS.map((sec, i) => {
+    if (sec.soon || !sec.groups.length) return `<div class="round soon" aria-disabled="true">
+      <span class="num">${i + 1}</span><span class="name">${esc(sec.name)}</span>
+      <span class="meta"><span class="chip">wkrótce</span></span><span class="range">${esc(sec.desc)}</span></div>`;
+    const parts = sec.groups.flatMap(g => g.rounds.filter(r => r.id !== g.allId));
+    const cards = parts.reduce((n, r) => n + r.words.length, 0);
+    const done = parts.filter(r => store.done.includes(r.id) && !store.rounds[r.id]).length;
+    const chip = done ? `<span class="chip prog">${done}/${parts.length} porcji ukończone</span>`
+      : `<span class="chip">${sec.groups.length} ${plural(sec.groups.length, "grupa", "grupy", "grup")}</span>`;
+    return `<button type="button" class="round" data-section="${i}">
+      <span class="num">${i + 1}</span>
+      <span class="name">${esc(sec.name)}</span>
+      <span class="meta">${chip}</span>
+      <span class="range">${esc(sec.desc)} · ${cards} ${units(cards, sec)}</span>
+    </button>`;
+  }).join("");
+  show("sections");
+}
+$("sections").addEventListener("click", e => {
+  const b = e.target.closest("[data-section]"); if (b) { S = SECTIONS[+b.dataset.section]; renderGroups(); }
+});
+$("g-back").addEventListener("click", renderSections);
+
 // ---------- grupy ----------
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 function renderGroups() {
   if (!user) return showLogin();
-  $("u-name").textContent = user.name;
-  $("u-admin").hidden = !isAdminName(user.name);
-  $("groups").innerHTML = GROUPS.map((g, i) => {
+  $("g-title").textContent = S.name;
+  $("g-sub").textContent = S.desc;
+  $("groups").innerHTML = S.groups.map((g, i) => {
     const parts = g.rounds.filter(r => r.id !== g.allId);
     const words = parts.reduce((n, r) => n + r.words.length, 0);
     const done = parts.filter(r => store.done.includes(r.id) && !store.rounds[r.id]).length;
@@ -1044,13 +1100,13 @@ function renderGroups() {
       <span class="num">${ROMAN[i] || i + 1}</span>
       <span class="name">${g.name}</span>
       <span class="meta">${chip}</span>
-      <span class="range">${g.range} · ${words} ${plural(words, "słówko", "słówka", "słówek")}</span>
+      <span class="range">${g.range} · ${words} ${units(words)}</span>
     </button>`;
   }).join("");
   show("groups");
 }
 function openGroup(i) {
-  G = GROUPS[i]; ROUNDS = G.rounds;
+  G = S.groups[i]; ROUNDS = G.rounds;
   store.group = G.id; save();
   renderHome();
 }
@@ -1063,7 +1119,12 @@ $("h-back").addEventListener("click", renderGroups);
 function renderHome() {
   const parts = ROUNDS.length - 1;
   $("h-title").textContent = G.name;
-  $("h-sub").textContent = `${G.range} · ${ROUNDS[ROUNDS.length - 1].words.length} ${plural(ROUNDS[ROUNDS.length - 1].words.length, "słówko", "słówka", "słówek")} w ${parts} ${parts === 1 ? "porcji" : "porcjach"}`;
+  const total = ROUNDS[ROUNDS.length - 1].words.length;
+  $("h-eyebrow").textContent = S.name;
+  $("h-sub").textContent = `${G.range} · ${total} ${units(total)} w ${parts} ${parts === 1 ? "porcji" : "porcjach"}`;
+  $("dir-lp").textContent = `${S.sides.a} → ${S.sides.b}`;
+  $("dir-pl").textContent = `${S.sides.b} → ${S.sides.a}`;
+  $("showlist").textContent = `Pokaż listę wszystkich ${S.unit[2]}`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
   $("rounds").innerHTML = ROUNDS.map((r, i) => {
@@ -1074,7 +1135,7 @@ function renderHome() {
       const { c, total } = counts(st);
       chip = `<span class="chip prog">${c[MASTER]}/${total} opanowane</span>`;
       bar = `<span class="minibar">${c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}"></span>`).join("")}</span>`;
-    } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} ${plural(r.words.length, "słówko", "słówka", "słówek")}</span>`;
+    } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} ${units(r.words.length)}</span>`;
     const reset = st ? `<span class="reset" role="button" tabindex="0" data-reset="${r.id}">zacznij od nowa</span>` : "";
     const num = r.id === G.allId ? "∑" : i + 1;
     return `<button type="button" class="round${r.id === G.allId ? " all" : ""}" data-round="${i}">
@@ -1128,14 +1189,14 @@ function nextCard() {
   const dir = store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
-  $("c-lang").textContent = lat ? "łacina" : "po polsku";
+  $("c-lang").textContent = lat ? S.sides.a : S.sides.b;
   $("c-prompt").textContent = lat ? card.l : card.p;
-  $("c-prompt").className = "prompt" + (lat ? " lat" : "");
+  $("c-prompt").className = "prompt" + (lat && S.sides.italicA ? " lat" : "");
   $("c-new").hidden = card.seen;
   $("c-answer").hidden = true;
   $("f-input").value = "";
   $("f-input").disabled = false;
-  $("f-input").placeholder = lat ? "Wpisz po polsku (opcjonalnie)…" : "Wpisz po łacinie (opcjonalnie)…";
+  $("f-input").placeholder = `Wpisz ${lat ? S.sides.bIn : S.sides.aIn} (opcjonalnie)…`;
   setPhase("ask");
   if (matchMedia("(hover: hover)").matches) $("f-input").focus();
 }
@@ -1150,9 +1211,9 @@ function reveal(typed) {
   if (cur.phase !== "ask") return;
   const { card, dir } = cur;
   const ans = dir === "lp" ? card.p : card.l;
-  $("c-anslabel").textContent = dir === "lp" ? "po polsku" : "po łacinie";
+  $("c-anslabel").textContent = dir === "lp" ? S.sides.bIn : S.sides.aIn;
   $("c-anstext").textContent = ans;
-  $("c-anstext").className = "text" + (dir === "pl" ? " lat" : "");
+  $("c-anstext").className = "text" + (dir === "pl" && S.sides.italicA ? " lat" : "");
   $("c-answer").hidden = false;
   $("f-input").disabled = true;
   const v = $("c-verdict");
@@ -1206,12 +1267,12 @@ function finishRound() {
   syncProgress();
   $("d-title").textContent = r.name + " ukończona";
   const errs = st.cards.reduce((s, c) => s + c.err, 0);
-  $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>${plural(st.cards.length, "słówko", "słówka", "słówek")}</span></div>
+  $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>${units(st.cards.length)}</span></div>
     <div><b>${st.answers}</b><span>odpowiedzi</span></div><div><b>${errs}</b><span>pomyłek</span></div>`;
   const score = c => c.err + (c.half || 0) / 2;
   const hard = st.cards.filter(score).sort((a, b) => score(b) - score(a)).slice(0, 8);
   $("d-hard").hidden = !hard.length;
-  $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze słówka</h3><table class="tbl">${hard.map(c =>
+  $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze ${S.unit[1]}</h3><table class="tbl">${hard.map(c =>
     `<tr><td>${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td>${esc(c.p)}</td></tr>`).join("")}</table>` : "";
   const nx = cur.ri + 1 < ROUNDS.length ? cur.ri + 1 : null;
   $("d-next").hidden = nx === null;
@@ -1253,7 +1314,7 @@ $("showlist").addEventListener("click", () => {
 });
 $("l-back").addEventListener("click", renderHome);
 
-if (user && user.name) { lastPing = Date.now(); report(true); renderGroups(); }
+if (user && user.name) { lastPing = Date.now(); report(true); renderSections(); }
 else showLogin();
 </script>
 </body>
