@@ -212,6 +212,8 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .cimg { position: relative; align-self: center; max-width: 100%; line-height: 0; }
 .cimg img { display: block; max-width: 100%; max-height: min(600px, 64vh); width: auto; height: auto; border-radius: 10px; background: #ffffff; }
 .cimg svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ovimg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.lb-inner .ovimg { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 10px; background: transparent; }
 .zoombtn { position: absolute; right: 8px; bottom: 8px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 1px solid rgba(23,38,44,.18); background: rgba(255,255,255,.92); color: #17262c; box-shadow: 0 2px 8px rgba(0,0,0,.18); line-height: 0; }
 .zoombtn svg { position: static; width: 16px; height: 16px; }
 .zoombtn:hover { background: #ffffff; color: #0e6b5e; }
@@ -286,6 +288,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <div class="lb-inner">
     <img id="lb-img" alt="Powiększony rysunek kości">
     <svg id="lb-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <img id="lb-ov" class="ovimg" alt="" aria-hidden="true" hidden>
   </div>
   <button type="button" class="lb-close" id="lb-close" aria-label="Zamknij powiększenie">✕</button>
 </div>
@@ -423,6 +426,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <div class="cimg" id="c-img" hidden>
         <img id="c-img-src" alt="Rysunek kości z pogrubioną linią wskazującą strukturę">
         <svg id="c-img-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <img id="c-img-ov" class="ovimg" alt="" aria-hidden="true" hidden>
         <button type="button" class="zoombtn" id="c-zoom" aria-label="Powiększ rysunek" title="Powiększ rysunek">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 2h5v1.6H4.7l3 3-1.1 1.1-3-3V7H2V2Zm12 12H9v-1.6h2.3l-3-3 1.1-1.1 3 3V9H14v5Z"/></svg>
         </button>
@@ -1144,7 +1148,26 @@ const KONCZYNA_DOLNA = [
     ["kość piętowa (bok) – bruzda ścięgna mięśnia strzałkowego długiego", "Bruzda ścięgna mięśnia strzałkowego długiego", {"img": "anatomia/kosc-pietowa-bok.webp", "view": "z boku", "hl": [[69.16, 71.88, 67.03, 50.91]]}],
     ["kość piętowa (bok) – wyrostek boczny guza piętowego", "Wyrostek boczny guza piętowego", {"img": "anatomia/kosc-pietowa-bok.webp", "view": "z boku", "hl": [[44.24, 90.42, 41.28, 81.46]]}],
   ] },
-  { id: "kd-skokowa", sub: "Część wolna kończyny dolnej", name: "Kość skokowa", range: "talus", words: [] },
+  { id: "kd-skokowa", sub: "Część wolna kończyny dolnej", name: "Kość skokowa", range: "talus", words: [
+    ["kość skokowa (góra) – powierzchnia stawowa łódkowata", "Powierzchnia stawowa łódkowata", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[74.79, 4.54, 70.29, 7.56]]}],
+    ["kość skokowa (góra) – powierzchnia górna", "Powierzchnia górna (kości skokowej)", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[82.39, 16.53, 75.31, 23.6]]}],
+    ["kość skokowa (góra) – powierzchnia kostkowa przyśrodkowa", "Powierzchnia kostkowa przyśrodkowa", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[23.31, 24.36, 28.67, 25.4]]}],
+    ["kość skokowa (góra) – wyrostek boczny", "Wyrostek boczny (kości skokowej)", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[94.99, 20.78, 84.81, 20.78], [95.68, 21.24, 94.99, 20.78], [94.99, 49.01, 72.02, 49.01], [95.68, 48.53, 94.99, 49.01], [95.68, 21.44, 95.68, 34.46], [95.68, 35.22, 95.68, 48.35], [95.68, 34.46, 97.76, 34.84], [97.76, 34.84, 95.68, 35.22]]}],
+    ["kość skokowa (góra) – powierzchnia kostkowa boczna", "Powierzchnia kostkowa boczna", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[83.94, 52.22, 81.87, 40.51]]}],
+    ["kość skokowa (góra) – bruzda ścięgna mięśnia zginacza długiego palucha", "Bruzda ścięgna mięśnia zginacza długiego palucha", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[26.42, 84.51, 26.6, 79.23]]}],
+    ["kość skokowa (góra) – guzek przyśrodkowy", "Guzek przyśrodkowy (wyrostka tylnego)", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[12.78, 92.07, 12.78, 76.39]]}],
+    ["kość skokowa (góra) – guzek boczny", "Guzek boczny (wyrostka tylnego)", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[48.53, 91.87, 48.7, 81.59]]}],
+    ["kość skokowa (góra) – wyrostek tylny", "Wyrostek tylny (kości skokowej)", {"img": "anatomia/kosc-skokowa-gora.webp", "view": "od góry", "hl": [[12.78, 92.07, 12.78, 76.39], [48.53, 91.87, 48.7, 81.59]]}],
+    ["kość skokowa (bok) – powierzchnia górna", "Powierzchnia górna (kości skokowej)", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[21.21, 26.56, 37.69, 26.56]]}],
+    ["kość skokowa (bok) – powierzchnia kostkowa boczna", "Powierzchnia kostkowa boczna", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[21.81, 36.0, 37.58, 36.16]]}],
+    ["kość skokowa (bok) – wyrostek tylny", "Wyrostek tylny (kości skokowej) / guzek boczny", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[16.25, 52.0, 20.0, 50.4]]}],
+    ["kość skokowa (bok) – powierzchnia stawowa piętowa tylna", "Powierzchnia stawowa piętowa tylna", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[23.4, 68.96, 24.85, 65.92]]}],
+    ["kość skokowa (bok) – powierzchnia stawowa łódkowata", "Powierzchnia stawowa łódkowata", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[87.64, 76.96, 84.6, 71.84]]}],
+    ["kość skokowa (bok) – wyrostek boczny", "Wyrostek boczny (kości skokowej)", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [[27.51, 89.28, 27.51, 55.04], [28.13, 89.92, 27.51, 89.28], [68.85, 89.28, 68.85, 40.64], [68.24, 89.92, 68.85, 89.28], [28.24, 89.92, 47.76, 89.92], [48.73, 89.92, 68.37, 89.92], [47.76, 89.92, 48.24, 91.84], [48.24, 91.84, 48.73, 89.92]]}],
+    ["kość skokowa (bok) – trzon", "Trzon (kości skokowej)", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [], "hlimg": "anatomia/kosc-skokowa-bok-trzon.webp"}],
+    ["kość skokowa (bok) – szyjka", "Szyjka (kości skokowej)", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [], "hlimg": "anatomia/kosc-skokowa-bok-szyjka.webp"}],
+    ["kość skokowa (bok) – głowa", "Głowa (kości skokowej)", {"img": "anatomia/kosc-skokowa-bok.webp", "view": "z boku", "hl": [], "hlimg": "anatomia/kosc-skokowa-bok-glowa.webp"}],
+  ] },
 ];
 const ANATOMIA = [
   { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
@@ -1693,6 +1716,9 @@ function nextCard() {
     $("c-img-src").src = card.x.img;
     $("c-img-hl").innerHTML = (card.x.hl || []).map(([x1, y1, x2, y2]) =>
       `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line>`).join("");
+    // nakładka pikselowa: dokładny kształt złożonych klamer (gotowy przezroczysty obrazek)
+    $("c-img-ov").hidden = !card.x.hlimg;
+    if (card.x.hlimg) $("c-img-ov").src = card.x.hlimg; else $("c-img-ov").removeAttribute("src");
   } else {
     $("c-prompt").textContent = lat ? card.l : card.p;
     $("c-prompt").className = "prompt" + (lat && S.sides.italicA ? " lat" : "");
@@ -1792,6 +1818,8 @@ function finishRound() {
 function openZoom() {
   $("lb-img").src = $("c-img-src").src;
   $("lb-hl").innerHTML = $("c-img-hl").innerHTML;
+  $("lb-ov").hidden = $("c-img-ov").hidden;
+  if (!$("c-img-ov").hidden) $("lb-ov").src = $("c-img-ov").src;
   $("lightbox").hidden = false;
   $("lb-close").focus();
 }
