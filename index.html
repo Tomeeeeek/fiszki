@@ -856,7 +856,19 @@ const KONCZYNA_GORNA = [
     ["kość promieniowa (tył) – powierzchnia stawowa nadgarstkowa", "Powierzchnia stawowa nadgarstkowa", {"img": "anatomia/kosc-promieniowa-tyl.webp", "view": "z tyłu", "hl": [[51.43, 93.73, 51.97, 86.54]]}],
     ["kość promieniowa (tył) – wyrostek rylcowaty", "Wyrostek rylcowaty (kości promieniowej)", {"img": "anatomia/kosc-promieniowa-tyl.webp", "view": "z tyłu", "hl": [[66.49, 89.0, 61.47, 87.67]]}],
   ] },
-  { id: "kg-reka", name: "Kości nadgarstka i ręki", range: "ossa carpi, metacarpi et phalanges", words: [] },
+  { id: "kg-reka", name: "Kości nadgarstka i ręki", range: "ossa carpi, metacarpi et phalanges", words: [
+    ["nadgarstek – kość łódeczkowata", "Kość łódeczkowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[40.27, 17.23, 37.95, 29.59]]}],
+    ["nadgarstek – kość księżycowata", "Kość księżycowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[62.6, 17.6, 60.14, 29.78]]}],
+    ["nadgarstek – kość trójgraniasta", "Kość trójgraniasta", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[79.32, 29.03, 78.63, 35.77]]}],
+    ["nadgarstek – kość grochowata", "Kość grochowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[91.64, 55.24, 91.64, 50.75]]}],
+    ["nadgarstek – haczyk", "Haczyk (kości haczykowatej)", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[78.36, 73.78, 71.23, 69.85]]}],
+    ["nadgarstek – kość haczykowata", "Kość haczykowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[66.3, 81.46, 61.37, 65.36]]}],
+    ["nadgarstek – kość główkowata", "Kość główkowata", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[51.1, 85.96, 46.71, 72.85]]}],
+    ["nadgarstek – kość czworoboczna mniejsza", "Kość czworoboczna mniejsza", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[31.64, 84.83, 31.1, 73.97]]}],
+    ["nadgarstek – kość czworoboczna większa", "Kość czworoboczna większa", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[14.38, 73.22, 18.08, 61.99]]}],
+    ["nadgarstek – guzek kości czworobocznej większej", "Guzek kości czworobocznej większej", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[12.6, 35.39, 16.16, 38.58]]}],
+    ["nadgarstek – guzek kości łódeczkowatej", "Guzek kości łódeczkowatej", {"img": "anatomia/kosci-nadgarstka.webp", "hl": [[24.11, 17.79, 27.4, 38.2]]}],
+  ] },
 ];
 const ANATOMIA = [
   { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
@@ -917,6 +929,7 @@ function variants(ans) {
   for (const sep of [",", "/", ";"]) for (const p of [...raw]) p.split(sep).forEach(x => raw.add(x));
   for (const p of [...raw]) if (p.includes("(")) { raw.add(p.split("(")[0]); raw.add(p.replace(/[()]/g, " ")); }
   const out = new Set([...raw].map(norm));
+  for (const v of [...out]) if (/^kosc /.test(v)) out.add(v.slice(5));   // „kość łódeczkowata” → też „łódeczkowata”
   out.delete("");
   return out;
 }
