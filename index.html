@@ -140,6 +140,24 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; margin: 0; }
 
+/* ---------- postęp użytkownika (panel admina) ---------- */
+.ulink { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--ink); text-align: left; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.ulink:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; }
+.tile { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.tile b { font-family: var(--f-display); font-weight: 400; font-size: 34px; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.tile small { color: var(--muted); font-size: 12.5px; }
+.split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--grid); }
+.split span { display: block; height: 100%; }
+.panel h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 24px; }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding-top: 12px; border-top: 1px solid var(--line); }
+.prow .pn { font-weight: 600; }
+.prow .pn small { font-weight: 400; color: var(--muted); font-family: var(--f-display); font-style: italic; font-size: 16px; margin-left: 6px; }
+.prow .pbar { grid-column: 1 / -1; display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--grid); }
+.prow .pbar span { background: var(--accent); }
+.prow .pstat { grid-column: 1 / -1; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
 /* ---------- nauka ---------- */
 .studybar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .back { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
@@ -254,6 +272,15 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <div class="panel">
       <div class="tblwrap" id="a-body"></div>
     </div>
+  </section>
+
+  <!-- POSTĘP UŻYTKOWNIKA -->
+  <section id="v-user" class="wrap" style="gap:16px" hidden>
+    <div class="studybar">
+      <button type="button" class="back" id="ud-back">← Lista</button>
+      <div class="title" id="ud-title"></div>
+    </div>
+    <div class="wrap" id="ud-body" style="gap:16px; width:100%"></div>
   </section>
 
   <!-- GRUPY -->
@@ -527,8 +554,9 @@ const BOXCOL = ["var(--box0)", "var(--box1)", "var(--box2)", "var(--box3)", "var
 const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opanowane"];
 
 // ---------- zapis ----------
-let store = { dir: "lp", shuffle: true, rounds: {}, done: [] };
+let store = { dir: "lp", shuffle: true, rounds: {}, done: [], stats: {}, hard: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
+store.stats = store.stats || {}; store.hard = store.hard || {};
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
 
 // ---------- porównywanie odpowiedzi ----------
@@ -569,12 +597,12 @@ function variants(ans) {
 const $ = id => document.getElementById(id);
 let lastView = "groups";   // ostatni widok fiszek – tu wraca przełącznik administratora
 function show(v) {
-  ["login", "admin", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
-  if (v !== "admin" && v !== "login") lastView = v;
+  ["login", "admin", "user", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+  if (v !== "admin" && v !== "user" && v !== "login") lastView = v;
   const isAdm = v !== "login" && !!user && isAdminName(user.name);
   $("adminswitch").hidden = !isAdm;
   $("adminswitch").querySelectorAll("button").forEach(b =>
-    b.setAttribute("aria-pressed", String((b.dataset.to === "admin") === (v === "admin"))));
+    b.setAttribute("aria-pressed", String((b.dataset.to === "admin") === (v === "admin" || v === "user"))));
 }
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -615,11 +643,11 @@ const isAdminName = n => norm(n || "") === ADMIN_NAME;
 const device = () => /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "telefon" : "komputer";
 const plural = (n, a, b, c) => n === 1 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
 
-async function rpc(fn, args) {
+async function rpc(fn, args, keepalive) {
   if (!SUPABASE_URL || !SUPABASE_KEY) { const e = new Error("Brak połączenia z bazą"); e.code = "noconfig"; throw e; }
   const headers = { "Content-Type": "application/json", apikey: SUPABASE_KEY };
   if (SUPABASE_KEY.startsWith("eyJ")) headers.Authorization = "Bearer " + SUPABASE_KEY;
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: "POST", headers, body: JSON.stringify(args) });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: "POST", headers, body: JSON.stringify(args), keepalive: !!keepalive });
   const data = await r.json().catch(() => null);
   if (!r.ok) { const e = new Error((data && data.message) || "HTTP " + r.status); e.code = data && data.code; throw e; }
   return data;
@@ -629,8 +657,40 @@ async function report(newVisit) {
   try {
     const id = await rpc("zglos_uzytkownika", { p_id: user.id || null, p_nazwa: user.name, p_urzadzenie: device(), p_nowa_wizyta: newVisit });
     if (id && id !== user.id) { user.id = id; saveUser(); }
+    if (newVisit) syncProgress();
   } catch (e) { /* brak sieci – nauka działa dalej */ }
 }
+// ---------- podsumowanie postępu wysyłane do bazy (widzi je administrator) ----------
+const WORD_PL = new Map(GROUPS.flatMap(g => g.rounds.flatMap(r => r.words)));
+function buildProgress() {
+  return {
+    v: 1, t: new Date().toISOString(),
+    groups: GROUPS.map(g => ({ id: g.id, name: g.name, rounds: g.rounds.map(r => {
+      const st = store.rounds[r.id], x = store.stats[r.id] || {}, total = r.words.length;
+      const done = store.done.includes(r.id);
+      return { id: r.id, name: r.name, range: r.range, all: r.id === g.allId, total,
+        mastered: st ? counts(st).c[MASTER] : done ? total : 0,
+        status: st ? "w trakcie" : done ? "ukończona" : "nowa",
+        yes: x.yes || 0, mid: x.mid || 0, no: x.no || 0, done: x.done || 0 };
+    }) })),
+    hard: Object.entries(store.hard).sort((a, b) => b[1] - a[1]).slice(0, 10)
+      .map(([l, n]) => ({ l, p: WORD_PL.get(l) || "", n })),
+  };
+}
+let syncTimer = null, lastSync = 0;
+async function syncProgress(keepalive) {
+  clearTimeout(syncTimer); syncTimer = null;
+  if (!user || !user.id) return;
+  lastSync = Date.now();
+  try { await rpc("zapisz_postep", { p_id: user.id, p_nazwa: user.name, p_postep: buildProgress() }, keepalive); } catch (e) {}
+}
+function scheduleSync() {   // najwyżej jeden zapis na 20 s
+  if (syncTimer) return;
+  syncTimer = setTimeout(syncProgress, Math.max(0, 20000 - (Date.now() - lastSync)));
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && syncTimer) syncProgress(true);
+});
 function ping() { if (Date.now() - lastPing > 120000) { lastPing = Date.now(); report(false); } }
 
 function showLogin(prefill) {
@@ -687,14 +747,69 @@ function ago(t) {
   return d === 1 ? "wczoraj" : d + " dni temu";
 }
 const fmtDate = t => new Date(t).toLocaleString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+let adminList = [];
+const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "–";
+function summarize(pg) {
+  if (!pg || !pg.groups) return null;
+  const parts = pg.groups.flatMap(g => g.rounds.filter(r => !r.all));
+  const all = pg.groups.flatMap(g => g.rounds);
+  const sum = k => all.reduce((n, r) => n + (r[k] || 0), 0);
+  return {
+    words: parts.reduce((n, r) => n + r.total, 0),
+    mastered: parts.reduce((n, r) => n + r.mastered, 0),
+    partsDone: parts.filter(r => r.status === "ukończona").length,
+    parts: parts.length, yes: sum("yes"), mid: sum("mid"), no: sum("no"),
+  };
+}
+function renderUser(i) {
+  const u = adminList[i]; if (!u) return;
+  const pg = u.postep, sm = summarize(pg);
+  $("ud-title").innerHTML = `${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
+  if (!sm) {
+    $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
+    return show("user");
+  }
+  const ans = sm.yes + sm.mid + sm.no;
+  const tiles = `<div class="tiles">
+    <div class="tile"><span class="k">Opanowane słówka</span><b>${pct(sm.mastered, sm.words)}</b><small>${sm.mastered} z ${sm.words}</small></div>
+    <div class="tile"><span class="k">Porcje ukończone</span><b>${sm.partsDone}/${sm.parts}</b><small>bez powtórek całości</small></div>
+    <div class="tile"><span class="k">Odpowiedzi</span><b>${ans}</b><small>łącznie we wszystkich porcjach</small></div>
+    <div class="tile"><span class="k">Skuteczność</span><b>${pct(sm.yes, ans)}</b><small>odpowiedzi „pamiętałem”</small></div>
+  </div>`;
+  const split = ans ? `<div class="panel" style="gap:8px">
+    <div class="split"><span style="width:${sm.yes / ans * 100}%;background:var(--ok)"></span><span style="width:${sm.mid / ans * 100}%;background:var(--mid)"></span><span style="width:${sm.no / ans * 100}%;background:var(--bad)"></span></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>pamiętał ${sm.yes} (${pct(sm.yes, ans)})</span><span><i style="background:var(--mid)"></i>średnio ${sm.mid} (${pct(sm.mid, ans)})</span><span><i style="background:var(--bad)"></i>nie pamiętał ${sm.no} (${pct(sm.no, ans)})</span></div>
+  </div>` : "";
+  const groups = pg.groups.map(g => `<div class="panel"><h3>${esc(g.name)}</h3>${g.rounds.map(r => {
+    const a = (r.yes || 0) + (r.mid || 0) + (r.no || 0);
+    const chip = r.status === "ukończona" ? `<span class="chip done">✓ ukończona${r.done > 1 ? ` ×${r.done}` : ""}</span>`
+      : r.status === "w trakcie" ? `<span class="chip prog">w trakcie</span>` : `<span class="chip">nie zaczęta</span>`;
+    return `<div class="prow">
+      <span class="pn">${esc(r.name)}<small>${esc(r.range)}</small></span>${chip}
+      <span class="pbar"><span style="width:${r.total ? r.mastered / r.total * 100 : 0}%"></span></span>
+      <span class="pstat">${r.mastered}/${r.total} opanowane · ${a ? `${a} ${plural(a, "odpowiedź", "odpowiedzi", "odpowiedzi")} · ${pct(r.yes || 0, a)} dobrze` : "brak odpowiedzi"}</span>
+    </div>`;
+  }).join("")}</div>`).join("");
+  const hard = pg.hard && pg.hard.length ? `<div class="panel"><h3>Najtrudniejsze słówka</h3><table class="tbl">${pg.hard.map(h =>
+    `<tr><td>${esc(h.l)}</td><td>${esc(h.p)}</td><td style="text-align:right;white-space:nowrap" class="c">${h.n % 1 ? h.n.toFixed(1).replace(".", ",") : h.n} ${plural(Math.ceil(h.n), "błąd", "błędy", "błędów")}</td></tr>`).join("")}</table>
+    <p class="note">„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.</p></div>` : "";
+  $("ud-body").innerHTML = tiles + split + groups + hard +
+    `<p class="note" style="text-align:center">Dane z przeglądarki użytkownika, zapisane ${ago(u.postep_aktualizacja || pg.t)}.</p>`;
+  show("user");
+}
+$("a-body").addEventListener("click", e => { const b = e.target.closest("[data-user]"); if (b) renderUser(+b.dataset.user); });
+$("ud-back").addEventListener("click", () => show("admin"));
 function renderAdmin(list) {
+  adminList = list;
   const active = list.filter(u => Date.now() - new Date(u.ostatnia_aktywnosc) < 10 * 60000).length;
   $("a-sub").textContent = `${list.length} ${plural(list.length, "osoba", "osoby", "osób")} · ${active} ${plural(active, "aktywna", "aktywne", "aktywnych")} teraz`;
   $("a-body").innerHTML = list.length ? `<table class="utbl">
-    <thead><tr><th>Imię i nazwisko</th><th>Ostatnio aktywny</th><th>Pierwsze wejście</th><th>Wejścia</th><th>Urządzenie</th></tr></thead>
-    <tbody>${list.map(u => {
+    <thead><tr><th>Imię i nazwisko</th><th>Opanowane</th><th>Ostatnio aktywny</th><th>Pierwsze wejście</th><th>Wejścia</th><th>Urządzenie</th></tr></thead>
+    <tbody>${list.map((u, i) => {
       const on = Date.now() - new Date(u.ostatnia_aktywnosc) < 10 * 60000;
-      return `<tr><td class="n"><span class="dot${on ? " on" : ""}"></span>${esc(u.imie_nazwisko)}</td>
+      const sm = summarize(u.postep);
+      return `<tr><td class="n"><span class="dot${on ? " on" : ""}"></span><button type="button" class="ulink" data-user="${i}">${esc(u.imie_nazwisko)}</button></td>
+        <td>${sm ? pct(sm.mastered, sm.words) : "–"}</td>
         <td>${ago(u.ostatnia_aktywnosc)}</td><td class="c">${fmtDate(u.pierwsze_wejscie)}</td>
         <td>${u.liczba_wejsc}</td><td class="c">${esc(u.urzadzenie || "–")}</td></tr>`;
     }).join("")}</tbody></table>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
@@ -884,13 +999,21 @@ function grade(level) {
   const gap = level === "mid" ? Math.max(2, Math.ceil(GAPS[card.box] / 2)) : GAPS[card.box];
   if (card.box < MASTER) card.due = st.step + gap + (Math.random() < .5 ? 1 : 0);
   else toast(`★ ${card.l} – opanowane!`);
+  const x = store.stats[ROUNDS[cur.ri].id] = store.stats[ROUNDS[cur.ri].id] || { yes: 0, mid: 0, no: 0, done: 0 };
+  x[level]++;
+  const miss = level === "no" ? 1 : level === "mid" ? 0.5 : 0;
+  if (miss) store.hard[card.l] = (store.hard[card.l] || 0) + miss;
   save();
+  scheduleSync();
   nextCard();
 }
 function finishRound() {
   const r = ROUNDS[cur.ri], st = cur.st;
   if (!store.done.includes(r.id)) store.done.push(r.id);
+  const x = store.stats[r.id] = store.stats[r.id] || { yes: 0, mid: 0, no: 0, done: 0 };
+  x.done++;
   delete store.rounds[r.id]; save();
+  syncProgress();
   $("d-title").textContent = r.name + " ukończona";
   const errs = st.cards.reduce((s, c) => s + c.err, 0);
   $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>słówek</span></div>
