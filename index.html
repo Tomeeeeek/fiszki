@@ -136,7 +136,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .utbl td { padding: 10px 12px 10px 0; border-top: 1px solid var(--line); white-space: nowrap; }
 .utbl td.n { white-space: normal; font-weight: 600; min-width: 150px; }
 .utbl td.c { color: var(--muted); }
-.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--line); margin-right: 7px; vertical-align: 1px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); margin-right: 7px; vertical-align: 1px; }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; margin: 0; }
 
@@ -691,6 +691,16 @@ function scheduleSync() {   // najwyżej jeden zapis na 20 s
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden" && syncTimer) syncProgress(true);
 });
+// Obecność na stronie: sygnał co 30 s, gdy karta jest widoczna.
+// Aktywny = ostatni sygnał młodszy niż 2 minuty.
+const ACTIVE_MS = 2 * 60000;
+const isActive = u => Date.now() - new Date(u.ostatnia_aktywnosc) < ACTIVE_MS;
+setInterval(() => {
+  if (user && document.visibilityState === "visible" && $("v-login").hidden) { lastPing = Date.now(); report(false); }
+}, 30000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && user && $("v-login").hidden) { lastPing = Date.now(); report(false); }
+});
 function ping() { if (Date.now() - lastPing > 120000) { lastPing = Date.now(); report(false); } }
 
 function showLogin(prefill) {
@@ -763,8 +773,9 @@ function summarize(pg) {
 }
 function renderUser(i) {
   const u = adminList[i]; if (!u) return;
+  viewedUser = u.imie_nazwisko;
   const pg = u.postep, sm = summarize(pg);
-  $("ud-title").innerHTML = `${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
+  $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
   if (!sm) {
     $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
     return show("user");
@@ -801,18 +812,19 @@ $("a-body").addEventListener("click", e => { const b = e.target.closest("[data-u
 $("ud-back").addEventListener("click", () => show("admin"));
 function renderAdmin(list) {
   adminList = list;
-  const active = list.filter(u => Date.now() - new Date(u.ostatnia_aktywnosc) < 10 * 60000).length;
-  $("a-sub").textContent = `${list.length} ${plural(list.length, "osoba", "osoby", "osób")} · ${active} ${plural(active, "aktywna", "aktywne", "aktywnych")} teraz`;
+  const active = list.filter(isActive).length;
+  $("a-sub").textContent = `${list.length} ${plural(list.length, "osoba", "osoby", "osób")} · ${active} ${plural(active, "aktywna", "aktywne", "aktywnych")} teraz · odświeżane co 30 s`;
   $("a-body").innerHTML = list.length ? `<table class="utbl">
     <thead><tr><th>Imię i nazwisko</th><th>Opanowane</th><th>Ostatnio aktywny</th><th>Pierwsze wejście</th><th>Wejścia</th><th>Urządzenie</th></tr></thead>
     <tbody>${list.map((u, i) => {
-      const on = Date.now() - new Date(u.ostatnia_aktywnosc) < 10 * 60000;
+      const on = isActive(u);
       const sm = summarize(u.postep);
       return `<tr><td class="n"><span class="dot${on ? " on" : ""}"></span><button type="button" class="ulink" data-user="${i}">${esc(u.imie_nazwisko)}</button></td>
         <td>${sm ? pct(sm.mastered, sm.words) : "–"}</td>
         <td>${ago(u.ostatnia_aktywnosc)}</td><td class="c">${fmtDate(u.pierwsze_wejscie)}</td>
         <td>${u.liczba_wejsc}</td><td class="c">${esc(u.urzadzenie || "–")}</td></tr>`;
-    }).join("")}</tbody></table>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
+    }).join("")}</tbody></table>
+    <p class="note" style="margin-top:12px"><span class="dot on"></span>na stronie teraz &nbsp; <span class="dot"></span>nieaktywny ponad 2 min</p>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
   show("admin");
 }
 async function loadAdmin() {
@@ -824,6 +836,20 @@ async function loadAdmin() {
   } finally { $("a-refresh").disabled = false; }
 }
 $("a-refresh").addEventListener("click", loadAdmin);
+let viewedUser = null;
+setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany widoku
+  const onList = !$("v-admin").hidden, onUser = !$("v-user").hidden;
+  if (!adminPass || (!onList && !onUser) || document.visibilityState !== "visible") return;
+  try {
+    const list = await rpc("lista_uzytkownikow", { p_haslo: adminPass });
+    if (onList && !$("v-admin").hidden) { const y = window.scrollY; renderAdmin(list); window.scrollTo(0, y); }
+    else if (onUser && !$("v-user").hidden) {
+      adminList = list;
+      const i = list.findIndex(u => u.imie_nazwisko === viewedUser);
+      if (i >= 0) { const y = window.scrollY; renderUser(i); window.scrollTo(0, y); }
+    }
+  } catch (e) {}
+}, 30000);
 function backToCards() {
   if (lastView === "groups") renderGroups();
   else if (lastView === "home") renderHome();
