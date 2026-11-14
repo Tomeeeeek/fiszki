@@ -86,7 +86,7 @@ body {
 .statsbtn { grid-column: 3; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
 .statsbtn svg { width: 15px; height: 15px; }
 .statsbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.pinbtn { grid-column: 3; grid-row: 2; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
+.pinbtn { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
 .pinbtn svg { width: 15px; height: 15px; }
 .pinbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
@@ -108,7 +108,7 @@ body {
   /* contain: size – panel nie rośnie od listy, tylko dopasowuje się do wysokości kolumny z fiszką */
   #v-study.pinned .pinpanel { order: 0; height: auto; contain: size; }
 }
-@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn, .pinbtn { grid-column: 2; } }
+@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn { grid-column: 2; } }
 button { font: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -297,9 +297,6 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <button type="button" class="back statsbtn" id="statsbtn" aria-pressed="false">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2v5Zm5 0h2V3H7v10Zm5 0h2V6h-2v7ZM1 14.5h14v1H1z"/></svg>Statystyki
     </button>
-    <button type="button" class="back pinbtn" id="pinbtn" aria-pressed="false" hidden>
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M10.2 1 15 5.8l-1.3 1.3-.8-.8-2.7 2.7.3 3.2-1.3 1.3-2.9-2.9L2.1 14.9 1.1 13.9l4.3-4.2-2.9-2.9 1.3-1.3 3.2.3 2.7-2.7-.8-.8z"/></svg><span id="pinbtn-label">Przypnij</span>
-    </button>
   </div>
   <!-- LOGOWANIE -->
   <section id="v-login" class="wrap" style="gap:22px" hidden>
@@ -475,6 +472,9 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <div class="studybar">
       <button type="button" class="back" id="l-back">← Menu</button>
       <div class="title" id="l-title">Wszystkie fiszki</div>
+      <button type="button" class="back pinbtn" id="pinbtn" aria-pressed="false" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M10.2 1 15 5.8l-1.3 1.3-.8-.8-2.7 2.7.3 3.2-1.3 1.3-2.9-2.9L2.1 14.9 1.1 13.9l4.3-4.2-2.9-2.9 1.3-1.3 3.2.3 2.7-2.7-.8-.8z"/></svg><span id="pinbtn-label">Przypnij</span>
+      </button>
     </div>
     <div class="wordlist" id="l-body"></div>
   </section>
