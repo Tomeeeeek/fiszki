@@ -156,6 +156,17 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); margin-right: 7px; vertical-align: 1px; }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; margin: 0; }
+.ulist { list-style: none; margin: 0; padding: 0; }
+.urow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.urow:first-child { border-top: 0; padding-top: 2px; }
+.urow:hover .ulink { color: var(--accent); text-decoration-color: var(--accent); }
+.urow .dot { margin: 7px 0 0; }
+.umain { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.umain .ulink { overflow-wrap: anywhere; }
+.umeta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.upct { text-align: right; }
+.upct b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.upct small { font-size: 11px; color: var(--muted); }
 
 /* ---------- postęp użytkownika (panel admina) ---------- */
 .ulink { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--ink); text-align: left; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
@@ -1002,16 +1013,19 @@ function renderAdmin(list) {
   adminList = list;
   const active = list.filter(isActive).length;
   $("a-sub").textContent = `${list.length} ${plural(list.length, "osoba", "osoby", "osób")} · ${active} ${plural(active, "aktywna", "aktywne", "aktywnych")} teraz · odświeżane co 30 s`;
-  $("a-body").innerHTML = list.length ? `<table class="utbl">
-    <thead><tr><th>Imię i nazwisko</th><th>Opanowane</th><th>Ostatnio aktywny</th><th>Pierwsze wejście</th><th>Wejścia</th><th>Urządzenie</th></tr></thead>
-    <tbody>${list.map((u, i) => {
+  // lista zamiast tabeli: każdy użytkownik to jeden wiersz, który zawija się w pionie
+  $("a-body").innerHTML = list.length ? `<ul class="ulist">${list.map((u, i) => {
       const on = isActive(u);
       const sm = summarize(u.postep);
-      return `<tr><td class="n"><span class="dot${on ? " on" : ""}"></span><button type="button" class="ulink" data-user="${i}">${esc(u.imie_nazwisko)}</button></td>
-        <td>${sm ? pct(sm.mastered, sm.words) : "–"}</td>
-        <td>${ago(u.ostatnia_aktywnosc)}</td><td class="c">${fmtDate(u.pierwsze_wejscie)}</td>
-        <td>${u.liczba_wejsc}</td><td class="c">${esc(u.urzadzenie || "–")}</td></tr>`;
-    }).join("")}</tbody></table>
+      return `<li class="urow" data-user="${i}">
+        <span class="dot${on ? " on" : ""}"></span>
+        <div class="umain">
+          <button type="button" class="ulink">${esc(u.imie_nazwisko)}</button>
+          <span class="umeta">${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
+        </div>
+        <div class="upct"><b>${sm ? pct(sm.mastered, sm.words) : "–"}</b><small>opanowane</small></div>
+      </li>`;
+    }).join("")}</ul>
     <p class="note" style="margin-top:12px"><span class="dot on"></span>na stronie teraz &nbsp; <span class="dot"></span>nieaktywny ponad 2 min</p>` : `<p class="empty">Nikt się jeszcze nie zalogował.</p>`;
   show("admin");
 }
