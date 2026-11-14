@@ -83,6 +83,7 @@ header.top { display: flex; flex-direction: column; gap: 4px; }
 header.top h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(40px, 9vw, 58px); line-height: 1; margin: 0; text-wrap: balance; }
 header.top h1 em { color: var(--accent); }
 header.top p { margin: 6px 0 0; color: var(--muted); max-width: 52ch; }
+header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 
 /* ---------- ustawienia ---------- */
 .settings { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; }
@@ -97,8 +98,12 @@ header.top p { margin: 6px 0 0; color: var(--muted); max-width: 52ch; }
 .round { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 16px; align-items: center; padding: 16px 18px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; text-align: left; width: 100%; }
 .round:first-child { border-top: 0; }
 .round:hover { background: var(--accent-soft); }
-.round .num { grid-row: span 2; font-family: var(--f-display); font-size: 34px; line-height: 1; color: var(--accent); width: 1.4em; text-align: center; }
+.round .num { grid-row: span 2; font-family: var(--f-display); font-size: 34px; line-height: 1; color: var(--accent); width: 48px; text-align: center; }
 .round .name { font-weight: 600; min-width: 0; }
+.round .num { grid-column: 1; grid-row: 1 / span 2; }
+.round .name { grid-column: 2; grid-row: 1; }
+.round .range { grid-column: 2; grid-row: 2; min-width: 0; }
+.round .meta { grid-column: 3; grid-row: 1 / span 2; }
 .round .range { font-family: var(--f-display); font-style: italic; color: var(--muted); font-size: 17px; }
 .round .meta { grid-row: span 2; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .chip { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; background: var(--grid); color: var(--muted); white-space: nowrap; }
@@ -181,7 +186,8 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
 @media (max-width: 460px) {
   .round { grid-template-columns: auto 1fr; padding: 14px; }
-  .round .meta { grid-row: auto; grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .round .num { grid-row: 1 / span 3; }
+  .round .meta { grid-row: 3; grid-column: 2; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
   .card { padding: 22px 16px 18px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
@@ -189,12 +195,25 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </head>
 <body>
 <div class="wrap" id="app">
-  <!-- MENU -->
-  <section id="v-home" class="wrap" style="gap:22px">
+  <!-- GRUPY -->
+  <section id="v-groups" class="wrap" style="gap:22px">
     <header class="top">
-      <span class="eyebrow">Określenia medyczne różne · wejściówka</span>
+      <span class="eyebrow">Łacina medyczna · wejściówki</span>
       <h1>Fiszki <em>łacińskie</em></h1>
       <p>Słówka, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Słówko jest opanowane po czterech udanych powtórkach z rzędu.</p>
+    </header>
+    <span class="eyebrow">Wybierz grupę słówek</span>
+    <div class="rounds" id="groups"></div>
+    <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
+  </section>
+
+  <!-- MENU GRUPY -->
+  <section id="v-home" class="wrap" style="gap:22px" hidden>
+    <div class="studybar"><button type="button" class="back" id="h-back">← Grupy</button></div>
+    <header class="top">
+      <span class="eyebrow">Grupa słówek</span>
+      <h1 class="group" id="h-title"></h1>
+      <p id="h-sub"></p>
     </header>
 
     <div class="settings">
@@ -208,7 +227,6 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
     <div class="rounds" id="rounds"></div>
     <button type="button" class="linkbtn" id="showlist">Pokaż listę wszystkich słówek</button>
-    <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
   </section>
 
   <!-- NAUKA -->
@@ -271,14 +289,14 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <section id="v-list" class="wrap" style="gap:16px" hidden>
     <div class="studybar">
       <button type="button" class="back" id="l-back">← Menu</button>
-      <div class="title">Wszystkie słówka</div>
+      <div class="title" id="l-title">Wszystkie słówka</div>
     </div>
     <div class="wordlist" id="l-body"></div>
   </section>
 </div>
 
 <script>
-const ROUNDS = [
+const ROZNE = [
   { id: "z1", name: "Porcja 1", range: "punctio – vulnus", words: [
     ["punctio", "nakłucie (diagnostyczne lub lecznicze)"],
     ["regio", "okolica"],
@@ -343,8 +361,97 @@ const ROUNDS = [
     ["pronatio", "nawracanie, pronacja"],
   ]},
 ];
-ROUNDS.push({ id: "all", name: "Powtórka całości", range: "wszystkie trzy porcje",
-  words: ROUNDS.flatMap(r => r.words) });
+
+const ORTOPEDIA = [
+  { id: "o1", name: "Porcja 1", range: "abductio – contusio", words: [
+    ["abductio", "odwodzenie"],
+    ["adductio", "przywodzenie"],
+    ["amelia", "brak kończyny"],
+    ["amputatio", "odjęcie kończyny (lub jej części)"],
+    ["ankylosis", "zesztywnienie stawu"],
+    ["arthritis", "zapalenie stawu"],
+    ["arthrodesis", "operacyjne usztywnienie stawu"],
+    ["arthroplastica", "plastyka stawu"],
+    ["arthrosis", "zmiany zwyrodnieniowe stawu"],
+    ["arthrotomia", "operacyjne otwarcie stawu"],
+    ["bursa", "kaletka maziowa"],
+    ["bursitis", "zapalenie kaletki maziowej"],
+    ["callus", "kostnina"],
+    ["chondromalacia", "rozmiękanie chrząstki stawowej"],
+    ["contractura", "przykurcz"],
+    ["contusio", "stłuczenie"],
+  ]},
+  { id: "o2", name: "Porcja 2", range: "coxa – genu varum", words: [
+    ["coxa", "biodro"],
+    ["coxa valga", "biodro koślawe"],
+    ["coxa vara", "biodro szpotawe"],
+    ["coxitis", "zapalenie stawu biodrowego"],
+    ["dislocatio", "przemieszczenie"],
+    ["distorsio", "skręcenie"],
+    ["dorsum", "plecy, grzbiet"],
+    ["dysplasia", "wadliwy rozwój, dysplazja"],
+    ["elongatio", "wydłużenie"],
+    ["endoprothesis articulationis", "endoproteza stawu, sztuczny staw"],
+    ["endoprothesoplastica", "wszczepienie endoprotezy"],
+    ["exsudatum", "wysięk"],
+    ["extensio", "prostowanie, naciągnięcie"],
+    ["flexio", "zginanie"],
+    ["fractura", "złamanie"],
+    ["functio", "czynność"],
+    ["genu", "kolano"],
+    ["genu valgum", "kolano koślawe"],
+    ["genu varum", "kolano szpotawe"],
+  ]},
+  { id: "o3", name: "Porcja 3", range: "gibbus – osteosynthesis", words: [
+    ["gibbus", "garb"],
+    ["gonitis", "zapalenie stawu kolanowego"],
+    ["hallux", "paluch"],
+    ["hyperextensio", "nadmierny wyprost, przeprost"],
+    ["immobilisatio", "unieruchomienie"],
+    ["implantatio", "wszczepienie"],
+    ["infractio", "nadłamanie"],
+    ["kyphosis", "wygięcie kręgosłupa do tyłu (fizjologiczne, w płaszczyźnie strzałkowej)"],
+    ["lordosis", "wygięcie kręgosłupa do przodu (fizjologiczne, w płaszczyźnie strzałkowej)"],
+    ["lumbalis", "lędźwiowy"],
+    ["luxatio", "zwichnięcie"],
+    ["manipulatio", "rękoczyn zwiększający ruch w stawie"],
+    ["mobilisatio", "uruchomienie"],
+    ["myotomia", "przecięcie mięśnia"],
+    ["myositis", "zapalenie mięśnia"],
+    ["osteoporosis", "osteoporoza, zrzeszotnienie kości"],
+    ["osteosynthesis", "operacyjne zespolenie kości"],
+  ]},
+  { id: "o4", name: "Porcja 4", range: "osteotomia – synovectomia", words: [
+    ["osteotomia", "przecięcie kości"],
+    ["plastica", "zabieg wytwórczy"],
+    ["prothesis", "proteza"],
+    ["pseudoarthrosis", "staw rzekomy"],
+    ["redressio", "rozciągnięcie, redresja"],
+    ["repositio", "odprowadzenie, nastawienie"],
+    ["resectio", "wycięcie, resekcja"],
+    ["rigidus", "sztywny"],
+    ["ruptura", "pęknięcie, rozerwanie"],
+    ["scoliosis", "boczne skrzywienie kręgosłupa, skolioza"],
+    ["spondylodesis", "operacyjne usztywnienie kręgosłupa"],
+    ["spondylolisthesis", "kręgozmyk"],
+    ["stenosis", "zwężenie"],
+    ["subluxatio", "podwichnięcie"],
+    ["syndroma", "zespół chorobowy"],
+    ["synovectomia", "wycięcie błony maziowej"],
+  ]},
+];
+
+// Grupy słówek. Każda grupa dostaje na końcu "Powtórkę całości".
+// Uwaga: id porcji muszą być unikalne – pod nimi zapisuje się postęp.
+const GROUPS = [
+  { id: "rozne", name: "Określenia medyczne różne", range: "activus – vulnus", rounds: ROZNE, allId: "all" },
+  { id: "orto", name: "Określenia w ortopedii", range: "abductio – synovectomia", rounds: ORTOPEDIA, allId: "orto-all" },
+];
+for (const g of GROUPS) {
+  g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
+    words: g.rounds.flatMap(r => r.words) });
+}
+let G = GROUPS[0], ROUNDS = G.rounds;
 
 const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
 const MASTER = GAPS.length;       // pudełko = opanowane
@@ -394,7 +501,7 @@ function variants(ans) {
 
 // ---------- logika powtórek ----------
 const $ = id => document.getElementById(id);
-const show = v => ["home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+const show = v => ["groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function freshState(round) {
@@ -420,8 +527,41 @@ function counts(st) {
   return { c, fresh, total: st.cards.length };
 }
 
-// ---------- menu ----------
+// ---------- grupy ----------
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+function renderGroups() {
+  $("groups").innerHTML = GROUPS.map((g, i) => {
+    const parts = g.rounds.filter(r => r.id !== g.allId);
+    const words = parts.reduce((n, r) => n + r.words.length, 0);
+    const done = parts.filter(r => store.done.includes(r.id) && !store.rounds[r.id]).length;
+    const busy = g.rounds.some(r => store.rounds[r.id]);
+    const chip = done === parts.length ? `<span class="chip done">✓ wszystkie porcje</span>`
+      : done || busy ? `<span class="chip prog">${done}/${parts.length} porcji ukończone</span>`
+      : `<span class="chip">${parts.length} porcje</span>`;
+    return `<button type="button" class="round" data-group="${i}">
+      <span class="num">${ROMAN[i] || i + 1}</span>
+      <span class="name">${g.name}</span>
+      <span class="meta">${chip}</span>
+      <span class="range">${g.range} · ${words} słówek</span>
+    </button>`;
+  }).join("");
+  show("groups");
+}
+function openGroup(i) {
+  G = GROUPS[i]; ROUNDS = G.rounds;
+  store.group = G.id; save();
+  renderHome();
+}
+$("groups").addEventListener("click", e => {
+  const b = e.target.closest("[data-group]"); if (b) openGroup(+b.dataset.group);
+});
+$("h-back").addEventListener("click", renderGroups);
+
+// ---------- menu grupy ----------
 function renderHome() {
+  const parts = ROUNDS.length - 1;
+  $("h-title").textContent = G.name;
+  $("h-sub").textContent = `${G.range} · ${ROUNDS[ROUNDS.length - 1].words.length} słówek w ${parts} porcjach`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
   $("rounds").innerHTML = ROUNDS.map((r, i) => {
@@ -434,12 +574,12 @@ function renderHome() {
       bar = `<span class="minibar">${c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}"></span>`).join("")}</span>`;
     } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} słówek</span>`;
     const reset = st ? `<span class="reset" role="button" tabindex="0" data-reset="${r.id}">zacznij od nowa</span>` : "";
-    const num = r.id === "all" ? "∑" : i + 1;
-    return `<button type="button" class="round${r.id === "all" ? " all" : ""}" data-round="${i}">
+    const num = r.id === G.allId ? "∑" : i + 1;
+    return `<button type="button" class="round${r.id === G.allId ? " all" : ""}" data-round="${i}">
       <span class="num">${num}</span>
       <span class="name">${r.name}${st ? " · w trakcie" : ""}</span>
       <span class="meta">${chip}${bar}${reset}</span>
-      <span class="range">${r.range}${r.id === "all" ? ` · ${r.words.length} słówek` : ""}</span>
+      <span class="range">${r.range}</span>
     </button>`;
   }).join("");
   show("home");
@@ -594,14 +734,15 @@ document.addEventListener("keydown", e => {
 
 // ---------- lista ----------
 $("showlist").addEventListener("click", () => {
-  $("l-body").innerHTML = ROUNDS.filter(r => r.id !== "all").map(r =>
+  $("l-title").textContent = G.name;
+  $("l-body").innerHTML = ROUNDS.filter(r => r.id !== G.allId).map(r =>
     `<h2>${r.name}<small>${r.range}</small></h2><table class="tbl">${r.words.map(([l, p]) =>
       `<tr><td>${esc(l)}</td><td>${esc(p)}</td></tr>`).join("")}</table>`).join("");
   show("list");
 });
 $("l-back").addEventListener("click", renderHome);
 
-renderHome();
+renderGroups();
 </script>
 </body>
 </html>
