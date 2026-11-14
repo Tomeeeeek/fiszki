@@ -196,6 +196,29 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .medal { position: relative; width: 84px; height: 84px; display: grid; place-items: center; flex: none;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
 .medal svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* połysk: przesuwający się refleks na monecie i migoczące iskierki (tylko zdobyte medale) */
+.medal::after { content: ""; position: absolute; left: 19%; top: 19%; width: 62%; height: 62%; border-radius: 50%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .75) 50%, transparent 62%) no-repeat;
+  background-size: 300% 100%; background-position: 150% 0; pointer-events: none; opacity: 0; }
+.ach-item:not(.locked) .medal::after { opacity: 1; animation: medal-shine 4.5s ease-in-out infinite; }
+.medal .spark { position: absolute; width: 13px; height: 13px; pointer-events: none; opacity: 0; }
+.medal .spark::before, .medal .spark::after { content: ""; position: absolute; left: 50%; top: 50%; background: #fff; border-radius: 2px;
+  box-shadow: 0 0 4px 1px rgba(255, 250, 210, .9); transform: translate(-50%, -50%); }
+.medal .spark::before { width: 2px; height: 13px; }
+.medal .spark::after { width: 13px; height: 2px; }
+.medal .spark.s1 { left: 24%; top: 22%; }
+.medal .spark.s2 { right: 18%; bottom: 30%; width: 9px; height: 9px; }
+.medal .spark.s2::before { height: 9px; } .medal .spark.s2::after { width: 9px; }
+.ach-item:not(.locked) .medal .spark { animation: medal-spark 3s ease-in-out infinite; }
+.ach-item:not(.locked) .medal .spark.s2 { animation-delay: 1.5s; }
+.ach-item:nth-child(2) .medal::after, .ach-item:nth-child(2) .medal .spark { animation-delay: .8s; }
+.ach-item:nth-child(3) .medal::after, .ach-item:nth-child(3) .medal .spark { animation-delay: 1.6s; }
+@keyframes medal-shine { 0%, 55% { background-position: 150% 0; } 85%, 100% { background-position: -50% 0; } }
+@keyframes medal-spark { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0); } 45% { opacity: 1; transform: scale(1) rotate(45deg); } 70% { opacity: 0; transform: scale(.5) rotate(90deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ach-item:not(.locked) .medal::after, .ach-item:not(.locked) .medal .spark { animation: none; }
+  .ach-item:not(.locked) .medal .spark.s1 { opacity: .9; }
+}
 .medal i { position: relative; font-style: normal; font-family: var(--f-display); font-size: 22px; line-height: 1;
   color: #7a4a00; text-shadow: 0 1px 0 rgba(255, 246, 200, .8); letter-spacing: .02em; }
 .ach-item.locked .medal { filter: grayscale(1); opacity: .35; }
@@ -354,9 +377,9 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 <!-- wspólna grafika medalu (złota moneta z wieńcem laurowym), używana przez <use href="#medal-art"> -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="mg-rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset=".35" stop-color="#f7c928"/><stop offset=".7" stop-color="#d69300"/><stop offset="1" stop-color="#8f5a00"/></linearGradient>
+    <linearGradient id="mg-rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffbe2"/><stop offset=".22" stop-color="#ffe259"/><stop offset=".5" stop-color="#f2b200"/><stop offset=".62" stop-color="#fff0a6"/><stop offset=".78" stop-color="#d99400"/><stop offset="1" stop-color="#8f5a00"/></linearGradient>
     <linearGradient id="mg-rim2" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#e8aa0c"/><stop offset="1" stop-color="#a86d00"/></linearGradient>
-    <radialGradient id="mg-face" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff0a0"/><stop offset=".45" stop-color="#ffcf2e"/><stop offset="1" stop-color="#df9b00"/></radialGradient>
+    <radialGradient id="mg-face" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#fffbe0"/><stop offset=".28" stop-color="#ffe466"/><stop offset=".62" stop-color="#f7bd0a"/><stop offset="1" stop-color="#cf8a00"/></radialGradient>
     <linearGradient id="mg-leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f0b616"/><stop offset="1" stop-color="#b87800"/></linearGradient>
     <symbol id="medal-art" viewBox="0 0 100 100">
       <g fill="none" stroke="#c98a00" stroke-width="1.6" stroke-linecap="round"><path d="M42.62,91.85 L53.70,92.34 L64.54,89.94 L74.38,84.81 L82.56,77.32 L88.52,67.96 L91.85,57.38 L92.34,46.30 L89.94,35.46 L84.81,25.62 L77.32,17.44"/><path d="M57.38,91.85 L46.30,92.34 L35.46,89.94 L25.62,84.81 L17.44,77.32 L11.48,67.96 L8.15,57.38 L7.66,46.30 L10.06,35.46 L15.19,25.62 L22.68,17.44"/></g>
@@ -365,7 +388,9 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <circle cx="50" cy="50" r="26.5" fill="url(#mg-rim2)"/>
       <circle cx="50" cy="50" r="25" fill="url(#mg-face)"/>
       <circle cx="50" cy="50" r="25" fill="none" stroke="#fff4b8" stroke-opacity=".7" stroke-width=".8"/>
-      <ellipse cx="41" cy="36" rx="11" ry="5.5" fill="#fff" opacity=".22" transform="rotate(-30 41 36)"/>
+      <ellipse cx="41" cy="36" rx="12" ry="5.5" fill="#fff" opacity=".42" transform="rotate(-32 41 36)"/>
+      <ellipse cx="38" cy="33" rx="4" ry="2" fill="#fff" opacity=".85" transform="rotate(-32 38 33)"/>
+      <path d="M62 71 A25 25 0 0 0 74 58" fill="none" stroke="#fff6c8" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
     </symbol>
   </defs>
 </svg>
@@ -1657,6 +1682,10 @@ $("a-back").addEventListener("click", backToCards);
 // ---------- osiągnięcia ----------
 // Liczone z postępu w tej przeglądarce (buildProgress), więc nie wymagają zmian w bazie.
 // glyph: znak na medalu (wszystkie medale są złote).
+// osiągnięcie za serię dni: liczy się też seria z przeszłości (bestStreak)
+const streakAch = (name, days, glyph) => ({ name, desc: `Ucz się ${days} dni pod rząd`, glyph,
+  prog: a => a.bestStreak >= days ? { cur: days, max: days, txt: "dni pod rząd" }
+    : { cur: Math.min(a.streak, days), max: days, txt: `${plural(a.streak, "dzień", "dni", "dni")} nauki pod rząd (obecna seria)` } });
 const ACHIEVEMENTS = [
   { name: "Pierwsze Kroki", desc: "Opanuj pierwszą porcję", glyph: "I",
     // postęp: najlepiej opanowana porcja (gdy żadna nie jest jeszcze ukończona)
@@ -1665,9 +1694,8 @@ const ACHIEVEMENTS = [
       : { cur: 0, max: 1, txt: "opanowanych porcji" } },
   { name: "Centurion", desc: "Opanuj 100 słówek", glyph: "C",
     prog: a => ({ cur: Math.min(a.mastered, 100), max: 100, txt: "opanowanych fiszek" }) },
-  { name: "Wieczny Płomień", desc: "Ucz się 14 dni pod rząd", glyph: "XIV",
-    prog: a => a.bestStreak >= 14 ? { cur: 14, max: 14, txt: "dni pod rząd" }
-      : { cur: a.streak, max: 14, txt: `${plural(a.streak, "dzień", "dni", "dni")} nauki pod rząd (obecna seria)` } },
+  streakAch("Wieczny Płomień", 14, "XIV"),
+  streakAch("Niezłomny", 30, "XXX"),
 ];
 // najdłuższa seria w historii (żeby osiągnięcie zaliczyło się też wtedy, gdy seria już minęła)
 function bestStreak() {
@@ -1701,7 +1729,7 @@ function achievementsHTML(pg, sm) {
     const tip = x.ok ? `<b>Zdobyte ✓</b><br>${new Date(store.ach[x.name]).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}`
       : `<b>${x.p.cur}/${x.p.max}</b> ${esc(x.p.txt)}<span class="tbar"><span style="width:${x.p.cur / x.p.max * 100}%"></span></span>`;
     return `<div class="ach-item${x.ok ? "" : " locked"}" tabindex="0" aria-label="${esc(x.name)}: ${esc(x.desc)}${x.ok ? ", zdobyte" : `, postęp ${x.p.cur} z ${x.p.max}`}">
-      <span class="medal" aria-hidden="true"><svg><use href="#medal-art"></use></svg><i>${esc(x.glyph)}</i></span>
+      <span class="medal" aria-hidden="true"><svg><use href="#medal-art"></use></svg><i>${esc(x.glyph)}</i><span class="spark s1"></span><span class="spark s2"></span></span>
       <b>${esc(x.name)}</b><small>${esc(x.desc)}</small>
       <span class="ach-tip" aria-hidden="true">${tip}</span></div>`;
   }).join("")}</div>`;
