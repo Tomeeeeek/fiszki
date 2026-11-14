@@ -192,16 +192,14 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .ach-item b { font-size: 12.5px; line-height: 1.25; }
 .ach-item small { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
 /* medal/moneta: metaliczny gradient, rant i wewnętrzny pierścień */
-.medal { --m1: #fff2c2; --m2: #f1c55a; --m3: #c48a22; --m4: #7d520f; --mi: #5e3c06;
-  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; flex: none;
-  background: radial-gradient(circle at 34% 28%, var(--m1) 0 8%, var(--m2) 34%, var(--m3) 72%, var(--m4) 100%);
-  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .28), inset 0 0 0 4px var(--m4), inset 0 0 0 8px var(--m3),
-    inset 0 0 0 9px rgba(255, 255, 255, .35), 0 3px 8px -2px rgba(0, 0, 0, .35);
-  font-family: var(--f-display); font-size: 25px; line-height: 1; color: var(--mi);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .55); }
-.medal.silver { --m1: #ffffff; --m2: #d9e1e5; --m3: #9aa8ae; --m4: #5d6b71; --mi: #33403f; }
-.medal.bronze { --m1: #ffe1c4; --m2: #dd9a62; --m3: #a8612b; --m4: #6b3912; --mi: #4a250a; }
+/* medal: złota moneta z wieńcem laurowym (grafika #medal-art), znak na środku */
+.medal { position: relative; width: 84px; height: 84px; display: grid; place-items: center; flex: none;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
+.medal svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.medal i { position: relative; font-style: normal; font-family: var(--f-display); font-size: 22px; line-height: 1;
+  color: #7a4a00; text-shadow: 0 1px 0 rgba(255, 246, 200, .8); letter-spacing: .02em; }
 .ach-item.locked .medal { filter: grayscale(1); opacity: .35; }
+.ach-grid { gap: 14px 6px; }
 .ach-item { position: relative; cursor: default; border-radius: 10px; outline-offset: 4px; }
 /* dymek z postępem po najechaniu (lub dotknięciu na telefonie) */
 .ach-tip { position: absolute; bottom: calc(100% - 4px); left: 50%; transform: translate(-50%, 4px); z-index: 3;
@@ -353,6 +351,24 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 </style>
 </head>
 <body>
+<!-- wspólna grafika medalu (złota moneta z wieńcem laurowym), używana przez <use href="#medal-art"> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mg-rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset=".35" stop-color="#f7c928"/><stop offset=".7" stop-color="#d69300"/><stop offset="1" stop-color="#8f5a00"/></linearGradient>
+    <linearGradient id="mg-rim2" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#e8aa0c"/><stop offset="1" stop-color="#a86d00"/></linearGradient>
+    <radialGradient id="mg-face" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff0a0"/><stop offset=".45" stop-color="#ffcf2e"/><stop offset="1" stop-color="#df9b00"/></radialGradient>
+    <linearGradient id="mg-leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f0b616"/><stop offset="1" stop-color="#b87800"/></linearGradient>
+    <symbol id="medal-art" viewBox="0 0 100 100">
+      <g fill="none" stroke="#c98a00" stroke-width="1.6" stroke-linecap="round"><path d="M42.62,91.85 L53.70,92.34 L64.54,89.94 L74.38,84.81 L82.56,77.32 L88.52,67.96 L91.85,57.38 L92.34,46.30 L89.94,35.46 L84.81,25.62 L77.32,17.44"/><path d="M57.38,91.85 L46.30,92.34 L35.46,89.94 L25.62,84.81 L17.44,77.32 L11.48,67.96 L8.15,57.38 L7.66,46.30 L10.06,35.46 L15.19,25.62 L22.68,17.44"/></g>
+      <g fill="url(#mg-leaf)" stroke="#a96f00" stroke-width=".5"><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(42.62 91.85) rotate(66.0) scale(1.05)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(42.62 91.85) rotate(134.0) scale(1.05)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(53.70 92.34) rotate(51.0) scale(1.02)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(53.70 92.34) rotate(119.0) scale(1.02)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(64.54 89.94) rotate(36.0) scale(0.98)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(64.54 89.94) rotate(104.0) scale(0.98)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(74.38 84.81) rotate(21.0) scale(0.95)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(74.38 84.81) rotate(89.0) scale(0.95)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(82.56 77.32) rotate(6.0) scale(0.91)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(82.56 77.32) rotate(74.0) scale(0.91)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(88.52 67.96) rotate(-9.0) scale(0.88)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(88.52 67.96) rotate(59.0) scale(0.88)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(91.85 57.38) rotate(-24.0) scale(0.84)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(91.85 57.38) rotate(44.0) scale(0.84)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(92.34 46.30) rotate(-39.0) scale(0.81)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(92.34 46.30) rotate(29.0) scale(0.81)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(89.94 35.46) rotate(-54.0) scale(0.77)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(89.94 35.46) rotate(14.0) scale(0.77)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(84.81 25.62) rotate(-69.0) scale(0.73)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(84.81 25.62) rotate(-1.0) scale(0.73)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(77.32 17.44) rotate(-84.0) scale(0.70)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(77.32 17.44) rotate(-16.0) scale(0.70)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(71.89 13.57) rotate(-59.0) scale(.7)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(57.38 91.85) rotate(-134.0) scale(1.05)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(57.38 91.85) rotate(-66.0) scale(1.05)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(46.30 92.34) rotate(-119.0) scale(1.02)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(46.30 92.34) rotate(-51.0) scale(1.02)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(35.46 89.94) rotate(-104.0) scale(0.98)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(35.46 89.94) rotate(-36.0) scale(0.98)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(25.62 84.81) rotate(-89.0) scale(0.95)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(25.62 84.81) rotate(-21.0) scale(0.95)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(17.44 77.32) rotate(-74.0) scale(0.91)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(17.44 77.32) rotate(-6.0) scale(0.91)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(11.48 67.96) rotate(-59.0) scale(0.88)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(11.48 67.96) rotate(9.0) scale(0.88)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(8.15 57.38) rotate(-44.0) scale(0.84)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(8.15 57.38) rotate(24.0) scale(0.84)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(7.66 46.30) rotate(-29.0) scale(0.81)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(7.66 46.30) rotate(39.0) scale(0.81)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(10.06 35.46) rotate(-14.0) scale(0.77)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(10.06 35.46) rotate(54.0) scale(0.77)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(15.19 25.62) rotate(1.0) scale(0.73)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(15.19 25.62) rotate(69.0) scale(0.73)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(22.68 17.44) rotate(16.0) scale(0.70)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(22.68 17.44) rotate(84.0) scale(0.70)"/><path d="M0,0 C3.6,-3 3.6,-8.5 0,-12 C-3.6,-8.5 -3.6,-3 0,0Z" transform="translate(28.11 13.57) rotate(59.0) scale(.7)"/></g>
+      <circle cx="50" cy="50" r="31" fill="url(#mg-rim)"/>
+      <circle cx="50" cy="50" r="26.5" fill="url(#mg-rim2)"/>
+      <circle cx="50" cy="50" r="25" fill="url(#mg-face)"/>
+      <circle cx="50" cy="50" r="25" fill="none" stroke="#fff4b8" stroke-opacity=".7" stroke-width=".8"/>
+      <ellipse cx="41" cy="36" rx="11" ry="5.5" fill="#fff" opacity=".22" transform="rotate(-30 41 36)"/>
+    </symbol>
+  </defs>
+</svg>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Powiększony rysunek" hidden>
   <div class="lb-inner">
     <img id="lb-img" alt="Powiększony rysunek kości">
@@ -1640,22 +1656,37 @@ function backToCards() {
 $("a-back").addEventListener("click", backToCards);
 // ---------- osiągnięcia ----------
 // Liczone z postępu w tej przeglądarce (buildProgress), więc nie wymagają zmian w bazie.
-// glyph: znak na medalu, tier: bronze / silver / gold.
+// glyph: znak na medalu (wszystkie medale są złote).
 const ACHIEVEMENTS = [
-  { name: "Pierwsze Kroki", desc: "Opanuj pierwszą porcję", glyph: "I", tier: "bronze",
+  { name: "Pierwsze Kroki", desc: "Opanuj pierwszą porcję", glyph: "I",
     // postęp: najlepiej opanowana porcja (gdy żadna nie jest jeszcze ukończona)
     prog: a => a.partsDone ? { cur: 1, max: 1, txt: "opanowana porcja" }
       : a.best ? { cur: a.best.mastered, max: a.best.total, txt: `opanowanych fiszek w porcji „${a.best.name}” (${a.best.group})` }
       : { cur: 0, max: 1, txt: "opanowanych porcji" } },
-  { name: "Centurion", desc: "Opanuj 100 słówek", glyph: "C", tier: "gold",
+  { name: "Centurion", desc: "Opanuj 100 słówek", glyph: "C",
     prog: a => ({ cur: Math.min(a.mastered, 100), max: 100, txt: "opanowanych fiszek" }) },
+  { name: "Wieczny Płomień", desc: "Ucz się 14 dni pod rząd", glyph: "XIV",
+    prog: a => a.bestStreak >= 14 ? { cur: 14, max: 14, txt: "dni pod rząd" }
+      : { cur: a.streak, max: 14, txt: `${plural(a.streak, "dzień", "dni", "dni")} nauki pod rząd (obecna seria)` } },
 ];
+// najdłuższa seria w historii (żeby osiągnięcie zaliczyło się też wtedy, gdy seria już minęła)
+function bestStreak() {
+  const days = (store.days || []).slice().sort();
+  let best = 0, run = 0, prev = null;
+  for (const k of days) {
+    const d = new Date(k + "T12:00:00");
+    run = prev && Math.round((d - prev) / 864e5) === 1 ? run + 1 : 1;
+    best = Math.max(best, run); prev = d;
+  }
+  return best;
+}
 function achievementsHTML(pg, sm) {
   const rounds = pg.groups.flatMap(g => g.rounds.filter(r => !r.all).map(r => ({ ...r, group: g.name })));
   const best = rounds.filter(r => r.mastered && r.status !== "ukończona")
     .sort((x, y) => y.mastered / y.total - x.mastered / x.total)[0];
   // porcja ukończona choć raz (także taka, którą ktoś zaczął od nowa)
-  const a = { mastered: sm.mastered, partsDone: rounds.filter(r => r.status === "ukończona" || r.done > 0).length, best };
+  const a = { mastered: sm.mastered, partsDone: rounds.filter(r => r.status === "ukończona" || r.done > 0).length, best,
+    streak: streak().n, bestStreak: bestStreak() };
   // zdobyte osiągnięcie zostaje na stałe (store.ach: nazwa → data zdobycia)
   store.ach = store.ach || {};
   let changed = false;
@@ -1670,7 +1701,7 @@ function achievementsHTML(pg, sm) {
     const tip = x.ok ? `<b>Zdobyte ✓</b><br>${new Date(store.ach[x.name]).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}`
       : `<b>${x.p.cur}/${x.p.max}</b> ${esc(x.p.txt)}<span class="tbar"><span style="width:${x.p.cur / x.p.max * 100}%"></span></span>`;
     return `<div class="ach-item${x.ok ? "" : " locked"}" tabindex="0" aria-label="${esc(x.name)}: ${esc(x.desc)}${x.ok ? ", zdobyte" : `, postęp ${x.p.cur} z ${x.p.max}`}">
-      <span class="medal ${x.tier}" aria-hidden="true">${esc(x.glyph)}</span>
+      <span class="medal" aria-hidden="true"><svg><use href="#medal-art"></use></svg><i>${esc(x.glyph)}</i></span>
       <b>${esc(x.name)}</b><small>${esc(x.desc)}</small>
       <span class="ach-tip" aria-hidden="true">${tip}</span></div>`;
   }).join("")}</div>`;
