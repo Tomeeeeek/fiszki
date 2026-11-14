@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Fiszki z łacińskich określeń medycznych – nauka metodą powtórek rozłożonych w czasie.">
+<title>Fiszki łacińskie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: zeszyt w kratkę jako tło, jedna karta-fiszka pośrodku; menu = lista tur jak spis w zeszycie */
+:root {
+  --bg: #f3f6f7;
+  --grid: #dfe8ec;
+  --paper: #ffffff;
+  --ink: #17262c;
+  --muted: #5b6d74;
+  --line: #cfdbe0;
+  --accent: #0e6b5e;        /* zieleń chirurgiczna */
+  --accent-soft: #dcefea;
+  --accent-ink: #ffffff;
+  --ok: #1f7a4a;
+  --ok-soft: #e1f3e8;
+  --bad: #b23a3a;
+  --bad-soft: #f8e4e2;
+  --mid: #9a6a12;
+  --mid-soft: #f7ecd4;
+  --box0: #e9a7a1; --box1: #e8c98a; --box2: #a9cfa0; --box3: #6fb59a; --box4: #0e6b5e;
+  --shadow: 0 1px 0 rgba(23,38,44,.04), 0 10px 30px -12px rgba(23,38,44,.18);
+  --f-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10181c; --grid: #18242a; --paper: #172328; --ink: #e5eef0; --muted: #91a5ac;
+    --line: #2a3b42; --accent: #4fc2a9; --accent-soft: #173a35; --accent-ink: #08201b;
+    --ok: #63cf93; --ok-soft: #173426; --bad: #ef8a80; --bad-soft: #3a1f1f;
+    --mid: #e6bd6a; --mid-soft: #3a2f17;
+    --box0: #b55f58; --box1: #b8975a; --box2: #6f9d66; --box3: #3f8f76; --box4: #4fc2a9;
+    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 14px 34px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10181c; --grid: #18242a; --paper: #172328; --ink: #e5eef0; --muted: #91a5ac;
+  --line: #2a3b42; --accent: #4fc2a9; --accent-soft: #173a35; --accent-ink: #08201b;
+  --ok: #63cf93; --ok-soft: #173426; --bad: #ef8a80; --bad-soft: #3a1f1f;
+  --mid: #e6bd6a; --mid-soft: #3a2f17;
+  --box0: #b55f58; --box1: #b8975a; --box2: #6f9d66; --box3: #3f8f76; --box4: #4fc2a9;
+  --shadow: 0 1px 0 rgba(0,0,0,.2), 0 14px 34px -14px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+img { max-width: 100%; }
+html, body { min-height: 100%; }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- nagłówek ---------- */
+header.top { display: flex; flex-direction: column; gap: 4px; }
+header.top h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(40px, 9vw, 58px); line-height: 1; margin: 0; text-wrap: balance; }
+header.top h1 em { color: var(--accent); }
+header.top p { margin: 6px 0 0; color: var(--muted); max-width: 52ch; }
+
+/* ---------- ustawienia ---------- */
+.settings { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; }
+.seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 14px; border-radius: 999px; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.check { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); cursor: pointer; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* ---------- lista tur ---------- */
+.rounds { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.round { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 16px; align-items: center; padding: 16px 18px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; text-align: left; width: 100%; }
+.round:first-child { border-top: 0; }
+.round:hover { background: var(--accent-soft); }
+.round .num { grid-row: span 2; font-family: var(--f-display); font-size: 34px; line-height: 1; color: var(--accent); width: 1.4em; text-align: center; }
+.round .name { font-weight: 600; min-width: 0; }
+.round .range { font-family: var(--f-display); font-style: italic; color: var(--muted); font-size: 17px; }
+.round .meta { grid-row: span 2; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.chip { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; background: var(--grid); color: var(--muted); white-space: nowrap; }
+.chip.prog { background: var(--accent-soft); color: var(--accent); }
+.chip.done { background: var(--ok-soft); color: var(--ok); }
+.minibar { display: flex; width: 92px; height: 5px; border-radius: 3px; overflow: hidden; background: var(--grid); }
+.minibar span { display: block; height: 100%; }
+.round.all .num { font-size: 26px; }
+.reset { border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; padding: 0; }
+.reset:hover { color: var(--bad); }
+.linkbtn { align-self: flex-start; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 16px; font-size: 14px; }
+.linkbtn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- nauka ---------- */
+.studybar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.back { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
+.back:hover { border-color: var(--accent); }
+.studybar .title { flex: 1; min-width: 0; font-weight: 600; }
+.studybar .title small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+.count { font-family: var(--f-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--paper); border: 1px solid var(--line); }
+.bar span { display: block; height: 100%; transition: width .3s ease; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+.card { position: relative; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 26px 24px 22px; display: flex; flex-direction: column; gap: 18px; min-height: 280px; overflow: hidden; }
+.card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--accent); opacity: .85; }
+.card .head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.badge-new { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+.prompt { font-family: var(--f-display); font-size: clamp(34px, 8vw, 50px); line-height: 1.08; text-align: center; margin: 14px 0 4px; overflow-wrap: anywhere; text-wrap: balance; }
+.prompt.lat { font-style: italic; }
+.answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
+.answer .label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.answer .text { font-size: 22px; font-weight: 500; overflow-wrap: anywhere; }
+.answer .text.lat { font-family: var(--f-display); font-style: italic; font-size: 30px; font-weight: 400; }
+.verdict { align-self: center; font-size: 14px; padding: 4px 12px; border-radius: 999px; }
+.verdict.ok { background: var(--ok-soft); color: var(--ok); }
+.verdict.bad { background: var(--bad-soft); color: var(--bad); }
+.verdict.mid { background: var(--mid-soft); color: var(--mid); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.answerform { display: flex; gap: 10px; flex-wrap: wrap; }
+.answerform input { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 17px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.answerform input::placeholder { color: var(--muted); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { flex: 1 1 160px; border-radius: 12px; padding: 13px 16px; font-weight: 600; border: 1px solid var(--line); background: var(--paper); color: var(--ink); display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.07); }
+.btn.no { background: var(--bad-soft); border-color: transparent; color: var(--bad); }
+.btn.yes { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.btn.mid { background: var(--mid-soft); border-color: transparent; color: var(--mid); }
+.btn.mid:hover, .btn.mid.suggest { border-color: var(--mid); }
+.btn.no:hover { border-color: var(--bad); }
+.btn.yes:hover { border-color: var(--ok); }
+kbd { font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; }
+.hint { font-size: 13px; color: var(--muted); text-align: center; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; box-shadow: var(--shadow); animation: rise .2s ease; z-index: 20; }
+
+/* ---------- koniec tury ---------- */
+.done { text-align: center; align-items: center; }
+.done h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(36px, 8vw, 48px); margin: 4px 0 0; line-height: 1.05; text-wrap: balance; }
+.stats { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.stats div { display: flex; flex-direction: column; }
+.stats b { font-family: var(--f-display); font-weight: 400; font-size: 36px; line-height: 1; color: var(--accent); }
+.stats span { font-size: 13px; color: var(--muted); }
+.hard { width: 100%; text-align: left; border-top: 1px dashed var(--line); padding-top: 14px; }
+.hard h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+
+/* ---------- lista słówek ---------- */
+.wordlist { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 6px 18px 14px; }
+.wordlist h2 { font-family: var(--f-display); font-weight: 400; font-size: 26px; margin: 14px 0 6px; }
+.wordlist h2 small { font-style: italic; color: var(--muted); font-size: 17px; margin-left: 6px; }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl td { padding: 7px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.tbl td:first-child { font-family: var(--f-display); font-style: italic; font-size: 19px; width: 42%; padding-right: 12px; overflow-wrap: anywhere; }
+.tbl td .err { font-family: var(--f-mono); font-size: 11px; color: var(--bad); margin-left: 6px; font-style: normal; }
+
+footer { font-size: 12.5px; color: var(--muted); text-align: center; }
+
+@media (max-width: 460px) {
+  .round { grid-template-columns: auto 1fr; padding: 14px; }
+  .round .meta { grid-row: auto; grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .card { padding: 22px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <!-- MENU -->
+  <section id="v-home" class="wrap" style="gap:22px">
+    <header class="top">
+      <span class="eyebrow">Określenia medyczne różne · wejściówka</span>
+      <h1>Fiszki <em>łacińskie</em></h1>
+      <p>Słówka, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Słówko jest opanowane po czterech udanych powtórkach z rzędu.</p>
+    </header>
+
+    <div class="settings">
+      <div class="seg" role="group" aria-label="Kierunek pytań" id="dir">
+        <button type="button" data-dir="lp">łacina → polski</button>
+        <button type="button" data-dir="pl">polski → łacina</button>
+        <button type="button" data-dir="mix">na zmianę</button>
+      </div>
+      <label class="check"><input type="checkbox" id="shuffle"> losowa kolejność</label>
+    </div>
+
+    <div class="rounds" id="rounds"></div>
+    <button type="button" class="linkbtn" id="showlist">Pokaż listę wszystkich słówek</button>
+    <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
+  </section>
+
+  <!-- NAUKA -->
+  <section id="v-study" class="wrap" style="gap:16px" hidden>
+    <div class="studybar">
+      <button type="button" class="back" id="back">← Menu</button>
+      <div class="title" id="s-title"></div>
+      <span class="count" id="s-count"></span>
+    </div>
+    <div class="bar" id="s-bar"></div>
+    <div class="legend" id="s-legend"></div>
+
+    <article class="card" id="card">
+      <div class="head">
+        <span class="eyebrow" id="c-lang"></span>
+        <span class="badge-new" id="c-new" hidden>NOWE</span>
+      </div>
+      <div class="prompt" id="c-prompt"></div>
+      <div class="answer" id="c-answer" hidden>
+        <span class="label" id="c-anslabel"></span>
+        <div class="text" id="c-anstext"></div>
+        <span class="verdict" id="c-verdict" hidden></span>
+      </div>
+    </article>
+
+    <form class="answerform" id="f-ask" autocomplete="off">
+      <input id="f-input" type="text" placeholder="Wpisz odpowiedź (opcjonalnie)…" spellcheck="false" autocapitalize="off">
+    </form>
+    <div class="actions" id="a-ask">
+      <button type="button" class="btn" id="b-check">Sprawdź <kbd>Enter</kbd></button>
+      <button type="button" class="btn primary" id="b-reveal">Pokaż odpowiedź <kbd>Spacja</kbd></button>
+    </div>
+    <div class="actions" id="a-grade" hidden>
+      <button type="button" class="btn no" id="b-no">✗ Nie pamiętałem <kbd>N</kbd></button>
+      <button type="button" class="btn mid" id="b-mid">~ Średnio <kbd>S</kbd></button>
+      <button type="button" class="btn yes" id="b-yes">✓ Pamiętałem <kbd>T</kbd></button>
+    </div>
+    <div class="actions" id="a-next" hidden>
+      <button type="button" class="btn no" id="b-override">Jednak nie wiedziałem</button>
+      <button type="button" class="btn primary" id="b-next">Dalej <kbd>Enter</kbd></button>
+    </div>
+    <p class="hint" id="hint">Nie musisz nic wpisywać. Możesz od razu pokazać odpowiedź i ocenić się sam.</p>
+  </section>
+
+  <!-- KONIEC TURY -->
+  <section id="v-done" hidden>
+    <article class="card done">
+      <span class="eyebrow">Tura ukończona</span>
+      <h2 id="d-title"></h2>
+      <div class="stats" id="d-stats"></div>
+      <div class="hard" id="d-hard"></div>
+      <div class="actions" style="width:100%">
+        <button type="button" class="btn" id="d-menu">Menu</button>
+        <button type="button" class="btn primary" id="d-next"></button>
+      </div>
+    </article>
+  </section>
+
+  <!-- LISTA -->
+  <section id="v-list" class="wrap" style="gap:16px" hidden>
+    <div class="studybar">
+      <button type="button" class="back" id="l-back">← Menu</button>
+      <div class="title">Wszystkie słówka</div>
+    </div>
+    <div class="wordlist" id="l-body"></div>
+  </section>
+</div>
+
+<script>
+const ROUNDS = [
+  { id: "z1", name: "Zdjęcie 1", range: "punctio – vulnus", words: [
+    ["punctio", "nakłucie (diagnostyczne lub lecznicze)"],
+    ["regio", "okolica"],
+    ["rehabilitatio", "usprawnianie, rehabilitacja"],
+    ["remissio", "remisja, zwolnienie"],
+    ["retractio", "cofnięcie, ściągnięcie"],
+    ["rotatio", "skręcenie, obrót"],
+    ["sanatio", "wyzdrowienie, wyleczenie"],
+    ["sanitas", "zdrowie"],
+    ["segmentum", "odcinek, segment"],
+    ["sinister", "lewy"],
+    ["stadium", "okres, stadium"],
+    ["status", "stan"],
+    ["stimulatio", "pobudzenie"],
+    ["subacutus", "podostry"],
+    ["supinatio", "odwracanie, supinacja"],
+    ["therapia", "leczenie"],
+    ["trauma", "uraz"],
+    ["validus", "zdrowy, silny"],
+    ["vulnus", "rana"],
+  ]},
+  { id: "z2", name: "Zdjęcie 2", range: "activus – etiologia", words: [
+    ["activus", "czynny"],
+    ["acutus", "ostry"],
+    ["astaticus", "niestatyczny, niemogący stać"],
+    ["asthenia", "niemoc, utrata sił"],
+    ["atonia", "brak napięcia, zwiotczenie"],
+    ["atrophia", "zanik, wyniszczenie"],
+    ["bilateralis", "obustronny"],
+    ["chronicus", "przewlekły"],
+    ["cicatrix", "blizna"],
+    ["congenitus", "wrodzony"],
+    ["correctio", "naprawa, poprawa"],
+    ["decubitus", "odleżyna, ułożenie chorego"],
+    ["deformatio", "zniekształcenie"],
+    ["deviatio", "odchylenie, zbaczanie"],
+    ["dexter", "prawy"],
+    ["dolor", "ból"],
+    ["elevatio", "podniesienie"],
+    ["etiologia", "nauka o przyczynach chorób"],
+  ]},
+  { id: "z3", name: "Zdjęcie 3", range: "exercitatio – pronatio", words: [
+    ["exercitatio", "ćwiczenie"],
+    ["febris", "gorączka"],
+    ["fixatio", "ustalenie, umocowanie"],
+    ["forma", "postać, kształt"],
+    ["functionalis", "czynnościowy"],
+    ["gravis", "ciężki, groźny"],
+    ["habilitas", "zręczność, sprawność"],
+    ["hyperkinesia", "pobudzenie ruchowe"],
+    ["hypokinesia", "zmniejszenie ruchliwości"],
+    ["invalidus", "niepełnosprawny, inwalida"],
+    ["kinesitherapia", "leczenie ruchem, kinezyterapia"],
+    ["labilis", "chwiejny, niestały"],
+    ["morbus", "choroba"],
+    ["musculus", "mięsień"],
+    ["passivus", "bierny"],
+    ["pathologicus", "patologiczny, chorobowy"],
+    ["post", "po"],
+    ["prognosis", "rokowanie"],
+    ["prolapsus", "wypadnięcie"],
+    ["pronatio", "nawracanie, pronacja"],
+  ]},
+];
+ROUNDS.push({ id: "all", name: "Powtórka całości", range: "wszystkie trzy zdjęcia",
+  words: ROUNDS.flatMap(r => r.words) });
+
+const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
+const MASTER = GAPS.length;       // pudełko = opanowane
+const MAX_ACTIVE = 8;             // ile nowych słówek naraz w nauce
+const KEY = "fiszki-lacina-v1";
+const BOXCOL = ["var(--box0)", "var(--box1)", "var(--box2)", "var(--box3)", "var(--box4)"];
+const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opanowane"];
+
+// ---------- zapis ----------
+let store = { dir: "lp", shuffle: true, rounds: {}, done: [] };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+// ---------- porównywanie odpowiedzi ----------
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  .replace(/ł/g, "l").replace(/[.!?]/g, "").replace(/\s+/g, " ").trim();
+function lev(a, b) {
+  const d = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = d[0]; d[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const t = d[j];
+      d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = t;
+    }
+  }
+  return d[b.length];
+}
+// Prawie dobrze = 1–2 literówki (przy krótkich słowach tylko 1)
+function nearMiss(typed, ans) {
+  const t = norm(typed);
+  return [...variants(ans)].some(v => lev(t, v) <= (v.length >= 7 ? 2 : 1));
+}
+function variants(ans) {
+  let parts = new Set([norm(ans)]);
+  for (const sep of [",", "/", ";"]) {
+    for (const p of [...parts]) p.split(sep).forEach(x => parts.add(x.trim()));
+  }
+  for (const p of [...parts]) if (p.includes("(")) {
+    const before = p.split("(")[0].trim();
+    if (before) parts.add(before);
+    parts.add(p.replace(/[()]/g, "").replace(/\s+/g, " ").trim());
+  }
+  parts.delete("");
+  return parts;
+}
+
+// ---------- logika powtórek ----------
+const $ = id => document.getElementById(id);
+const show = v => ["home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function freshState(round) {
+  const words = round.words.map(([l, p]) => ({ l, p, box: 0, due: 0, seen: false, err: 0 }));
+  if (store.shuffle) for (let i = words.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); [words[i], words[j]] = [words[j], words[i]];
+  }
+  return { step: 0, answers: 0, cards: words };
+}
+function pick(st) {
+  const active = st.cards.filter(c => c.seen && c.box < MASTER);
+  const fresh = st.cards.filter(c => !c.seen);
+  const due = active.filter(c => c.due <= st.step);
+  const learning = active.filter(c => c.box <= 1);
+  if (due.length) return due.sort((a, b) => a.due - b.due || a.box - b.box)[0];
+  if (fresh.length && learning.length < MAX_ACTIVE) return fresh[0];
+  if (active.length) return active.sort((a, b) => a.due - b.due)[0];
+  return fresh[0] || null;
+}
+function counts(st) {
+  const c = [0, 0, 0, 0, 0]; let fresh = 0;
+  for (const k of st.cards) k.seen ? c[k.box]++ : fresh++;
+  return { c, fresh, total: st.cards.length };
+}
+
+// ---------- menu ----------
+function renderHome() {
+  document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
+  $("shuffle").checked = store.shuffle;
+  $("rounds").innerHTML = ROUNDS.map((r, i) => {
+    const st = store.rounds[r.id];
+    const isDone = store.done.includes(r.id) && !st;
+    let chip, bar = "";
+    if (st) {
+      const { c, total } = counts(st);
+      chip = `<span class="chip prog">${c[MASTER]}/${total} opanowane</span>`;
+      bar = `<span class="minibar">${c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}"></span>`).join("")}</span>`;
+    } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length} słówek</span>`;
+    const reset = st ? `<span class="reset" role="button" tabindex="0" data-reset="${r.id}">zacznij od nowa</span>` : "";
+    const num = r.id === "all" ? "∑" : i + 1;
+    return `<button type="button" class="round${r.id === "all" ? " all" : ""}" data-round="${i}">
+      <span class="num">${num}</span>
+      <span class="name">${r.name}${st ? " · w trakcie" : ""}</span>
+      <span class="meta">${chip}${bar}${reset}</span>
+      <span class="range">${r.range}${r.id === "all" ? ` · ${r.words.length} słówek` : ""}</span>
+    </button>`;
+  }).join("");
+  show("home");
+}
+$("dir").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  store.dir = b.dataset.dir; save(); renderHome();
+});
+$("shuffle").addEventListener("change", e => { store.shuffle = e.target.checked; save(); });
+$("rounds").addEventListener("click", e => {
+  const r = e.target.closest("[data-reset]");
+  if (r) { e.stopPropagation(); delete store.rounds[r.dataset.reset]; save(); renderHome(); return; }
+  const b = e.target.closest("[data-round]"); if (b) startRound(+b.dataset.round);
+});
+$("rounds").addEventListener("keydown", e => {
+  const r = e.target.closest("[data-reset]");
+  if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); r.click(); }
+});
+
+// ---------- nauka ----------
+let cur = null; // { ri, st, card, dir, phase: 'ask'|'grade'|'next' }
+
+function startRound(ri) {
+  const r = ROUNDS[ri];
+  if (!store.rounds[r.id]) { store.rounds[r.id] = freshState(r); save(); }
+  cur = { ri, st: store.rounds[r.id] };
+  $("s-title").innerHTML = `${r.name}<small>${r.range}</small>`;
+  show("study");
+  nextCard();
+}
+
+function renderProgress() {
+  const { c, fresh, total } = counts(cur.st);
+  $("s-count").textContent = `${c[MASTER]} / ${total}`;
+  $("s-bar").innerHTML = c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}" title="${BOXNAME[b]}: ${n}"></span>`).join("");
+  $("s-legend").innerHTML = `<span><i style="background:var(--grid);border:1px solid var(--line)"></i>nowe ${fresh}</span>` +
+    c.map((n, b) => `<span><i style="background:${BOXCOL[b]}"></i>${BOXNAME[b]} ${n}</span>`).join("");
+}
+
+function nextCard() {
+  renderProgress();
+  const card = pick(cur.st);
+  if (!card) return finishRound();
+  const dir = store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
+  Object.assign(cur, { card, dir, phase: "ask" });
+  const lat = dir === "lp";
+  $("c-lang").textContent = lat ? "łacina" : "po polsku";
+  $("c-prompt").textContent = lat ? card.l : card.p;
+  $("c-prompt").className = "prompt" + (lat ? " lat" : "");
+  $("c-new").hidden = card.seen;
+  $("c-answer").hidden = true;
+  $("f-input").value = "";
+  $("f-input").disabled = false;
+  $("f-input").placeholder = lat ? "Wpisz po polsku (opcjonalnie)…" : "Wpisz po łacinie (opcjonalnie)…";
+  setPhase("ask");
+  if (matchMedia("(hover: hover)").matches) $("f-input").focus();
+}
+function setPhase(p) {
+  cur.phase = p;
+  $("a-ask").hidden = p !== "ask";
+  $("a-grade").hidden = p !== "grade";
+  $("a-next").hidden = p !== "next";
+  $("hint").hidden = p !== "ask";
+}
+function reveal(typed) {
+  if (cur.phase !== "ask") return;
+  const { card, dir } = cur;
+  const ans = dir === "lp" ? card.p : card.l;
+  $("c-anslabel").textContent = dir === "lp" ? "po polsku" : "po łacinie";
+  $("c-anstext").textContent = ans;
+  $("c-anstext").className = "text" + (dir === "pl" ? " lat" : "");
+  $("c-answer").hidden = false;
+  $("f-input").disabled = true;
+  const v = $("c-verdict");
+  if (typed && variants(ans).has(norm(typed))) {
+    v.hidden = false; v.className = "verdict ok"; v.textContent = "✓ Dobrze!";
+    setPhase("next");
+    document.activeElement && document.activeElement.blur();
+  } else {
+    const near = typed && nearMiss(typed, ans);
+    if (near) { v.hidden = false; v.className = "verdict mid"; v.textContent = "Prawie! Literówka w: " + typed; }
+    else if (typed) { v.hidden = false; v.className = "verdict bad"; v.textContent = "Twoja odpowiedź: " + typed; }
+    else v.hidden = true;
+    $("b-mid").classList.toggle("suggest", !!near);
+    setPhase("grade");
+    document.activeElement && document.activeElement.blur();
+  }
+}
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 1600);
+}
+// level: "yes" = pamiętałem (pudełko wyżej), "mid" = średnio (zostaje w tym samym
+// pudełku i wraca szybciej), "no" = nie pamiętałem (wraca do pudełka 0)
+function grade(level) {
+  const { st, card } = cur;
+  st.step++; st.answers++;
+  if (!card.seen) { card.seen = true; card.box = level === "yes" ? 1 : 0; }
+  else if (level === "yes") card.box++;
+  else if (level === "no") { card.box = 0; card.err++; }
+  if (level === "mid") card.half = (card.half || 0) + 1;
+  const gap = level === "mid" ? Math.max(2, Math.ceil(GAPS[card.box] / 2)) : GAPS[card.box];
+  if (card.box < MASTER) card.due = st.step + gap + (Math.random() < .5 ? 1 : 0);
+  else toast(`★ ${card.l} – opanowane!`);
+  save();
+  nextCard();
+}
+function finishRound() {
+  const r = ROUNDS[cur.ri], st = cur.st;
+  if (!store.done.includes(r.id)) store.done.push(r.id);
+  delete store.rounds[r.id]; save();
+  $("d-title").textContent = r.name + " opanowane";
+  const errs = st.cards.reduce((s, c) => s + c.err, 0);
+  $("d-stats").innerHTML = `<div><b>${st.cards.length}</b><span>słówek</span></div>
+    <div><b>${st.answers}</b><span>odpowiedzi</span></div><div><b>${errs}</b><span>pomyłek</span></div>`;
+  const score = c => c.err + (c.half || 0) / 2;
+  const hard = st.cards.filter(score).sort((a, b) => score(b) - score(a)).slice(0, 8);
+  $("d-hard").hidden = !hard.length;
+  $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze słówka</h3><table class="tbl">${hard.map(c =>
+    `<tr><td>${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td>${esc(c.p)}</td></tr>`).join("")}</table>` : "";
+  const nx = cur.ri + 1 < ROUNDS.length ? cur.ri + 1 : null;
+  $("d-next").hidden = nx === null;
+  if (nx !== null) { $("d-next").textContent = `Dalej: ${ROUNDS[nx].name} →`; $("d-next").onclick = () => startRound(nx); }
+  cur = null;
+  show("done");
+}
+
+$("f-ask").addEventListener("submit", e => { e.preventDefault(); reveal($("f-input").value.trim()); });
+$("b-check").addEventListener("click", () => reveal($("f-input").value.trim()));
+$("b-reveal").addEventListener("click", () => reveal(""));
+$("b-yes").addEventListener("click", () => grade("yes"));
+$("b-mid").addEventListener("click", () => grade("mid"));
+$("b-no").addEventListener("click", () => grade("no"));
+$("b-next").addEventListener("click", () => grade("yes"));
+$("b-override").addEventListener("click", () => grade("no"));
+$("back").addEventListener("click", () => { cur = null; renderHome(); });
+$("d-menu").addEventListener("click", renderHome);
+
+document.addEventListener("keydown", e => {
+  if (!cur || $("v-study").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const inInput = e.target === $("f-input");
+  if (cur.phase === "ask" && e.key === " " && !inInput) { e.preventDefault(); reveal(""); }
+  else if (cur.phase === "grade") {
+    const k = e.key.toLowerCase();
+    if (k === "t" || e.key === "ArrowRight") { e.preventDefault(); grade("yes"); }
+    else if (k === "s" || e.key === "ArrowDown") { e.preventDefault(); grade("mid"); }
+    else if (k === "n" || e.key === "ArrowLeft") { e.preventDefault(); grade("no"); }
+  } else if (cur.phase === "next" && e.key === "Enter") { e.preventDefault(); grade("yes"); }
+});
+
+// ---------- lista ----------
+$("showlist").addEventListener("click", () => {
+  $("l-body").innerHTML = ROUNDS.filter(r => r.id !== "all").map(r =>
+    `<h2>${r.name}<small>${r.range}</small></h2><table class="tbl">${r.words.map(([l, p]) =>
+      `<tr><td>${esc(l)}</td><td>${esc(p)}</td></tr>`).join("")}</table>`).join("");
+  show("list");
+});
+$("l-back").addEventListener("click", renderHome);
+
+renderHome();
+</script>
+</body>
+</html>
