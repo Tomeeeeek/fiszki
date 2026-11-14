@@ -935,8 +935,17 @@ const KONCZYNA_GORNA = [
     ["paliczki – paliczek dalszy", "Paliczek dalszy", {"img": "anatomia/paliczki-reki.webp", "hl": [[80.48, 68.25, 71.54, 68.25], [83.74, 69.93, 80.48, 68.25], [80.48, 89.87, 71.54, 89.87], [83.74, 88.18, 80.48, 89.87], [83.74, 70.61, 83.74, 77.71], [83.74, 80.41, 83.74, 87.84], [83.74, 77.71, 93.49, 79.06], [93.49, 79.06, 83.74, 80.41]]}],
   ] },
 ];
+const KONCZYNA_DOLNA = [
+  { id: "kd-miednica", sub: "Obręcz kończyny dolnej", name: "Miednica", range: "pelvis", words: [] },
+  { id: "kd-udowa", sub: "Część wolna kończyny dolnej", name: "Kość udowa", range: "femur", words: [] },
+  { id: "kd-rzepka", sub: "Część wolna kończyny dolnej", name: "Rzepka", range: "patella", words: [] },
+  { id: "kd-piszczelowa", sub: "Część wolna kończyny dolnej", name: "Kość piszczelowa", range: "tibia", words: [] },
+  { id: "kd-strzalkowa", sub: "Część wolna kończyny dolnej", name: "Kość strzałkowa", range: "fibula", words: [] },
+  { id: "kd-stopa", sub: "Część wolna kończyny dolnej", name: "Kości stopy", range: "stęp, śródstopie, paliczki", words: [] },
+];
 const ANATOMIA = [
   { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
+  { id: "kd", name: "Kończyna dolna", range: "kości kończyny dolnej", rounds: KONCZYNA_DOLNA, allId: "kd-all" },
 ];
 for (const g of ANATOMIA) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie kości razem",
@@ -1371,7 +1380,7 @@ function renderGroups() {
     const busy = g.rounds.some(r => store.rounds[r.id]);
     const chip = done === parts.length ? `<span class="chip done">✓ wszystkie porcje</span>`
       : done || busy ? `<span class="chip prog">${done}/${parts.length} porcji ukończone</span>`
-      : `<span class="chip">${parts.length} porcje</span>`;
+      : `<span class="chip">${parts.length} ${plural(parts.length, "porcja", "porcje", "porcji")}</span>`;
     return `<button type="button" class="round" data-group="${i}">
       <span class="num">${ROMAN[i] || i + 1}</span>
       <span class="name">${g.name}</span>
