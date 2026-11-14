@@ -3,6 +3,16 @@
 Strona z fiszkami z różnych dziedzin. Fiszki, które znasz, wracają coraz rzadziej, a te, których nie pamiętasz, pojawiają się po chwili ponownie (powtórki rozłożone w czasie, system pudełek Leitnera).
 
 **Strona:** https://tomeeeeek.github.io/fiszki/
+**Wersja robocza:** https://tomeeeeek.github.io/fiszki/develop/
+
+## Gałęzie
+
+- `main` – strona główna, publikowana pod `/fiszki/`
+- `develop` – wersja robocza do testowania nowych funkcji, publikowana pod `/fiszki/develop/`
+  (pasek „WERSJA TESTOWA”, osobna baza Supabase i osobna pamięć przeglądarki)
+
+Nowe funkcje trafiają najpierw na `develop`. Po sprawdzeniu: `git checkout main && git merge develop && git push`.
+Obie gałęzie publikuje jeden workflow: `.github/workflows/pages.yml`.
 
 Struktura: **dziedzina → grupa → porcja**.
 

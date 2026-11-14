@@ -1,0 +1,54 @@
+# Publikuje obie gałęzie jako jedną stronę GitHub Pages:
+#   main    → https://tomeeeeek.github.io/fiszki/          (strona główna)
+#   develop → https://tomeeeeek.github.io/fiszki/develop/  (wersja robocza)
+# Uruchamia się po każdym wypchnięciu zmian do main albo develop.
+name: Publikacja strony (main + develop)
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Pobierz gałąź main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Pobierz gałąź develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: develop
+
+      - name: Złóż stronę (main w katalogu głównym, develop w /develop)
+        run: |
+          mkdir -p _site/develop
+          rsync -a --exclude '.git' --exclude '.github' main/ _site/
+          rsync -a --exclude '.git' --exclude '.github' develop/ _site/develop/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Opublikuj
+        id: deployment
+        uses: actions/deploy-pages@v4

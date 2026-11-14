@@ -448,13 +448,13 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
 <script>
 // ---------- środowisko ----------
-// Wersja testowa: tomeeeeek.github.io/fiszki-test (oraz plik otwarty lokalnie).
-// Ma osobną bazę danych i osobne miejsce w pamięci przeglądarki,
-// więc testy nie zmieniają danych strony głównej.
-const IS_TEST = location.pathname.startsWith("/fiszki-test") || location.protocol === "file:"
+// Wersja robocza: gałąź develop, publikowana pod tomeeeeek.github.io/fiszki/develop/
+// (oraz plik otwarty lokalnie). Ma osobną bazę danych i osobne miejsce w pamięci
+// przeglądarki, więc testy nie zmieniają danych strony głównej.
+const IS_TEST = location.pathname.startsWith("/fiszki/develop") || location.protocol === "file:"
   || location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const ENV = IS_TEST ? {
-  supabaseUrl: "",   // baza testowa (projekt Supabase „fiszki-test”) – do uzupełnienia
+  supabaseUrl: "",   // baza testowa (osobny projekt Supabase) – do uzupełnienia
   supabaseKey: "",
   suffix: "-test",
 } : {
