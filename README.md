@@ -4,9 +4,9 @@ Fiszki z łacińskich określeń medycznych. Słówka, które znasz, wracają co
 
 **Strona:** https://tomeeeeek.github.io/fiszki/
 
-- grupy słówek (określenia medyczne różne, w ortopedii, w neurologii), każda podzielona na porcje + powtórka całości
+- grupy słówek (określenia medyczne różne, w ortopedii, w neurologii, choroby i zabiegi), każda podzielona na porcje + powtórka całości
 - kierunek łacina → polski, polski → łacina albo na zmianę
 - ocena: nie pamiętałem / średnio / pamiętałem, wykrywanie literówek
 - postęp zapisywany w przeglądarce
 
-Słówka są w pliku `index.html`, w tablicach `ROZNE`, `ORTOPEDIA` i `NEUROLOGIA`, a lista grup w `GROUPS`.
+Słówka są w pliku `index.html`, w tablicach `ROZNE`, `ORTOPEDIA`, `NEUROLOGIA` i `CHOROBY`, a lista grup w `GROUPS`.

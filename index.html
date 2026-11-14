@@ -606,12 +606,65 @@ const NEUROLOGIA = [
   ]},
 ];
 
+const CHOROBY = [
+  { id: "c1", name: "Porcja 1", range: "adipositas – fibrosis", words: [
+    ["adipositas, obesitas", "otyłość"],
+    ["anaemia", "niedokrwistość"],
+    ["angina pectoris", "dusznica bolesna"],
+    ["asthma", "dychawica"],
+    ["bradycardia", "zwolnienie czynności serca"],
+    ["carcinoma", "rak"],
+    ["cholecystectomia", "wycięcie pęcherzyka żółciowego"],
+    ["coxarthrosis", "zmiany zwyrodnieniowe stawu biodrowego"],
+    ["defectus", "ubytek"],
+    ["depressio", "poczucie przygnębienia i apatii"],
+    ["diabetes mellitus", "cukrzyca"],
+    ["discopathia", "zmiany zwyrodnieniowe krążka międzykręgowego"],
+    ["discus", "krążek"],
+    ["embolia", "zator"],
+    ["fibrosis", "zwłóknienie"],
+  ]},
+  { id: "c2", name: "Porcja 2", range: "gangraena – pneumonia", words: [
+    ["gangraena", "zgorzel, martwica"],
+    ["gastritis", "zapalenie żołądka, nieżyt żołądka"],
+    ["gonarthrosis", "zmiany zwyrodnieniowe stawu kolanowego"],
+    ["hernia", "przepuklina"],
+    ["herniotomia", "operacja przepukliny"],
+    ["hypertonia, hypertensio", "nadciśnienie"],
+    ["infarctus", "zawał"],
+    ["ischaemia", "niedokrwienie"],
+    ["laparotomia", "operacyjne otwarcie jamy brzusznej"],
+    ["mammectomia", "operacyjne usunięcie sutka"],
+    ["nucleus", "jądro"],
+    ["osteoarthrosis", "zmiany zwyrodnieniowe stawu"],
+    ["periarthritis", "zapalenie tkanek miękkich okołostawowych"],
+    ["pneumonia", "zapalenie płuc"],
+  ]},
+  { id: "c3", name: "Porcja 3", range: "polyarthritis – vitium", words: [
+    ["polyarthritis", "zapalenie wielostawowe"],
+    ["prolapsus", "wypadnięcie"],
+    ["protrusio", "wypuklenie"],
+    ["rheumatismus", "reumatyzm"],
+    ["spondyloarthritis", "zapalenie stawów kręgosłupa"],
+    ["spondyloarthrosis", "zmiany zwyrodnieniowe kręgosłupa"],
+    ["thoracotomia", "operacyjne otwarcie klatki piersiowej"],
+    ["thrombus", "zakrzep"],
+    ["tumor", "guz"],
+    ["ulcus", "wrzód"],
+    ["ulceratio", "owrzodzenie"],
+    ["varix", "żylak"],
+    ["varices", "żylaki"],
+    ["vitium", "wada"],
+  ]},
+];
+
 // Grupy słówek. Każda grupa dostaje na końcu "Powtórkę całości".
 // Uwaga: id porcji muszą być unikalne – pod nimi zapisuje się postęp.
 const GROUPS = [
   { id: "rozne", name: "Określenia medyczne różne", range: "activus – vulnus", rounds: ROZNE, allId: "all" },
   { id: "orto", name: "Określenia w ortopedii", range: "abductio – synovectomia", rounds: ORTOPEDIA, allId: "orto-all" },
   { id: "neuro", name: "Określenia stosowane w neurologii", range: "akinesis – tonus", rounds: NEUROLOGIA, allId: "neuro-all" },
+  { id: "choroby", name: "Określenia chorób i zabiegów", range: "adipositas – vitium", rounds: CHOROBY, allId: "choroby-all" },
 ];
 for (const g of GROUPS) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
