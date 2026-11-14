@@ -206,6 +206,10 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .badge-new { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
 .prompt { font-family: var(--f-display); font-size: clamp(34px, 8vw, 50px); line-height: 1.08; text-align: center; margin: 14px 0 4px; overflow-wrap: anywhere; text-wrap: balance; }
 .prompt.lat { font-style: italic; }
+.cimg { position: relative; align-self: center; max-width: 100%; line-height: 0; }
+.cimg img { display: block; max-width: 100%; max-height: 440px; width: auto; height: auto; border-radius: 10px; background: #ffffff; }
+.cimg svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cimg svg line { stroke: #e2401c; stroke-width: 3.2; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
 .answer .label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .answer .text { font-size: 22px; font-weight: 500; overflow-wrap: anywhere; }
@@ -396,6 +400,10 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <span class="badge-new" id="c-new" hidden>NOWE</span>
       </div>
       <div class="prompt" id="c-prompt"></div>
+      <div class="cimg" id="c-img" hidden>
+        <img id="c-img-src" alt="Rysunek kości z pogrubioną linią wskazującą strukturę">
+        <svg id="c-img-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
       <div class="answer" id="c-answer" hidden>
         <span class="label" id="c-anslabel"></span>
         <div class="text" id="c-anstext"></div>
@@ -725,15 +733,32 @@ for (const g of GROUPS) {
     words: g.rounds.flatMap(r => r.words) });
 }
 
+// ---------- anatomia prawidłowa ----------
+// Fiszka obrazkowa: [opis, nazwa struktury, { img: "ścieżka do obrazka", hl: [[x1, y1, x2, y2], ...] }]
+// img – rysunek kości bez podpisów; hl – (opcjonalnie) odcinki do pogrubienia, w % szerokości/wysokości obrazka.
+const KONCZYNA_GORNA = [
+  { id: "kg-ramienna", name: "Kość ramienna", range: "humerus", words: [] },
+  { id: "kg-lokciowa", name: "Kość łokciowa", range: "ulna", words: [] },
+  { id: "kg-promieniowa", name: "Kość promieniowa", range: "radius", words: [] },
+  { id: "kg-reka", name: "Kości nadgarstka i ręki", range: "ossa carpi, metacarpi et phalanges", words: [] },
+];
+const ANATOMIA = [
+  { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
+];
+for (const g of ANATOMIA) {
+  g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie kości razem",
+    words: g.rounds.flatMap(r => r.words) });
+}
+
 // Dziedziny (sekcje strony). Każda dziedzina ma własne grupy fiszek.
 // sides: nazwy stron karty – a = pierwszy element pary w danych, b = drugi.
 const SECTIONS = [
   { id: "lacina", name: "Łacina medyczna", desc: "Określenia łacińskie z tłumaczeniem na polski",
     sides: { a: "łacina", b: "polski", aIn: "po łacinie", bIn: "po polsku", italicA: true },
     unit: ["słówko", "słówka", "słówek"], groups: GROUPS },
-  { id: "anatomia", name: "Anatomia prawidłowa", desc: "Fiszki w przygotowaniu", soon: true,
-    sides: { a: "pojęcie", b: "odpowiedź", aIn: "pojęcie", bIn: "odpowiedź", italicA: false },
-    unit: ["fiszka", "fiszki", "fiszek"], groups: [] },
+  { id: "anatomia", name: "Anatomia prawidłowa", desc: "Struktury kości na rysunkach", images: true,
+    sides: { a: "wskazana struktura", b: "nazwa", aIn: "wskazana struktura", bIn: "nazwę struktury", italicA: false },
+    unit: ["fiszka", "fiszki", "fiszek"], groups: ANATOMIA },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
 let S = SECTIONS[0], G = GROUPS[0], ROUNDS = G.rounds;
@@ -822,7 +847,7 @@ function show(v) {
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function freshState(round) {
-  const words = round.words.map(([l, p]) => ({ l, p, box: 0, due: 0, seen: false, err: 0 }));
+  const words = round.words.map(([l, p, x]) => Object.assign({ l, p, box: 0, due: 0, seen: false, err: 0 }, x ? { x } : {}));
   if (store.shuffle) for (let i = words.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1)); [words[i], words[j]] = [words[j], words[i]];
   }
@@ -1184,7 +1209,11 @@ function renderHome() {
   $("showlist").textContent = `Pokaż listę wszystkich ${S.unit[2]}`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
+  $("dir").hidden = !!S.images;   // fiszki obrazkowe mają jeden kierunek
   $("rounds").innerHTML = ROUNDS.map((r, i) => {
+    if (!r.words.length) return `<div class="round soon${r.id === G.allId ? " all" : ""}" aria-disabled="true">
+      <span class="num">${r.id === G.allId ? "∑" : i + 1}</span><span class="name">${esc(r.name)}</span>
+      <span class="meta"><span class="chip">wkrótce</span></span><span class="range">${esc(r.range)}</span></div>`;
     const st = store.rounds[r.id];
     const isDone = store.done.includes(r.id) && !st;
     let chip, bar = "";
@@ -1224,6 +1253,7 @@ let cur = null; // { ri, st, card, dir, phase: 'ask'|'grade'|'next' }
 
 function startRound(ri) {
   const r = ROUNDS[ri];
+  if (!r || !r.words.length) return;
   if (!store.rounds[r.id]) { store.rounds[r.id] = freshState(r); save(); }
   cur = { ri, st: store.rounds[r.id] };
   $("s-title").innerHTML = `${r.name}<small>${r.range}</small>`;
@@ -1243,12 +1273,22 @@ function nextCard() {
   renderProgress();
   const card = pick(cur.st);
   if (!card) return finishRound();
-  const dir = store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
+  const isImg = !!(card.x && card.x.img);
+  // fiszka obrazkowa: zawsze rysunek → nazwa struktury
+  const dir = isImg ? "lp" : store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
   $("c-lang").textContent = lat ? S.sides.a : S.sides.b;
-  $("c-prompt").textContent = lat ? card.l : card.p;
-  $("c-prompt").className = "prompt" + (lat && S.sides.italicA ? " lat" : "");
+  $("c-prompt").hidden = isImg;
+  $("c-img").hidden = !isImg;
+  if (isImg) {
+    $("c-img-src").src = card.x.img;
+    $("c-img-hl").innerHTML = (card.x.hl || []).map(([x1, y1, x2, y2]) =>
+      `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line>`).join("");
+  } else {
+    $("c-prompt").textContent = lat ? card.l : card.p;
+    $("c-prompt").className = "prompt" + (lat && S.sides.italicA ? " lat" : "");
+  }
   $("c-new").hidden = card.seen;
   $("c-answer").hidden = true;
   $("f-input").value = "";
@@ -1268,7 +1308,7 @@ function reveal(typed) {
   if (cur.phase !== "ask") return;
   const { card, dir } = cur;
   const ans = dir === "lp" ? card.p : card.l;
-  $("c-anslabel").textContent = dir === "lp" ? S.sides.bIn : S.sides.aIn;
+  $("c-anslabel").textContent = card.x && card.x.img ? "nazwa struktury" : dir === "lp" ? S.sides.bIn : S.sides.aIn;
   $("c-anstext").textContent = ans;
   $("c-anstext").className = "text" + (dir === "pl" && S.sides.italicA ? " lat" : "");
   $("c-answer").hidden = false;
@@ -1331,7 +1371,9 @@ function finishRound() {
   $("d-hard").hidden = !hard.length;
   $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze ${S.unit[1]}</h3><table class="tbl">${hard.map(c =>
     `<tr><td>${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td>${esc(c.p)}</td></tr>`).join("")}</table>` : "";
-  const nx = cur.ri + 1 < ROUNDS.length ? cur.ri + 1 : null;
+  let nx = cur.ri + 1;
+  while (nx < ROUNDS.length && !ROUNDS[nx].words.length) nx++;   // pomiń puste porcje
+  if (nx >= ROUNDS.length) nx = null;
   $("d-next").hidden = nx === null;
   if (nx !== null) { $("d-next").textContent = `Dalej: ${ROUNDS[nx].name} →`; $("d-next").onclick = () => startRound(nx); }
   cur = null;
