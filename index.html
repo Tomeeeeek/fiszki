@@ -86,7 +86,29 @@ body {
 .statsbtn { grid-column: 3; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
 .statsbtn svg { width: 15px; height: 15px; }
 .statsbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn { grid-column: 2; } }
+.pinbtn { grid-column: 3; grid-row: 2; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
+.pinbtn svg { width: 15px; height: 15px; }
+.pinbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* przypięta lista: na wąskim ekranie pod fiszką, na szerokim po lewej stronie fiszki */
+.study-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pinpanel { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+#v-study.pinned .pinpanel { order: 2; height: 340px; }
+.pinhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.pinhead b { display: block; font-weight: 600; }
+.pinscroll { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 16px 14px; }
+.pinscroll h4 { margin: 14px 0 4px; font-family: var(--f-display); font-weight: 400; font-size: 21px; }
+.pinscroll h4 small { font-style: italic; color: var(--muted); font-size: 15px; margin-left: 6px; }
+.pinscroll h4.current { color: var(--accent); }
+.pinscroll .tbl td { padding: 5px 0; font-size: 14.5px; }
+.pinscroll .tbl td:first-child { font-size: 17px; }
+@media (min-width: 1000px) {
+  body.pinwide #app, body.pinwide #v-study.pinned { max-width: 1320px; }
+  #v-study.pinned { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+  /* contain: size – panel nie rośnie od listy, tylko dopasowuje się do wysokości kolumny z fiszką */
+  #v-study.pinned .pinpanel { order: 0; height: auto; contain: size; }
+}
+@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn, .pinbtn { grid-column: 2; } }
 button { font: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -275,6 +297,9 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <button type="button" class="back statsbtn" id="statsbtn" aria-pressed="false">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 13h2V8H2v5Zm5 0h2V3H7v10Zm5 0h2V6h-2v7ZM1 14.5h14v1H1z"/></svg>Statystyki
     </button>
+    <button type="button" class="back pinbtn" id="pinbtn" aria-pressed="false" hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M10.2 1 15 5.8l-1.3 1.3-.8-.8-2.7 2.7.3 3.2-1.3 1.3-2.9-2.9L2.1 14.9 1.1 13.9l4.3-4.2-2.9-2.9 1.3-1.3 3.2.3 2.7-2.7-.8-.8z"/></svg><span id="pinbtn-label">Przypnij</span>
+    </button>
   </div>
   <!-- LOGOWANIE -->
   <section id="v-login" class="wrap" style="gap:22px" hidden>
@@ -382,6 +407,14 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
   <!-- NAUKA -->
   <section id="v-study" class="wrap" style="gap:16px" hidden>
+    <aside class="pinpanel" id="pin-panel" aria-label="Przypięta lista" hidden>
+      <div class="pinhead">
+        <div><span class="eyebrow">Przypięta lista</span><b id="pin-title"></b></div>
+        <button type="button" class="back" id="pin-off">Odepnij</button>
+      </div>
+      <div class="pinscroll" id="pin-body"></div>
+    </aside>
+    <div class="study-main">
     <div class="studybar">
       <button type="button" class="back" id="back">← Menu</button>
       <div class="title" id="s-title"></div>
@@ -420,6 +453,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <button type="button" class="btn primary" id="b-next">Dalej <kbd>Enter</kbd></button>
     </div>
     <p class="hint" id="hint">Nie musisz nic wpisywać. Możesz od razu pokazać odpowiedź i ocenić się sam.</p>
+    </div>
   </section>
 
   <!-- KONIEC TURY -->
@@ -814,6 +848,9 @@ function show(v) {
   if (!["admin", "user", "login", "me"].includes(v)) lastView = v;
   $("topbar").hidden = v === "login" || !user;
   $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
+  $("pinbtn").hidden = v !== "list";
+  updatePinButton();
+  document.body.classList.toggle("pinwide", v === "study" && !!store.pinned);
   const isAdm = v !== "login" && !!user && isAdminName(user.name);
   $("adminswitch").hidden = !isAdm;
   $("adminswitch").querySelectorAll("button").forEach(b =>
@@ -1228,6 +1265,7 @@ function startRound(ri) {
   cur = { ri, st: store.rounds[r.id] };
   $("s-title").innerHTML = `${r.name}<small>${r.range}</small>`;
   show("study");
+  renderPin(r.id);
   nextCard();
 }
 
@@ -1359,6 +1397,37 @@ document.addEventListener("keydown", e => {
     else if (k === "s" || e.key === "ArrowDown") { e.preventDefault(); grade("mid"); }
     else if (k === "n" || e.key === "ArrowLeft") { e.preventDefault(); grade("no"); }
   } else if (cur.phase === "next" && e.key === "Enter") { e.preventDefault(); grade("yes"); }
+});
+
+// ---------- przypięta lista ----------
+// store.pinned = true: lista fiszek bieżącej grupy jest widoczna obok fiszki podczas nauki.
+function updatePinButton() {
+  $("pinbtn-label").textContent = store.pinned ? "Odepnij" : "Przypnij";
+  $("pinbtn").setAttribute("aria-pressed", String(!!store.pinned));
+}
+function renderPin(activeId) {
+  const on = !!store.pinned;
+  $("pin-panel").hidden = !on;
+  $("v-study").classList.toggle("pinned", on);
+  document.body.classList.toggle("pinwide", on && !$("v-study").hidden);
+  if (!on) return;
+  $("pin-title").textContent = G.name;
+  $("pin-body").innerHTML = ROUNDS.filter(r => r.id !== G.allId).map(r =>
+    `<h4 id="pin-${r.id}"${r.id === activeId ? ' class="current"' : ""}>${esc(r.name)}<small>${esc(r.range)}</small></h4>
+     <table class="tbl">${r.words.map(([l, p]) => `<tr><td>${esc(l)}</td><td>${esc(p)}</td></tr>`).join("")}</table>`).join("");
+  // przewiń do porcji, którą właśnie rozwiązujesz
+  const h = document.getElementById("pin-" + activeId);
+  $("pin-body").scrollTop = h ? Math.max(0, h.offsetTop - 6) : 0;
+}
+$("pinbtn").addEventListener("click", () => {
+  store.pinned = !store.pinned; save();
+  if (store.pinned) { toast("Lista przypięta. Zobaczysz ją obok fiszek."); renderHome(); }
+  else { updatePinButton(); toast("Lista odpięta."); }
+});
+$("pin-off").addEventListener("click", () => {
+  store.pinned = false; save();
+  renderPin();
+  toast("Lista odpięta.");
 });
 
 // ---------- lista ----------
