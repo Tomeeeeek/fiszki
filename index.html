@@ -373,11 +373,23 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
   </section>
 
+  <!-- DZIAŁY (np. anatomia: układ kostny, więzadła) -->
+  <section id="v-parts" class="wrap" style="gap:22px" hidden>
+    <div class="studybar"><button type="button" class="back" id="p-back">← Dziedziny</button></div>
+    <header class="top">
+      <span class="eyebrow">Dziedzina</span>
+      <h1 class="group" id="p-title"></h1>
+      <p id="p-sub"></p>
+    </header>
+    <span class="eyebrow">Wybierz dział</span>
+    <div class="rounds separate" id="parts"></div>
+  </section>
+
   <!-- GRUPY -->
   <section id="v-groups" class="wrap" style="gap:22px" hidden>
     <div class="studybar"><button type="button" class="back" id="g-back">← Dziedziny</button></div>
     <header class="top">
-      <span class="eyebrow">Dziedzina</span>
+      <span class="eyebrow" id="g-eyebrow">Dziedzina</span>
       <h1 class="group" id="g-title"></h1>
       <p id="g-sub"></p>
     </header>
@@ -1186,7 +1198,12 @@ const SECTIONS = [
     unit: ["słówko", "słówka", "słówek"], groups: GROUPS },
   { id: "anatomia", name: "Anatomia prawidłowa", desc: "Struktury kości na rysunkach", images: true,
     sides: { a: "wskazana struktura", b: "nazwa", aIn: "wskazana struktura", bIn: "nazwę struktury", italicA: false },
-    unit: ["fiszka", "fiszki", "fiszek"], groups: ANATOMIA },
+    unit: ["fiszka", "fiszki", "fiszek"], groups: ANATOMIA,
+    // dodatkowy poziom: dział → grupy → porcje
+    parts: [
+      { id: "kostny", name: "Układ kostny", desc: "Kości kończyny górnej i dolnej", groups: ANATOMIA },
+      { id: "wiezadla", name: "Więzadła", desc: "W przygotowaniu", groups: [] },
+    ] },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
 let S = SECTIONS[0], G = GROUPS[0], ROUNDS = G.rounds;
@@ -1264,7 +1281,7 @@ function checkAnswer(typed, ans, dir) {
 const $ = id => document.getElementById(id);
 let lastView = "sections";   // ostatni widok fiszek – tu wraca przełącznik administratora
 function show(v) {
-  ["login", "admin", "user", "me", "sections", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
+  ["login", "admin", "user", "me", "sections", "parts", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
   if (!["admin", "user", "login", "me"].includes(v)) lastView = v;
   $("topbar").hidden = v === "login" || !user;
   $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
@@ -1542,6 +1559,7 @@ setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany wid
 }, 30000);
 function backToCards() {
   if (lastView === "sections") renderSections();
+  else if (lastView === "parts") renderParts();
   else if (lastView === "groups") renderGroups();
   else if (lastView === "home") renderHome();
   else show(lastView);   // nauka/lista wracają dokładnie tam, gdzie były
@@ -1589,17 +1607,48 @@ function renderSections() {
   show("sections");
 }
 $("sections").addEventListener("click", e => {
-  const b = e.target.closest("[data-section]"); if (b) { S = SECTIONS[+b.dataset.section]; renderGroups(); }
+  const b = e.target.closest("[data-section]");
+  if (b) { S = SECTIONS[+b.dataset.section]; P = null; S.parts ? renderParts() : renderGroups(); }
 });
-$("g-back").addEventListener("click", renderSections);
+$("g-back").addEventListener("click", () => S.parts ? renderParts() : renderSections());
+
+// ---------- działy (dodatkowy poziom w dziedzinie) ----------
+let P = null;   // wybrany dział (np. układ kostny); null, gdy dziedzina nie ma działów
+const groupsOf = () => (P ? P.groups : S.groups);
+function renderParts() {
+  if (!user) return showLogin();
+  $("p-title").textContent = S.name;
+  $("p-sub").textContent = S.desc;
+  $("parts").innerHTML = S.parts.map((pt, i) => {
+    const rounds = pt.groups.flatMap(g => g.rounds.filter(r => r.id !== g.allId));
+    const cards = rounds.reduce((n, r) => n + r.words.length, 0);
+    if (!cards) return `<div class="round soon" aria-disabled="true">
+      <span class="num">${i + 1}</span><span class="name">${esc(pt.name)}</span>
+      <span class="meta"><span class="chip">wkrótce</span></span><span class="range">${esc(pt.desc)}</span></div>`;
+    const done = rounds.filter(r => store.done.includes(r.id) && !store.rounds[r.id]).length;
+    const chip = done ? `<span class="chip prog">${done}/${rounds.length} porcji ukończone</span>`
+      : `<span class="chip">${pt.groups.length} ${plural(pt.groups.length, "grupa", "grupy", "grup")}</span>`;
+    return `<button type="button" class="round" data-part="${i}">
+      <span class="num">${i + 1}</span><span class="name">${esc(pt.name)}</span>
+      <span class="meta">${chip}</span><span class="range">${esc(pt.desc)} · ${cards} ${units(cards, S)}</span>
+    </button>`;
+  }).join("");
+  show("parts");
+}
+$("parts").addEventListener("click", e => {
+  const b = e.target.closest("[data-part]"); if (b) { P = S.parts[+b.dataset.part]; renderGroups(); }
+});
+$("p-back").addEventListener("click", renderSections);
 
 // ---------- grupy ----------
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 function renderGroups() {
   if (!user) return showLogin();
-  $("g-title").textContent = S.name;
-  $("g-sub").textContent = S.desc;
-  $("groups").innerHTML = S.groups.map((g, i) => {
+  $("g-eyebrow").textContent = P ? S.name : "Dziedzina";
+  $("g-title").textContent = P ? P.name : S.name;
+  $("g-sub").textContent = P ? P.desc : S.desc;
+  $("g-back").textContent = P ? `← ${S.name}` : "← Dziedziny";
+  $("groups").innerHTML = groupsOf().map((g, i) => {
     const parts = g.rounds.filter(r => r.id !== g.allId);
     const words = parts.reduce((n, r) => n + r.words.length, 0);
     const done = parts.filter(r => store.done.includes(r.id) && !store.rounds[r.id]).length;
@@ -1617,7 +1666,7 @@ function renderGroups() {
   show("groups");
 }
 function openGroup(i) {
-  G = S.groups[i]; ROUNDS = G.rounds;
+  G = groupsOf()[i]; ROUNDS = G.rounds;
   store.group = G.id; save();
   renderHome();
 }
