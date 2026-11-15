@@ -262,6 +262,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .cal-grid .d.done.today { box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 2px var(--paper), 0 0 0 4px var(--accent); }
 /* ---------- znajomi i wyszukiwanie ---------- */
 .fr { gap: 12px; }
+.admchip { font-size: 10.5px; padding: 1px 7px; vertical-align: 1px; }
 .fr-tabs { display: flex; width: 100%; }
 .fr-tabs button { flex: 1; padding: 6px 8px; }
 .fr-n:empty { display: none; }
@@ -492,7 +493,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <section id="v-me" class="wrap" style="gap:16px" hidden>
     <div class="studybar">
       <button type="button" class="back" id="me-back">← Wróć</button>
-      <div class="title">Twoje statystyki<small id="me-sub"></small></div>
+      <div class="title"><span id="me-title">Twoje statystyki</span><small id="me-sub"></small></div>
     </div>
     <div class="me-grid">
       <div class="wrap" id="me-body" style="gap:16px; width:100%"></div>
@@ -1523,6 +1524,8 @@ function buildProgress() {
     }) })),
     hard: Object.entries(store.hard).sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([l, n]) => ({ l, p: WORD_PL.get(l) || "", n })),
+    days: (store.days || []).slice().sort().slice(-400),   // kalendarz i seria – widzą je znajomi
+    ach: store.ach || {},
   };
 }
 let syncTimer = null, lastSync = 0;
@@ -1651,7 +1654,7 @@ function renderUser(i) {
   const u = adminList[i]; if (!u) return;
   viewedUser = u.imie_nazwisko;
   const pg = u.postep, sm = summarize(pg);
-  $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${esc(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
+  $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${nameHTML(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
   if (!sm) {
     $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
     return show("user");
@@ -1746,8 +1749,8 @@ const ACHIEVEMENTS = [
   streakAch("Niezłomny", 30, "XXX"),
 ];
 // najdłuższa seria w historii (żeby osiągnięcie zaliczyło się też wtedy, gdy seria już minęła)
-function bestStreak() {
-  const days = (store.days || []).slice().sort();
+function bestStreak(list = store.days) {
+  const days = (list || []).slice().sort();
   let best = 0, run = 0, prev = null;
   for (const k of days) {
     const d = new Date(k + "T12:00:00");
@@ -1756,25 +1759,28 @@ function bestStreak() {
   }
   return best;
 }
-function achievementsHTML(pg, sm) {
+// src: czyje dane – { days, ach, own }; tylko własne zdobycze są zapisywane na stałe
+function achievementsHTML(pg, sm, src = { days: store.days, ach: null, own: true }) {
   const rounds = pg.groups.flatMap(g => g.rounds.filter(r => !r.all).map(r => ({ ...r, group: g.name })));
   const best = rounds.filter(r => r.mastered && r.status !== "ukończona")
     .sort((x, y) => y.mastered / y.total - x.mastered / x.total)[0];
   // porcja ukończona choć raz (także taka, którą ktoś zaczął od nowa)
   const a = { mastered: sm.mastered, partsDone: rounds.filter(r => r.status === "ukończona" || r.done > 0).length, best,
-    streak: streak().n, bestStreak: bestStreak() };
+    streak: streak(src.days).n, bestStreak: bestStreak(src.days) };
   // zdobyte osiągnięcie zostaje na stałe (store.ach: nazwa → data zdobycia)
-  store.ach = store.ach || {};
+  if (src.own) store.ach = store.ach || {};
+  const got = src.own ? store.ach : Object.assign({}, src.ach);
   let changed = false;
   const list = ACHIEVEMENTS.map(x => {
     const p = x.prog(a);
-    if (!store.ach[x.name] && p.cur >= p.max) { store.ach[x.name] = new Date().toISOString(); changed = true; }
-    return { ...x, p, ok: !!store.ach[x.name] };
+    if (!got[x.name] && p.cur >= p.max) { got[x.name] = src.own ? new Date().toISOString() : true; changed = true; }
+    return { ...x, p, ok: !!got[x.name] };
   });
-  if (changed) save();
-  const got = list.filter(x => x.ok).length;
-  return `<h3>Osiągnięcia <small>${got}/${list.length}</small></h3><div class="ach-grid">${list.map(x => {
-    const tip = x.ok ? `<b>Zdobyte ✓</b><br>${new Date(store.ach[x.name]).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}`
+  if (changed && src.own) save();
+  const nGot = list.filter(x => x.ok).length;
+  return `<h3>Osiągnięcia <small>${nGot}/${list.length}</small></h3><div class="ach-grid">${list.map(x => {
+    const when = typeof got[x.name] === "string" ? new Date(got[x.name]) : null;
+    const tip = x.ok ? `<b>Zdobyte ✓</b>${when ? "<br>" + when.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" }) : ""}`
       : `<b>${x.p.cur}/${x.p.max}</b> ${esc(x.p.txt)}<span class="tbar"><span style="width:${x.p.cur / x.p.max * 100}%"></span></span>`;
     return `<div class="ach-item${x.ok ? "" : " locked"}" tabindex="0" aria-label="${esc(x.name)}: ${esc(x.desc)}${x.ok ? ", zdobyte" : `, postęp ${x.p.cur} z ${x.p.max}`}">
       <span class="medal" aria-hidden="true"><svg><use href="#medal-art"></use></svg><i>${esc(x.glyph)}</i><span class="spark s1"></span><span class="spark s2"></span></span>
@@ -1792,8 +1798,8 @@ function markDay() {
 }
 // Seria: zaliczone dni pod rząd. Dzisiejszy dzień jeszcze trwa, więc jeśli dziś nie było nauki,
 // liczy się seria do wczoraj; jeden pominięty dzień zeruje serię.
-function streak() {
-  const days = new Set(store.days || []);
+function streak(list = store.days) {
+  const days = new Set(list || []);
   const d = new Date(); d.setHours(12, 0, 0, 0);
   const today = days.has(dayKey(d));
   if (!today) d.setDate(d.getDate() - 1);
@@ -1804,10 +1810,12 @@ function streak() {
 const MONTHS = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 const FLAME = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f27a1a" d="M12 2c.6 3.2 2.6 5 4.3 6.9C18 10.8 19 12.9 19 15.2 19 19 15.9 22 12 22s-7-3-7-6.8c0-2.4 1.1-4.4 2.9-6 .2 1.6.9 2.8 2.1 3.6C9.7 8.6 10.6 5 12 2z"/><path fill="#ffc53d" d="M12 22c-2.2 0-3.9-1.6-3.9-3.7 0-1.9 1.3-3.1 2.6-4.3.3 1 .9 1.6 1.7 2 .2-1.6.9-2.9 2.1-3.9.6 1.6 1.4 2.4 1.4 4.6 0 2.9-1.6 5.3-3.9 5.3z"/></svg>`;
 let calMonth = null;   // pokazywany miesiąc (1. dzień); null = bieżący
+let calSrc = null;     // dni nauki pokazywanej osoby; null = moje (store.days)
 function renderCalendar() {
   const now = new Date(), first = calMonth || new Date(now.getFullYear(), now.getMonth(), 1);
   const y = first.getFullYear(), m = first.getMonth();
-  const days = new Set(store.days || []), { n, today } = streak();
+  const own = !calSrc, list = calSrc || store.days;
+  const days = new Set(list || []), { n, today } = streak(list);
   const lead = (first.getDay() + 6) % 7;   // tydzień od poniedziałku
   const len = new Date(y, m + 1, 0).getDate(), todayKey = dayKey(now);
   let cells = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"].map(w => `<span class="wd">${w}</span>`).join("")
@@ -1819,7 +1827,8 @@ function renderCalendar() {
     cells += `<span class="d${done ? " done" : ""}${k === todayKey ? " today" : ""}${k > todayKey ? " future" : ""}"${done ? ' title="dzień zaliczony"' : ""}>${d}</span>`;
   }
   const isNow = y === now.getFullYear() && m === now.getMonth();
-  const tip = n ? `Seria: ${n} ${plural(n, "dzień", "dni", "dni")} pod rząd${today ? "" : " – odpowiedz dziś na fiszkę, żeby jej nie stracić"}`
+  const tip = !own ? (n ? `Seria: ${n} ${plural(n, "dzień", "dni", "dni")} pod rząd${today ? "" : " (dziś jeszcze bez nauki)"}` : "Brak serii")
+    : n ? `Seria: ${n} ${plural(n, "dzień", "dni", "dni")} pod rząd${today ? "" : " – odpowiedz dziś na fiszkę, żeby jej nie stracić"}`
     : "Brak serii – odpowiedz dziś na fiszkę, żeby ją zacząć";
   $("me-cal").innerHTML = `<div class="cal-head">
       <div class="cal-month"><button type="button" class="cal-nav" data-cal="-1" aria-label="Poprzedni miesiąc">‹</button>
@@ -1838,20 +1847,48 @@ $("me-cal").addEventListener("click", e => {
   renderCalendar();
 });
 // ---------- moje statystyki (tylko dane z tej przeglądarki) ----------
-function renderMe() {
+// przy imieniu administratora w statystykach
+const nameHTML = n => esc(n) + (isAdminName(n) ? ` <span class="chip prog admchip">administrator</span>` : "");
+let viewedFriend = null;   // null = moje statystyki; inaczej dane znajomego z bazy
+function renderMe(friend) {
+  viewedFriend = friend || null;
+  $("me-fr").hidden = !!friend;
+  $("me-back").textContent = friend ? "← Moje statystyki" : "← Wróć";
+  calMonth = null;
+  if (friend) {
+    const pg = friend.postep, sm = summarize(pg);
+    $("me-title").textContent = "Statystyki znajomego";
+    $("me-sub").innerHTML = `${nameHTML(friend.imie_nazwisko)} · ${isActive(friend) ? "na stronie teraz" : "aktywny " + ago(friend.ostatnia_aktywnosc)}`;
+    if (!sm) {
+      $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${esc(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>`;
+      $("me-ach").hidden = true; calSrc = [];
+    } else {
+      const ans = sm.yes + sm.mid + sm.no;
+      $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Brak odpowiedzi.</p></div>`) + progressHTML(pg, sm)
+        + `<p class="note" style="text-align:center">Dane zapisane ${ago(friend.postep_aktualizacja || pg.t)}.${pg.days ? "" : " Kalendarz pojawi się, gdy ta osoba znowu wejdzie na stronę."}</p>`;
+      $("me-ach").hidden = false;
+      $("me-ach").innerHTML = achievementsHTML(pg, sm, { days: pg.days || [], ach: pg.ach || {}, own: false });
+      calSrc = pg.days || [];
+    }
+    renderCalendar();
+    show("me"); window.scrollTo(0, 0);
+    return;
+  }
   const pg = buildProgress(), sm = summarize(pg);
   const ans = sm.yes + sm.mid + sm.no;
-  $("me-sub").textContent = `${user.name} · postęp zapisany w tej przeglądarce`;
+  $("me-title").textContent = "Twoje statystyki";
+  $("me-sub").innerHTML = `${nameHTML(user.name)} · postęp zapisany w tej przeglądarce`;
   $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Nie masz jeszcze odpowiedzi. Wybierz porcję i odpowiedz na kilka fiszek, a statystyki pojawią się tutaj.</p></div>`)
     + progressHTML(pg, sm);
+  $("me-ach").hidden = false;
   $("me-ach").innerHTML = achievementsHTML(pg, sm);
-  calMonth = null; renderCalendar();
+  calSrc = null; renderCalendar();
   renderFriends(); loadFriends();
   show("me");
   window.scrollTo(0, 0);
 }
-$("statsbtn").addEventListener("click", () => $("v-me").hidden ? renderMe() : backToCards());
-$("me-back").addEventListener("click", () => backToCards());
+$("statsbtn").addEventListener("click", () => $("v-me").hidden || viewedFriend ? renderMe() : backToCards());
+$("me-back").addEventListener("click", () => viewedFriend ? renderMe() : backToCards());
 $("adminswitch").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.to !== "admin") return backToCards();
@@ -1897,7 +1934,7 @@ function renderFriends() {
   else if (frTab === "friends") html = fr.length
     ? `<ul class="flist">${fr.map(f => friendRow(f, frConfirm === f.publiczne_id
         ? actBtn("del", f.publiczne_id, "Na pewno usunąć?", "warn") + actBtn("nodel", f.publiczne_id, "Nie")
-        : actBtn("askdel", f.publiczne_id, "Usuń"))).join("")}</ul>`
+        : actBtn("view", f.publiczne_id, "Statystyki", "primary") + actBtn("askdel", f.publiczne_id, "Usuń"))).join("")}</ul>`
     : `<p class="empty">Nie masz jeszcze znajomych.</p><button type="button" class="sbtn primary" data-act="find" style="align-self:center">Znajdź użytkowników</button>`;
   else html = (inc.length || out.length) ? (inc.length ? `<p class="fsub">Zaproszenia do Ciebie</p><ul class="flist">${inc.map(f =>
         friendRow(f, actBtn("accept", f.publiczne_id, "Przyjmij", "primary") + actBtn("reject", f.publiczne_id, "Odrzuć"))).join("")}</ul>` : "")
@@ -1911,6 +1948,12 @@ async function friendAction(b) {
   const act = b.dataset.act, pid = b.dataset.pid;
   if (act === "find") return openFind();
   if (act === "askdel" || act === "nodel") { frConfirm = act === "askdel" ? pid : null; return renderFriends(); }
+  if (act === "view") {
+    b.disabled = true;
+    try { const r = await meRpc("postep_znajomego", { p_kto: pid }); if (r && r[0]) return renderMe(r[0]); }
+    catch (e) { toast(e.code === "42501" ? "Ta osoba nie jest już Twoim znajomym" : frErrText(e)); loadFriends(); }
+    b.disabled = false; return;
+  }
   const call = { add: ["zapros_znajomego", { p_kogo: pid }], accept: ["odpowiedz_na_zaproszenie", { p_kto: pid, p_przyjmij: true }],
     reject: ["odpowiedz_na_zaproszenie", { p_kto: pid, p_przyjmij: false }], cancel: ["usun_znajomego", { p_kto: pid }],
     del: ["usun_znajomego", { p_kto: pid }] }[act];
@@ -1953,7 +1996,7 @@ async function runSearch() {
   if (seq !== searchSeq) return;   // w międzyczasie wpisano coś innego
   $("find-res").innerHTML = res.length ? `<ul class="flist">${res.map(u => {
     const pid = u.publiczne_id;
-    const actions = u.relacja === "znajomi" ? `<span class="chip done">✓ znajomi</span>`
+    const actions = u.relacja === "znajomi" ? `<span class="chip done">✓ znajomi</span>` + actBtn("view", pid, "Statystyki")
       : u.relacja === "wyslane" ? `<span class="chip prog">zaproszenie wysłane</span>` + actBtn("cancel", pid, "Anuluj")
       : u.relacja === "otrzymane" ? actBtn("accept", pid, "Przyjmij zaproszenie", "primary")
       : actBtn("add", pid, "Dodaj do znajomych", "primary");
