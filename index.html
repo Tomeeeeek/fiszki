@@ -145,6 +145,10 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .panel .btn { flex: none; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field input { font: inherit; font-size: 17px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+.login-tabs { display: flex; width: 100%; }
+.login-tabs button { flex: 1; }
+.login-tabs[hidden] { display: none; }
+.login-info { margin: 0; font-size: 14px; line-height: 1.45; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
 .formerr { margin: 0; color: var(--bad); font-size: 14px; }
 .note { margin: 0; font-size: 13px; color: var(--muted); }
 .userbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 14px; color: var(--muted); }
@@ -262,6 +266,11 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .cal-grid .d.done.today { box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 2px var(--paper), 0 0 0 4px var(--accent); }
 /* ---------- znajomi i wyszukiwanie ---------- */
 .fr { gap: 12px; }
+.warnchip { background: var(--bad-soft); color: var(--bad); font-size: 10.5px; padding: 1px 7px; }
+.manage { gap: 10px; }
+.manage h3 { margin: 0; }
+.manage p { margin: 0; font-size: 14px; }
+.sel { font: inherit; font-size: 15px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); max-width: 100%; }
 .admchip { font-size: 10.5px; padding: 1px 7px; vertical-align: 1px; }
 .fr-tabs { display: flex; width: 100%; }
 .fr-tabs button { flex: 1; padding: 6px 8px; }
@@ -444,19 +453,28 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <header class="top">
       <span class="eyebrow">Nauka metodą powtórek</span>
       <h1>Fiszki <em>do nauki</em></h1>
-      <p>Wpisz swoje imię i nazwisko, żeby zacząć naukę.</p>
+      <p>Zaloguj się albo załóż konto, żeby zacząć naukę.</p>
     </header>
     <form class="panel" id="login-form" novalidate>
+      <div class="seg login-tabs" role="tablist" aria-label="Logowanie lub nowe konto">
+        <button type="button" role="tab" data-mode="login">Zaloguj się</button>
+        <button type="button" role="tab" data-mode="register">Załóż konto</button>
+      </div>
+      <p class="login-info" id="login-info" hidden></p>
       <div class="field">
         <label class="eyebrow" for="login-name">Imię i nazwisko</label>
-        <input id="login-name" name="name" type="text" autocomplete="name" placeholder="np. Anna Kowalska" maxlength="80">
+        <input id="login-name" name="username" type="text" autocomplete="username" placeholder="np. Anna Kowalska" maxlength="80">
       </div>
-      <div class="field" id="pass-row" hidden>
-        <label class="eyebrow" for="login-pass">Hasło administratora</label>
+      <div class="field">
+        <label class="eyebrow" for="login-pass" id="login-pass-label">Hasło</label>
         <input id="login-pass" name="password" type="password" autocomplete="current-password">
       </div>
+      <div class="field" id="pass2-row" hidden>
+        <label class="eyebrow" for="login-pass2">Powtórz hasło</label>
+        <input id="login-pass2" name="password2" type="password" autocomplete="new-password">
+      </div>
       <p class="formerr" id="login-err" role="alert" hidden></p>
-      <button type="submit" class="btn primary" id="login-btn">Wejdź</button>
+      <button type="submit" class="btn primary" id="login-btn">Zaloguj się</button>
       <p class="note">Twoje imię i nazwisko zobaczy administrator strony, a inni użytkownicy mogą je znaleźć w wyszukiwarce, żeby zaprosić Cię do znajomych. Postęp nauki zostaje w tej przeglądarce.</p>
     </form>
   </section>
@@ -1483,11 +1501,13 @@ const SUPABASE_URL = ENV.supabaseUrl;   // adres projektu Supabase (zależy od �
 const SUPABASE_KEY = ENV.supabaseKey;   // klucz publiczny (anon / publishable) – może być jawny
 const ADMIN_NAME = "tomek grupa";
 const USER_KEY = "fiszki-uzytkownik" + ENV.suffix;
-let user = null, adminPass = null, lastPing = 0;
+// user: { name, token, admin } – token sesji z bazy (konta z hasłem, supabase_5_konta.sql)
+let user = null, lastPing = 0;
 try { user = JSON.parse(localStorage.getItem(USER_KEY)); } catch (e) {}
-try { adminPass = sessionStorage.getItem("fiszki-admin" + ENV.suffix); } catch (e) {}
+let oldName = null;   // zapamiętany z czasów logowania samym imieniem – podpowiadamy go w formularzu
+if (user && !user.token) { oldName = user.name || null; user = null; }
+try { sessionStorage.removeItem("fiszki-admin" + ENV.suffix); } catch (e) {}   // dawne hasło administratora
 const saveUser = () => { try { user ? localStorage.setItem(USER_KEY, JSON.stringify(user)) : localStorage.removeItem(USER_KEY); } catch (e) {} };
-const saveAdminPass = () => { try { adminPass ? sessionStorage.setItem("fiszki-admin" + ENV.suffix, adminPass) : sessionStorage.removeItem("fiszki-admin" + ENV.suffix); } catch (e) {} };
 const isAdminName = n => norm(n || "") === ADMIN_NAME;
 const device = () => /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "telefon" : "komputer";
 const plural = (n, a, b, c) => n === 1 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
@@ -1504,10 +1524,22 @@ async function rpc(fn, args, keepalive) {
 async function report(newVisit) {
   if (!user) return;
   try {
-    const id = await rpc("zglos_uzytkownika", { p_id: user.id || null, p_nazwa: user.name, p_urzadzenie: device(), p_nowa_wizyta: newVisit });
-    if (id && id !== user.id) { user.id = id; saveUser(); }
+    const r = await rpc("zglos", { p_token: user.token, p_urzadzenie: device(), p_nowa_wizyta: newVisit });
+    // imię lub uprawnienia mogły się zmienić (np. administrator połączył konta)
+    if (r && user && (r.nazwa !== user.name || !!r.admin !== !!user.admin)) {
+      user.name = r.nazwa; user.admin = !!r.admin; saveUser();
+      if (!$("v-sections").hidden) renderSections();
+    }
     if (newVisit) syncProgress();
-  } catch (e) { /* brak sieci – nauka działa dalej */ }
+  } catch (e) { if (e.code === "KN401") sessionExpired(); /* brak sieci – nauka działa dalej */ }
+}
+// sesja wygasła albo administrator zresetował hasło / usunął konto
+function sessionExpired() {
+  if (!user) return;
+  const name = user.name;
+  user = null; friends = null; frErr = null; saveUser();
+  showLogin(name);
+  loginErr("Zaloguj się ponownie.");
 }
 // ---------- podsumowanie postępu wysyłane do bazy (widzi je administrator) ----------
 const WORD_PL = new Map(ALL_GROUPS.flatMap(g => g.rounds.flatMap(r => r.words)));
@@ -1531,9 +1563,10 @@ function buildProgress() {
 let syncTimer = null, lastSync = 0;
 async function syncProgress(keepalive) {
   clearTimeout(syncTimer); syncTimer = null;
-  if (!user || !user.id) return;
+  if (!user || !user.token) return;
   lastSync = Date.now();
-  try { await rpc("zapisz_postep", { p_id: user.id, p_nazwa: user.name, p_postep: buildProgress() }, keepalive); } catch (e) {}
+  try { await rpc("zapisz_postep", { p_token: user.token, p_postep: buildProgress() }, keepalive); }
+  catch (e) { if (e.code === "KN401") sessionExpired(); }
 }
 function scheduleSync() {   // najwyżej jeden zapis na 20 s
   if (syncTimer) return;
@@ -1554,49 +1587,78 @@ document.addEventListener("visibilitychange", () => {
 });
 function ping() { if (Date.now() - lastPing > 120000) { lastPing = Date.now(); report(false); } }
 
-function showLogin(prefill) {
-  $("login-name").value = prefill || "";
-  $("login-pass").value = "";
-  $("pass-row").hidden = !isAdminName(prefill);
+// mode: "login" – logowanie, "register" – nowe konto, "set" – pierwsze ustawienie hasła
+let loginMode = "login";
+function setLoginMode(mode, info) {
+  loginMode = mode;
+  $("login-form").querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  $("pass2-row").hidden = mode === "login";
+  $("login-pass-label").textContent = mode === "login" ? "Hasło" : mode === "set" ? "Nowe hasło (min. 6 znaków)" : "Hasło (min. 6 znaków)";
+  $("login-pass").autocomplete = mode === "login" ? "current-password" : "new-password";
+  $("login-name").readOnly = mode === "set";
+  $("login-btn").textContent = { login: "Zaloguj się", register: "Załóż konto", set: "Ustaw hasło i wejdź" }[mode];
+  $("login-info").hidden = !info;
+  $("login-info").innerHTML = info || "";
   $("login-err").hidden = true;
+}
+const NEW_ACCOUNTS_INFO = "Strona ma teraz konta z hasłem. Korzystałeś(-aś) już ze strony? Wpisz swoje imię i nazwisko i kliknij „Zaloguj się” (bez hasła) – ustawisz je za pierwszym razem.";
+function showLogin(prefill, mode, info) {
+  $("login-name").value = prefill || "";
+  $("login-pass").value = ""; $("login-pass2").value = "";
+  setLoginMode(mode || "login", info !== undefined ? info : prefill ? "" : NEW_ACCOUNTS_INFO);
   show("login");
   (prefill ? $("login-pass") : $("login-name")).focus();
 }
 function loginErr(msg) { $("login-err").textContent = msg; $("login-err").hidden = false; }
-$("login-name").addEventListener("input", () => {
-  $("pass-row").hidden = !isAdminName($("login-name").value);
-  $("login-err").hidden = true;
+$("login-form").querySelector(".login-tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-mode]"); if (!b) return;
+  setLoginMode(b.dataset.mode, b.dataset.mode === "register"
+    ? "Konto zakładasz tylko raz. Wpisz <b>pełne</b> imię i nazwisko – po nich znajomi znajdą Cię w wyszukiwarce." : "");
+  $("login-name").focus();
 });
+$("login-name").addEventListener("input", () => { $("login-err").hidden = true; });
+// „anna kowalska-nowak” → „Anna Kowalska-Nowak”
+const titleCase = n => n.split(" ").map(w => w.split("-").map(p => p ? p[0].toLocaleUpperCase("pl") + p.slice(1) : p).join("-")).join(" ");
+const validName = n => { const w = n.split(" "); return w.length >= 2 && w.every(x => /^\p{L}[\p{L}'’.-]+$/u.test(x)); };
 $("login-form").addEventListener("submit", async e => {
   e.preventDefault();
-  const name = $("login-name").value.replace(/\s+/g, " ").trim();
-  if (name.length < 3 || name.split(" ").length < 2) return loginErr("Wpisz imię i nazwisko, np. Anna Kowalska.");
-  if (isAdminName(name)) {
-    const pass = $("login-pass").value;
-    if (!pass) return loginErr("Wpisz hasło administratora.");
-    $("login-btn").disabled = true;
-    try {
-      const list = await rpc("lista_uzytkownikow", { p_haslo: pass });
-      adminPass = pass; saveAdminPass();
-      signIn(name);
-      renderAdmin(list);
-    } catch (err) {
-      loginErr(err.code === "28P01" ? "Nieprawidłowe hasło." : "Nie udało się połączyć z bazą. Sprawdź internet i spróbuj ponownie.");
-    } finally { $("login-btn").disabled = false; }
-    return;
+  let name = $("login-name").value.replace(/\s+/g, " ").trim();
+  const pass = $("login-pass").value, pass2 = $("login-pass2").value;
+  if (!validName(name)) return loginErr("Wpisz pełne imię i nazwisko, np. Anna Kowalska.");
+  if (loginMode !== "login") {
+    if (pass.length < 6) return loginErr("Hasło musi mieć co najmniej 6 znaków.");
+    if (pass !== pass2) return loginErr("Hasła się różnią – wpisz je jeszcze raz.");
   }
-  signIn(name);
-  renderSections();
+  if (loginMode === "register") name = titleCase(name);
+  const fn = { login: "zaloguj", register: "zaloz_konto", set: "ustaw_haslo" }[loginMode];
+  $("login-btn").disabled = true;
+  try {
+    const r = await rpc(fn, { p_nazwa: name, p_haslo: pass, p_urzadzenie: device() });
+    signIn(r);
+  } catch (err) {
+    const c = err.code;
+    if (c === "KN002") return setLoginMode("set", `Konto <b>${esc(name)}</b> nie ma jeszcze hasła. Ustaw je teraz – będziesz go używać przy każdym logowaniu.`);
+    loginErr(c === "KN001" ? "Nie ma konta o takim imieniu i nazwisku. Sprawdź pisownię albo załóż konto."
+      : c === "28P01" ? (pass ? "Nieprawidłowe hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła." : "Wpisz hasło.")
+      : c === "KN003" ? "Konto o tym imieniu i nazwisku już istnieje – zaloguj się."
+      : c === "KN006" ? "To konto ma już hasło – zaloguj się."
+      : c === "KN004" ? "Wpisz pełne imię i nazwisko, np. Anna Kowalska."
+      : c === "KN005" ? "Hasło musi mieć co najmniej 6 znaków."
+      : "Nie udało się połączyć z bazą. Sprawdź internet i spróbuj ponownie.");
+  } finally { $("login-btn").disabled = false; }
 });
-function signIn(name) {
-  const same = user && norm(user.name) === norm(name);
-  user = { id: same ? user.id : null, name };
-  saveUser(); lastPing = Date.now(); report(true);
+function signIn(r) {
+  user = { name: r.nazwa, token: r.token, admin: !!r.admin };
+  oldName = null; friends = null; frErr = null;
+  saveUser(); lastPing = Date.now();
+  syncProgress();
+  if (user.admin) loadAdmin(); else renderSections();
 }
 $("u-logout").addEventListener("click", () => {
-  user = null; adminPass = null; friends = null; frErr = null; saveUser(); saveAdminPass(); showLogin();
+  if (user) rpc("wyloguj", { p_token: user.token }).catch(() => {});
+  user = null; friends = null; frErr = null; saveUser(); showLogin();
 });
-$("u-admin").addEventListener("click", () => adminPass ? loadAdmin() : showLogin(user.name));
+$("u-admin").addEventListener("click", loadAdmin);
 
 // ---------- panel administratora ----------
 function ago(t) {
@@ -1650,21 +1712,60 @@ function progressHTML(pg, sm) {
     <p class="note">„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.</p></div>` : "";
   return tiles + split + groups + hard;
 }
+// ---------- zarządzanie kontem (administrator) ----------
+let udMode = null;   // null | "reset" | "del" | "merge" – czekające potwierdzenie
+function manageHTML(u) {
+  if (u.administrator) return "";
+  const others = adminList.filter(x => x.publiczne_id !== u.publiczne_id)
+    .sort((a, b) => a.imie_nazwisko.localeCompare(b.imie_nazwisko, "pl"));
+  const body = udMode === "reset" ? `<p>Hasło zostanie skasowane, a ${esc(u.imie_nazwisko)} zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu ustawi nowe hasło.</p>
+      <div class="factions" style="justify-content:flex-start">${udBtn("do-reset", "Resetuj hasło", "warn")}${udBtn("cancel", "Anuluj")}</div>`
+    : udMode === "del" ? `<p>Konto <b>${esc(u.imie_nazwisko)}</b>, jego postęp w bazie i znajomości zostaną usunięte na stałe.</p>
+      <div class="factions" style="justify-content:flex-start">${udBtn("do-del", "Usuń konto na stałe", "warn")}${udBtn("cancel", "Anuluj")}</div>`
+    : udMode === "merge" ? `<p>Wybierz konto, które <b>zostaje</b>. Konto <b>${esc(u.imie_nazwisko)}</b> zostanie usunięte, a jego znajomi, wizyty i zalogowane urządzenia przejdą na wybrane konto. Zostanie lepszy z dwóch postępów.</p>
+      <select id="ud-merge" class="sel">${others.map(x => `<option value="${x.publiczne_id}">${esc(x.imie_nazwisko)}</option>`).join("")}</select>
+      <div class="factions" style="justify-content:flex-start">${udBtn("do-merge", "Połącz konta", "warn")}${udBtn("cancel", "Anuluj")}</div>`
+    : `<div class="factions" style="justify-content:flex-start">${u.ma_haslo ? udBtn("reset", "Resetuj hasło") : ""}${udBtn("merge", "Połącz z innym kontem…")}${udBtn("del", "Usuń konto", "warn")}</div>`;
+  return `<div class="panel manage"><h3>Konto</h3>
+    <p class="note">${u.ma_haslo ? "Hasło ustawione." : "Bez hasła – ustawi je przy następnym logowaniu."}</p>${body}</div>`;
+}
+const udBtn = (act, label, cls) => `<button type="button" class="sbtn${cls ? " " + cls : ""}" data-ud="${act}">${label}</button>`;
+$("ud-body").addEventListener("click", async e => {
+  const b = e.target.closest("[data-ud]"); if (!b || b.disabled) return;
+  const act = b.dataset.ud, u = adminList.find(x => x.imie_nazwisko === viewedUser); if (!u) return;
+  const rerender = () => { const y = window.scrollY; renderUser(adminList.indexOf(u)); window.scrollTo(0, y); };
+  if (["reset", "del", "merge", "cancel"].includes(act)) { udMode = act === "cancel" ? null : act; return rerender(); }
+  b.disabled = true;
+  try {
+    if (act === "do-reset") await adminRpc("admin_resetuj_haslo", { p_kto: u.publiczne_id });
+    if (act === "do-del") await adminRpc("admin_usun_konto", { p_kto: u.publiczne_id });
+    if (act === "do-merge") await adminRpc("admin_polacz_konta", { p_zostaje: $("ud-merge").value, p_usuwane: u.publiczne_id });
+  } catch (err) {
+    b.disabled = false;
+    if (err.code === "KN401") return sessionExpired();
+    return toast("Nie udało się: " + err.message);
+  }
+  udMode = null;
+  toast(act === "do-reset" ? "Hasło skasowane" : act === "do-del" ? "Konto usunięte" : "Konta połączone");
+  if (act === "do-reset") { u.ma_haslo = false; return rerender(); }
+  loadAdmin();   // konto zniknęło – wracamy do listy
+});
 function renderUser(i) {
   const u = adminList[i]; if (!u) return;
+  if (viewedUser !== u.imie_nazwisko) udMode = null;
   viewedUser = u.imie_nazwisko;
   const pg = u.postep, sm = summarize(pg);
   $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${nameHTML(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
   if (!sm) {
-    $("ud-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
+    $("ud-body").innerHTML = manageHTML(u) + `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
     return show("user");
   }
-  $("ud-body").innerHTML = progressHTML(pg, sm) +
+  $("ud-body").innerHTML = manageHTML(u) + progressHTML(pg, sm) +
     `<p class="note" style="text-align:center">Dane z przeglądarki użytkownika, zapisane ${ago(u.postep_aktualizacja || pg.t)}.</p>`;
   show("user");
 }
 $("a-body").addEventListener("click", e => { const b = e.target.closest("[data-user]"); if (b) renderUser(+b.dataset.user); });
-$("ud-back").addEventListener("click", () => show("admin"));
+$("ud-back").addEventListener("click", () => { udMode = null; show("admin"); });
 function renderAdmin(list) {
   adminList = list;
   const active = list.filter(isActive).length;
@@ -1677,7 +1778,7 @@ function renderAdmin(list) {
         <span class="dot${on ? " on" : ""}"></span>
         <div class="umain">
           <button type="button" class="ulink">${esc(u.imie_nazwisko)}</button>
-          <span class="umeta">${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
+          <span class="umeta">${u.ma_haslo === false ? `<span class="chip warnchip">bez hasła</span> ` : ""}${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
         </div>
         <div class="upct"><b>${sm ? pct(sm.mastered, sm.words) : "–"}</b><small>opanowane</small></div>
       </li>`;
@@ -1699,11 +1800,14 @@ function fitAdminList() {
   panel.style.maxHeight = Math.max(220, window.innerHeight - top - below) + "px";
 }
 window.addEventListener("resize", fitAdminList);
+const adminRpc = (fn, args) => rpc(fn, Object.assign({ p_token: user.token }, args));
 async function loadAdmin() {
+  if (!user) return showLogin();
   $("a-refresh").disabled = true;
-  try { renderAdmin(await rpc("lista_uzytkownikow", { p_haslo: adminPass })); }
+  try { renderAdmin(await adminRpc("lista_uzytkownikow", {})); }
   catch (err) {
-    if (err.code === "28P01") { adminPass = null; saveAdminPass(); showLogin(user && user.name); loginErr("Hasło się zmieniło. Zaloguj się ponownie."); }
+    if (err.code === "KN401") sessionExpired();
+    else if (err.code === "42501") { user.admin = false; saveUser(); openFind(); }
     else { $("a-body").innerHTML = `<p class="empty">Nie udało się pobrać listy. Sprawdź internet i kliknij „Odśwież”.</p>`; show("admin"); }
   } finally { $("a-refresh").disabled = false; }
 }
@@ -1711,9 +1815,9 @@ $("a-refresh").addEventListener("click", loadAdmin);
 let viewedUser = null;
 setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany widoku
   const onList = !$("v-admin").hidden, onUser = !$("v-user").hidden;
-  if (!adminPass || (!onList && !onUser) || document.visibilityState !== "visible") return;
+  if (!user || !user.admin || (!onList && !onUser) || udMode || document.visibilityState !== "visible") return;
   try {
-    const list = await rpc("lista_uzytkownikow", { p_haslo: adminPass });
+    const list = await adminRpc("lista_uzytkownikow", {});
     if (onList && !$("v-admin").hidden) renderAdmin(list);
     else if (onUser && !$("v-user").hidden) {
       adminList = list;
@@ -1892,18 +1996,15 @@ $("me-back").addEventListener("click", () => viewedFriend ? renderMe() : backToC
 $("adminswitch").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.to !== "admin") return backToCards();
-  if (!isAdminName(user.name)) return openFind();   // zwykły użytkownik: wyszukiwarka zamiast listy
-  adminPass ? loadAdmin() : showLogin(user.name);
+  user.admin ? loadAdmin() : openFind();   // zwykły użytkownik: wyszukiwarka zamiast listy
 });
 
 // ---------- znajomi (Supabase: supabase_3_znajomi.sql) ----------
 // Inni użytkownicy są wskazywani przez publiczne_id; własne id + imię potwierdzają, kim jestem.
 async function meRpc(fn, args) {
   for (let i = 0; i < 2; i++) {
-    if (!user.id) await report(false);
-    if (!user.id) { const e = new Error("Brak połączenia z bazą"); e.code = "noid"; throw e; }
-    try { return await rpc(fn, Object.assign({ p_id: user.id, p_nazwa: user.name }, args)); }
-    catch (e) { if (e.code !== "28000" || i) throw e; user.id = null; }   // id nieaktualne – zgłoś się ponownie
+    try { return await rpc(fn, Object.assign({ p_token: user.token }, args)); }
+    catch (e) { if (e.code === "KN401") sessionExpired(); throw e; }
   }
 }
 const frErrText = e => e && e.code === "PGRST202" ? "Znajomi będą dostępni po aktualizacji bazy danych."
@@ -2012,7 +2113,7 @@ $("f-back").addEventListener("click", backToCards);
 function renderSections() {
   if (!user) return showLogin();
   $("u-name").textContent = user.name;
-  $("u-admin").hidden = !isAdminName(user.name);
+  $("u-admin").hidden = !user.admin;
   $("sections").innerHTML = SECTIONS.map((sec, i) => {
     if (sec.soon || !sec.groups.length) return `<div class="round soon" aria-disabled="true">
       <span class="num">${i + 1}</span><span class="name">${esc(sec.name)}</span>
@@ -2354,8 +2455,8 @@ $("showlist").addEventListener("click", () => {
 $("l-back").addEventListener("click", renderHome);
 
 $("testbanner").hidden = !IS_TEST;
-if (user && user.name) { lastPing = Date.now(); report(true); renderSections(); }
-else showLogin();
+if (user && user.token) { lastPing = Date.now(); report(true); renderSections(); }
+else showLogin(oldName, "login", NEW_ACCOUNTS_INFO);
 </script>
 </body>
 </html>
