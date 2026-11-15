@@ -1078,9 +1078,40 @@ const ROZP_NEUROLOGIA = [
     ["trauma columnae vertebralis, commotio medullae spinalis", "uraz kręgosłupa, wstrząśnienie rdzenia kręgowego"],
   ]},
 ];
+const ROZP_INNE = [
+  { id: "ri1", name: "Porcja 1", range: "Arteriosclerosis – Hypertonia", words: [
+    ["Arteriosclerosis obliterans extremitatum inferiorum", "miażdżyca zarostowa tętnic kończyn dolnych"],
+    ["asthma bronchiale in stadio remissionis", "astma oskrzelowa w okresie remisji"],
+    ["Bronchitis chronica obturativa", "przewlekły obturacyjny nieżyt oskrzeli"],
+    ["carcinoma bronchogenes, pulmonectomia dextra", "rak oskrzelowy, wycięcie prawego płuca"],
+    ["Coxarthrosis bilateralis", "zmiany zwyrodnieniowe stawów biodrowych"],
+    ["Decubitus regionis sacralis", "odleżyna kości krzyżowej"],
+    ["Febris rheumatica in stadio remissionis", "gorączka reumatyczna w okresie remisji"],
+    ["Hypertonia arterialis", "nadciśnienie tętnicze"],
+  ]},
+  { id: "ri2", name: "Porcja 2", range: "Infarctus – pneumonia", words: [
+    ["Infarctus myocardii recens/complicatus/peractus", "świeży/powikłany/przebyty zawał serca"],
+    ["Mammectomia dextra propter carcinoma", "operacyjne odjęcie prawego sutka z powodu raka"],
+    ["Morbus hypertonicus", "choroba nadciśnieniowa"],
+    ["Morbus ischaemicus cordis, angina pectoris", "choroba niedokrwienna serca, dusznica bolesna"],
+    ["Morbus ulcerosus ventriculi", "choroba wrzodowa żołądka"],
+    ["Obesitas alimentaris", "otyłość z przekarmienia"],
+    ["pneumonia acuta embolica", "ostre zatorowe zapalenie płuc"],
+  ]},
+  { id: "ri3", name: "Porcja 3", range: "polyarthritis – Varices", words: [
+    ["polyarthritis rheumatoidea", "reumatoidalne zapalenie stawów"],
+    ["protrusio nuclei pulposi disci intervertebralis", "wypuklenie jądra galaretowatego tarczy międzykręgowej"],
+    ["spondyloarthritis ankylopoetica", "zesztywniające zapalenie stawów kręgosłupa"],
+    ["Spondyloarthrosis partis lumbalis columnae vertebralis", "zmiany zwyrodnieniowe części lędźwiowej kręgosłupa"],
+    ["synovectomia articulationis genus dextri", "wycięcie błony maziowej prawego stawu kolanowego"],
+    ["ulcus ventriculi perforatum", "przebicie wrzodu żołądka"],
+    ["Varices extremitatum inferiorum", "żylaki kończyn dolnych"],
+  ]},
+];
 const ROZPOZNANIA = [
   { id: "rozp-orto", name: "Rozpoznania w ortopedii", range: "Amputatio – Trauma", rounds: ROZP_ORTOPEDIA, allId: "rozp-orto-all" },
   { id: "rozp-neuro", name: "Rozpoznania w neurologii", range: "brachialgia – trauma", rounds: ROZP_NEUROLOGIA, allId: "rozp-neuro-all" },
+  { id: "rozp-inne", name: "Rozpoznania w innych dziedzinach medycznych", range: "Arteriosclerosis – Varices", rounds: ROZP_INNE, allId: "rozp-inne-all" },
 ];
 for (const g of ROZPOZNANIA) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
