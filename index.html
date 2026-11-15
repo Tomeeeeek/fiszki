@@ -86,7 +86,32 @@ body {
 .statsbtn { grid-column: 3; justify-self: end; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow); }
 .statsbtn svg { width: 15px; height: 15px; }
 .statsbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-@media (max-width: 400px) { .topbar { grid-template-columns: auto 1fr; } .adminswitch { grid-column: 1; } .statsbtn { grid-column: 2; } }
+@media (max-width: 400px) { .topbar { grid-template-columns: auto auto 1fr; } .adminswitch { grid-column: 2; } .statsbtn { grid-column: 3; } }
+@media (max-width: 370px) { .statsbtn { font-size: 0; gap: 0; } .statsbtn svg { width: 17px; height: 17px; } }
+/* ---------- powiadomienia ---------- */
+.bell { grid-column: 1; justify-self: start; position: relative; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); display: grid; place-items: center; padding: 0; box-shadow: var(--shadow); }
+.bell svg { width: 20px; height: 20px; }
+.bell:hover, .bell[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.bell.ring svg { animation: bell-ring 1s ease-in-out 2; transform-origin: 50% 10%; }
+@keyframes bell-ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-5deg); } }
+@media (prefers-reduced-motion: reduce) { .bell.ring svg { animation: none; } }
+.bell-n { position: absolute; top: -4px; right: -4px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--bad); color: #fff; font-family: var(--f-mono); font-size: 11px; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px var(--bg); }
+.notif-pop { position: absolute; top: calc(100% + 8px); left: 0; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow-y: auto; z-index: 20; gap: 6px; padding: 14px 16px; box-shadow: 0 16px 48px rgba(0, 0, 0, .28); }
+.notif-head { display: flex; align-items: center; justify-content: space-between; }
+.notif-head h3 { margin: 0; }
+.notif-x { border: 0; background: none; color: var(--muted); font-size: 15px; padding: 4px 6px; border-radius: 8px; }
+.notif-x:hover { color: var(--ink); background: var(--grid); }
+.nlist { list-style: none; margin: 0; padding: 0; }
+.nitem { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 10px; padding: 10px 0; border-top: 1px solid var(--line); align-items: start; }
+.nitem:first-child { border-top: 0; }
+.nicon { grid-row: span 2; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--grid); color: var(--accent); position: relative; }
+.nicon svg { width: 18px; height: 18px; }
+.nicon.medal-ico { background: none; }
+.nicon.medal-ico svg { width: 34px; height: 34px; }
+.nitem.unread .nicon::after { content: ""; position: absolute; top: -1px; right: -1px; width: 9px; height: 9px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 0 2px var(--paper); }
+.ntext { font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.ntime { font-size: 12px; color: var(--muted); }
+.nitem .factions { grid-column: 2; justify-content: flex-start; margin-top: 4px; }
 button { font: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -449,6 +474,14 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 <div class="wrap" id="app">
   <div class="testbanner" id="testbanner" hidden>WERSJA TESTOWA · zmiany nie są widoczne na stronie głównej</div>
   <div class="topbar" id="topbar" hidden>
+    <button type="button" class="bell" id="bell" aria-label="Powiadomienia" aria-haspopup="dialog" aria-expanded="false" title="Powiadomienia">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A1 1 0 0 0 4 19.4h16a1 1 0 0 0 .7-1.7L19 16Z"/></svg>
+      <span class="bell-n" id="bell-n" hidden></span>
+    </button>
+    <div class="notif-pop panel" id="notif-pop" role="dialog" aria-label="Powiadomienia" hidden>
+      <div class="notif-head"><h3>Powiadomienia</h3><button type="button" class="notif-x" id="notif-x" aria-label="Zamknij">✕</button></div>
+      <div id="notif-body"></div>
+    </div>
     <div class="seg adminswitch" id="adminswitch" role="group" aria-label="Przełącz widok" hidden>
       <button type="button" data-to="fiszki">Fiszki</button>
       <button type="button" data-to="admin">Użytkownicy</button>
@@ -1510,6 +1543,7 @@ function show(v) {
   ["login", "admin", "find", "user", "me", "sections", "parts", "groups", "home", "study", "done", "list"].forEach(n => $("v-" + n).hidden = n !== v);
   if (!["admin", "find", "user", "login", "me"].includes(v)) lastView = v;
   $("topbar").hidden = v === "login" || !user;
+  if ($("topbar").hidden) closeNotifs();
   $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
   $("adminswitch").hidden = v === "login" || !user;   // zakładka „Użytkownicy” jest dla wszystkich
   $("adminswitch").querySelectorAll("button").forEach(b =>
@@ -1710,6 +1744,7 @@ function signIn(r) {
   syncProgress();
   if (user.admin) loadAdmin(); else renderSections();
   if (!user.email) openAccModal("logged");
+  checkNewMaterials(); loadFriends(); updateBell();
 }
 
 // ---------- okienko: konto sprzed zmian dostaje e-mail ----------
@@ -1976,6 +2011,12 @@ function bestStreak(list = store.days) {
 }
 // src: czyje dane – { days, ach, own }; tylko własne zdobycze są zapisywane na stałe
 function achievementsHTML(pg, sm, src = { days: store.days, ach: null, own: true }) {
+  const { list, got } = achList(pg, sm, src);
+  const nGot = list.filter(x => x.ok).length;
+  return achGridHTML(list, got, nGot);
+}
+// liczy osiągnięcia; nowo zdobyte własne są zapisywane na stałe i trafiają do powiadomień
+function achList(pg, sm, src = { days: store.days, ach: null, own: true }) {
   const rounds = pg.groups.flatMap(g => g.rounds.filter(r => !r.all).map(r => ({ ...r, group: g.name })));
   const best = rounds.filter(r => r.mastered && r.status !== "ukończona")
     .sort((x, y) => y.mastered / y.total - x.mastered / x.total)[0];
@@ -1985,14 +2026,23 @@ function achievementsHTML(pg, sm, src = { days: store.days, ach: null, own: true
   // zdobyte osiągnięcie zostaje na stałe (store.ach: nazwa → data zdobycia)
   if (src.own) store.ach = store.ach || {};
   const got = src.own ? store.ach : Object.assign({}, src.ach);
+  const had = new Set(Object.keys(got));
   let changed = false;
   const list = ACHIEVEMENTS.map(x => {
     const p = x.prog(a);
     if (!got[x.name] && p.cur >= p.max) { got[x.name] = src.own ? new Date().toISOString() : true; changed = true; }
     return { ...x, p, ok: !!got[x.name] };
   });
-  if (changed && src.own) save();
-  const nGot = list.filter(x => x.ok).length;
+  if (changed && src.own) {
+    list.filter(x => x.ok && !had.has(x.name)).forEach(x => {
+      addNotif({ id: "ach:" + x.name, type: "ach", name: x.name, desc: x.desc, glyph: x.glyph, t: got[x.name] });
+      toast("Zdobyte osiągnięcie: " + x.name);
+    });
+    save();
+  }
+  return { list, got };
+}
+function achGridHTML(list, got, nGot) {
   return `<h3>Osiągnięcia <small>${nGot}/${list.length}</small></h3><div class="ach-grid">${list.map(x => {
     const when = typeof got[x.name] === "string" ? new Date(got[x.name]) : null;
     const tip = x.ok ? `<b>Zdobyte ✓</b>${when ? "<br>" + when.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" }) : ""}`
@@ -2154,6 +2204,7 @@ function renderFriends() {
         friendRow(f, actBtn("cancel", f.publiczne_id, "Anuluj"))).join("")}</ul>` : "")
     : `<p class="empty">Brak próśb o dołączenie do znajomych.</p>`;
   $("fr-body").innerHTML = html;
+  updateBell();
 }
 // wspólna obsługa przycisków w okienku znajomych i w wynikach wyszukiwania
 async function friendAction(b) {
@@ -2185,9 +2236,101 @@ $("me-fr").addEventListener("click", e => {
   if (t) { frTab = t.dataset.frtab; frConfirm = null; return renderFriends(); }
   const b = e.target.closest("[data-act]"); if (b && !b.disabled) friendAction(b);
 });
-setInterval(() => {   // okienko znajomych odświeża się co 30 s, gdy widać statystyki
-  if (user && !$("v-me").hidden && document.visibilityState === "visible" && !frConfirm) loadFriends();
+setInterval(() => {   // znajomi i zaproszenia (dzwonek) odświeżają się co 30 s, gdy strona jest widoczna
+  if (user && $("v-login").hidden && document.visibilityState === "visible" && !frConfirm) loadFriends();
 }, 30000);
+
+// ---------- powiadomienia (dzwonek w lewym górnym rogu) ----------
+// Zaproszenia do znajomych przychodzą z bazy (friends, rodzaj „otrzymane”), przeczytane: store.seenReq.
+// Osiągnięcia i nowe materiały to powiadomienia zapisane w przeglądarce: store.notifs.
+function addNotif(n) {
+  store.notifs = store.notifs || [];
+  if (store.notifs.some(x => x.id === n.id)) return;
+  store.notifs.unshift(Object.assign({ t: new Date().toISOString(), read: false }, n));
+  store.notifs = store.notifs.slice(0, 40);
+  save(); updateBell(true);
+}
+function checkAchievements() {
+  if (!user) return;
+  const pg = buildProgress(), sm = summarize(pg);
+  if (sm) achList(pg, sm);
+}
+// Nowe materiały: porcje, których ta przeglądarka jeszcze nie widziała (store.known).
+// Za pierwszym razem tylko zapamiętujemy, co jest – bez powiadomień.
+function checkNewMaterials() {
+  const ids = ALL_GROUPS.flatMap(g => g.rounds.filter(r => r.id !== g.allId).map(r => r.id));
+  if (!store.known) { store.known = ids; return save(); }
+  const known = new Set(store.known);
+  for (const g of ALL_GROUPS) {
+    const fresh = g.rounds.filter(r => r.id !== g.allId && !known.has(r.id));
+    if (!fresh.length) continue;
+    const all = fresh.length === g.rounds.filter(r => r.id !== g.allId).length;
+    const n = fresh.length, cards = fresh.reduce((k, r) => k + r.words.length, 0);
+    addNotif({ id: "new:" + fresh.map(r => r.id).join(","), type: "new",
+      text: `<b>${esc(g.section.name)} › ${esc(g.name)}</b> – ${all ? "nowa grupa" : `${n} ${plural(n, "nowa porcja", "nowe porcje", "nowych porcji")}`} (${cards} ${units(cards, g.section)})` });
+  }
+  store.known = ids; save();
+}
+const pendingReq = () => (friends || []).filter(f => f.rodzaj === "otrzymane");
+function unreadCount() {
+  const seen = new Set(store.seenReq || []);
+  return pendingReq().filter(f => !seen.has(f.publiczne_id)).length + (store.notifs || []).filter(n => !n.read).length;
+}
+let bellCount = 0;
+function updateBell(ring) {
+  const n = unreadCount();
+  $("bell-n").hidden = !n;
+  $("bell-n").textContent = n > 9 ? "9+" : n;
+  $("bell").setAttribute("aria-label", n ? `Powiadomienia: ${n} ${plural(n, "nowe", "nowe", "nowych")}` : "Powiadomienia");
+  if ((ring || n > bellCount) && n) { $("bell").classList.remove("ring"); void $("bell").offsetWidth; $("bell").classList.add("ring"); }
+  bellCount = n;
+  if (!$("notif-pop").hidden) renderNotifs(false);
+}
+const ICONS = {
+  friend: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-7 1.7-7 4.5V20h14v-1.5C17 15.7 13.3 14 10 14Zm9-6V6h-2v2h-2v2h2v2h2v-2h2V8h-2Z"/></svg>`,
+  new: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5.5C4 4.1 5.1 3 6.5 3H20v15H6.5a1.5 1.5 0 0 0 0 3H20v-1.5h-2V21H6.5A3.5 3.5 0 0 1 3 17.5v-12h1ZM13 6l1 2.3 2.5.2-1.9 1.7.6 2.4L13 11.3l-2.2 1.3.6-2.4-1.9-1.7 2.5-.2L13 6Z"/></svg>`,
+};
+let notifUnread = new Set();   // co było nieprzeczytane w chwili otwarcia okienka (wyróżnione)
+function renderNotifs(markRead) {
+  const seen = new Set(store.seenReq || []);
+  if (markRead) notifUnread = new Set([
+    ...pendingReq().filter(f => !seen.has(f.publiczne_id)).map(f => "req:" + f.publiczne_id),
+    ...(store.notifs || []).filter(n => !n.read).map(n => n.id)]);
+  const items = [
+    ...pendingReq().map(f => ({ id: "req:" + f.publiczne_id, t: f.od_kiedy, html: `<li class="nitem${notifUnread.has("req:" + f.publiczne_id) ? " unread" : ""}">
+      <span class="nicon">${ICONS.friend}</span>
+      <span class="ntext"><b>${esc(f.imie_nazwisko)}</b> zaprasza Cię do znajomych</span>
+      <span class="ntime">${f.od_kiedy ? ago(f.od_kiedy) : ""}</span>
+      <span class="factions">${actBtn("accept", f.publiczne_id, "Przyjmij", "primary")}${actBtn("reject", f.publiczne_id, "Odrzuć")}</span></li>` })),
+    ...(store.notifs || []).map(n => ({ id: n.id, t: n.t, html: `<li class="nitem${notifUnread.has(n.id) ? " unread" : ""}">
+      ${n.type === "ach" ? `<span class="nicon medal-ico"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#medal-art"></use></svg></span>
+        <span class="ntext">Zdobyte osiągnięcie: <b>${esc(n.name)}</b> – ${esc(n.desc)}</span>`
+      : `<span class="nicon">${ICONS.new}</span><span class="ntext">Nowe materiały: ${n.text}</span>`}
+      <span class="ntime">${ago(n.t)}</span></li>` })),
+  ].sort((a, b) => (b.t || "").localeCompare(a.t || ""));
+  $("notif-body").innerHTML = items.length ? `<ul class="nlist">${items.map(x => x.html).join("")}</ul>`
+    : `<p class="empty">Brak powiadomień. Pojawią się tu zaproszenia do znajomych, zdobyte osiągnięcia i nowe materiały.</p>`;
+  if (markRead) {   // otwarcie okienka = wszystko przeczytane
+    store.seenReq = [...new Set([...(store.seenReq || []), ...pendingReq().map(f => f.publiczne_id)])].slice(-200);
+    (store.notifs || []).forEach(n => { n.read = true; });
+    save(); bellCount = 0;
+    $("bell-n").hidden = true; $("bell").setAttribute("aria-label", "Powiadomienia");
+  }
+}
+function openNotifs() {
+  $("notif-pop").hidden = false; $("bell").setAttribute("aria-expanded", "true");
+  renderNotifs(true);
+  if (user) loadFriends();
+}
+function closeNotifs() { $("notif-pop").hidden = true; $("bell").setAttribute("aria-expanded", "false"); }
+$("bell").addEventListener("click", e => { e.stopPropagation(); $("notif-pop").hidden ? openNotifs() : closeNotifs(); });
+$("notif-x").addEventListener("click", closeNotifs);
+$("notif-pop").addEventListener("click", e => {
+  e.stopPropagation();
+  const b = e.target.closest("[data-act]"); if (b && !b.disabled) friendAction(b);
+});
+document.addEventListener("click", e => { if (!$("notif-pop").hidden && !e.target.closest("#notif-pop")) closeNotifs(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("notif-pop").hidden) { closeNotifs(); $("bell").focus(); } });
 
 // ---------- wyszukiwanie użytkowników ----------
 let searchTimer = null, searchSeq = 0;
@@ -2485,6 +2628,7 @@ function grade(level) {
   markDay();
   save();
   scheduleSync();
+  checkAchievements();
   nextCard();
 }
 function finishRound() {
@@ -2566,7 +2710,7 @@ $("showlist").addEventListener("click", () => {
 $("l-back").addEventListener("click", renderHome);
 
 $("testbanner").hidden = !IS_TEST;
-if (user && user.token) { lastPing = Date.now(); report(true); renderSections(); }
+if (user && user.token) { lastPing = Date.now(); report(true); renderSections(); checkNewMaterials(); loadFriends(); updateBell(); }
 else { showLogin(); if (oldName) openAccModal("old", oldName); }
 </script>
 </body>
