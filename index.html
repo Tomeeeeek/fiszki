@@ -2126,7 +2126,11 @@ function renderMe(friend) {
     $("me-sub").innerHTML = `${nameHTML(friend.imie_nazwisko)} · ${isActive(friend) ? "na stronie teraz" : "aktywny " + ago(friend.ostatnia_aktywnosc)}`;
     if (!sm) {
       $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${esc(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>`;
-      $("me-ach").hidden = true; calSrc = [];
+      // osiągnięcia pokazujemy zawsze – bez danych wszystkie są jeszcze do zdobycia
+      const empty = { groups: [], days: (pg && pg.days) || [], ach: (pg && pg.ach) || {} };
+      $("me-ach").hidden = false;
+      $("me-ach").innerHTML = achievementsHTML(empty, summarize(empty), { days: empty.days, ach: empty.ach, own: false });
+      calSrc = empty.days;
     } else {
       const ans = sm.yes + sm.mid + sm.no;
       $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Brak odpowiedzi.</p></div>`) + progressHTML(pg, sm)
