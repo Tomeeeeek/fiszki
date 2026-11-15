@@ -148,6 +148,15 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .login-tabs { display: flex; width: 100%; }
 .login-tabs button { flex: 1; }
 .login-tabs[hidden] { display: none; }
+.lbl-note { text-transform: none; letter-spacing: 0; font-family: var(--f-body, inherit); font-size: 12px; }
+.oldacc { align-self: center; text-align: center; font-size: 13px; color: var(--muted); }
+.oldacc b { color: var(--accent); }
+.modal { position: fixed; inset: 0; z-index: 50; background: rgba(5, 12, 15, .62); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px 16px; overflow-y: auto; }
+.modal[hidden] { display: none; }
+.modal-box { width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0, 0, 0, .35); }
+.modal-box h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 28px; }
+.acc-intro { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+.acc-intro b { color: var(--ink); }
 .login-info { margin: 0; font-size: 14px; line-height: 1.45; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
 .formerr { margin: 0; color: var(--bad); font-size: 14px; }
 .note { margin: 0; font-size: 13px; color: var(--muted); }
@@ -461,9 +470,13 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <button type="button" role="tab" data-mode="register">Załóż konto</button>
       </div>
       <p class="login-info" id="login-info" hidden></p>
+      <div class="field" id="name-row" hidden>
+        <label class="eyebrow" for="login-name">Imię i nazwisko <small class="lbl-note">– widzą je inni użytkownicy</small></label>
+        <input id="login-name" name="name" type="text" autocomplete="name" placeholder="np. Anna Kowalska" maxlength="80">
+      </div>
       <div class="field">
-        <label class="eyebrow" for="login-name">Imię i nazwisko</label>
-        <input id="login-name" name="username" type="text" autocomplete="username" placeholder="np. Anna Kowalska" maxlength="80">
+        <label class="eyebrow" for="login-email">Adres e-mail</label>
+        <input id="login-email" name="email" type="email" autocomplete="username" placeholder="np. anna@example.com" maxlength="120">
       </div>
       <div class="field">
         <label class="eyebrow" for="login-pass" id="login-pass-label">Hasło</label>
@@ -475,10 +488,41 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       </div>
       <p class="formerr" id="login-err" role="alert" hidden></p>
       <button type="submit" class="btn primary" id="login-btn">Zaloguj się</button>
-      <p class="note">Twoje imię i nazwisko zobaczy administrator strony, a inni użytkownicy mogą je znaleźć w wyszukiwarce, żeby zaprosić Cię do znajomych. Postęp nauki zostaje w tej przeglądarce.</p>
+      <button type="button" class="linkbtn oldacc" id="old-acc">Logowałeś(-aś) się wcześniej imieniem i nazwiskiem? <b>Przenieś konto</b></button>
+      <p class="note">Imię i nazwisko widzą inni użytkownicy (mogą Cię znaleźć w wyszukiwarce i zaprosić do znajomych). Adres e-mail widzi tylko administrator strony. Postęp nauki zostaje w tej przeglądarce.</p>
     </form>
   </section>
 
+  <!-- OKIENKO: dodanie e-maila do konta sprzed zmian -->
+  <div class="modal" id="acc-modal" role="dialog" aria-modal="true" aria-labelledby="acc-title" hidden>
+    <form class="panel modal-box" id="acc-form" novalidate>
+      <h2 id="acc-title">Wprowadziliśmy konta</h2>
+      <p class="acc-intro" id="acc-intro"></p>
+      <div class="field" id="acc-name-row">
+        <label class="eyebrow" for="acc-name">Imię i nazwisko (jak dotąd)</label>
+        <input id="acc-name" type="text" autocomplete="name" maxlength="80">
+      </div>
+      <div class="field" id="acc-old-row">
+        <label class="eyebrow" for="acc-old">Obecne hasło <small class="lbl-note">– jeśli już je ustawiłeś(-aś)</small></label>
+        <input id="acc-old" type="password" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label class="eyebrow" for="acc-email">Adres e-mail</label>
+        <input id="acc-email" type="email" autocomplete="username" placeholder="np. anna@example.com" maxlength="120">
+      </div>
+      <div class="field">
+        <label class="eyebrow" for="acc-pass" id="acc-pass-label">Hasło (min. 6 znaków)</label>
+        <input id="acc-pass" type="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="eyebrow" for="acc-pass2">Powtórz hasło</label>
+        <input id="acc-pass2" type="password" autocomplete="new-password">
+      </div>
+      <p class="formerr" id="acc-err" role="alert" hidden></p>
+      <button type="submit" class="btn primary" id="acc-btn">Zapisz i wejdź</button>
+      <button type="button" class="textbtn" id="acc-cancel" style="align-self:center"></button>
+    </form>
+  </div>
   <!-- PANEL ADMINISTRATORA -->
   <section id="v-admin" class="wrap" style="gap:16px" hidden>
     <div class="studybar">
@@ -1526,19 +1570,20 @@ async function report(newVisit) {
   try {
     const r = await rpc("zglos", { p_token: user.token, p_urzadzenie: device(), p_nowa_wizyta: newVisit });
     // imię lub uprawnienia mogły się zmienić (np. administrator połączył konta)
-    if (r && user && (r.nazwa !== user.name || !!r.admin !== !!user.admin)) {
-      user.name = r.nazwa; user.admin = !!r.admin; saveUser();
+    if (r && user && (r.nazwa !== user.name || !!r.admin !== !!user.admin || (r.email || null) !== (user.email || null))) {
+      user.name = r.nazwa; user.admin = !!r.admin; user.email = r.email || null; saveUser();
       if (!$("v-sections").hidden) renderSections();
     }
+    if (r && user && !r.email && $("acc-modal").hidden) openAccModal("logged");   // konto sprzed zmian
     if (newVisit) syncProgress();
   } catch (e) { if (e.code === "KN401") sessionExpired(); /* brak sieci – nauka działa dalej */ }
 }
 // sesja wygasła albo administrator zresetował hasło / usunął konto
 function sessionExpired() {
   if (!user) return;
-  const name = user.name;
+  const email = user.email;
   user = null; friends = null; frErr = null; saveUser();
-  showLogin(name);
+  showLogin(email || "");
   loginErr("Zaloguj się ponownie.");
 }
 // ---------- podsumowanie postępu wysyłane do bazy (widzi je administrator) ----------
@@ -1587,73 +1632,139 @@ document.addEventListener("visibilitychange", () => {
 });
 function ping() { if (Date.now() - lastPing > 120000) { lastPing = Date.now(); report(false); } }
 
-// mode: "login" – logowanie, "register" – nowe konto, "set" – pierwsze ustawienie hasła
+// mode: "login" – logowanie e-mailem, "register" – nowe konto, "set" – nowe hasło po resecie przez administratora
 let loginMode = "login";
+const validName = n => { const w = n.split(" "); return w.length >= 2 && w.every(x => /^\p{L}[\p{L}'’.-]+$/u.test(x)); };
+const validEmail = m => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m) && m.length <= 120;
+// „anna kowalska-nowak” → „Anna Kowalska-Nowak”
+const titleCase = n => n.split(" ").map(w => w.split("-").map(p => p ? p[0].toLocaleUpperCase("pl") + p.slice(1) : p).join("-")).join(" ");
+const cleanName = v => v.replace(/\s+/g, " ").trim();
 function setLoginMode(mode, info) {
   loginMode = mode;
   $("login-form").querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  $("name-row").hidden = mode !== "register";
   $("pass2-row").hidden = mode === "login";
   $("login-pass-label").textContent = mode === "login" ? "Hasło" : mode === "set" ? "Nowe hasło (min. 6 znaków)" : "Hasło (min. 6 znaków)";
   $("login-pass").autocomplete = mode === "login" ? "current-password" : "new-password";
-  $("login-name").readOnly = mode === "set";
+  $("login-email").readOnly = mode === "set";
   $("login-btn").textContent = { login: "Zaloguj się", register: "Załóż konto", set: "Ustaw hasło i wejdź" }[mode];
+  $("old-acc").hidden = mode !== "login";
   $("login-info").hidden = !info;
   $("login-info").innerHTML = info || "";
   $("login-err").hidden = true;
 }
-const NEW_ACCOUNTS_INFO = "Strona ma teraz konta z hasłem. Korzystałeś(-aś) już ze strony? Wpisz swoje imię i nazwisko i kliknij „Zaloguj się” (bez hasła) – ustawisz je za pierwszym razem.";
-function showLogin(prefill, mode, info) {
-  $("login-name").value = prefill || "";
-  $("login-pass").value = ""; $("login-pass2").value = "";
-  setLoginMode(mode || "login", info !== undefined ? info : prefill ? "" : NEW_ACCOUNTS_INFO);
+function showLogin(email, mode, info) {
+  $("login-email").value = email || "";
+  $("login-name").value = ""; $("login-pass").value = ""; $("login-pass2").value = "";
+  setLoginMode(mode || "login", info || "");
+  closeAccModal();
   show("login");
-  (prefill ? $("login-pass") : $("login-name")).focus();
+  (email ? $("login-pass") : $("login-email")).focus();
 }
 function loginErr(msg) { $("login-err").textContent = msg; $("login-err").hidden = false; }
 $("login-form").querySelector(".login-tabs").addEventListener("click", e => {
   const b = e.target.closest("[data-mode]"); if (!b) return;
   setLoginMode(b.dataset.mode, b.dataset.mode === "register"
-    ? "Konto zakładasz tylko raz. Wpisz <b>pełne</b> imię i nazwisko – po nich znajomi znajdą Cię w wyszukiwarce." : "");
-  $("login-name").focus();
+    ? "Konto zakładasz tylko raz. Logujesz się adresem e-mail, a imię i nazwisko widzą znajomi." : "");
+  (b.dataset.mode === "register" ? $("login-name") : $("login-email")).focus();
 });
-$("login-name").addEventListener("input", () => { $("login-err").hidden = true; });
-// „anna kowalska-nowak” → „Anna Kowalska-Nowak”
-const titleCase = n => n.split(" ").map(w => w.split("-").map(p => p ? p[0].toLocaleUpperCase("pl") + p.slice(1) : p).join("-")).join(" ");
-const validName = n => { const w = n.split(" "); return w.length >= 2 && w.every(x => /^\p{L}[\p{L}'’.-]+$/u.test(x)); };
+["login-name", "login-email"].forEach(id => $(id).addEventListener("input", () => { $("login-err").hidden = true; }));
+$("old-acc").addEventListener("click", () => openAccModal("old"));
 $("login-form").addEventListener("submit", async e => {
   e.preventDefault();
-  let name = $("login-name").value.replace(/\s+/g, " ").trim();
-  const pass = $("login-pass").value, pass2 = $("login-pass2").value;
-  if (!validName(name)) return loginErr("Wpisz pełne imię i nazwisko, np. Anna Kowalska.");
+  const email = $("login-email").value.trim(), pass = $("login-pass").value, pass2 = $("login-pass2").value;
+  let name = cleanName($("login-name").value);
+  if (loginMode === "register" && !validName(name)) return loginErr("Wpisz pełne imię i nazwisko, np. Anna Kowalska.");
+  if (!validEmail(email)) return loginErr("Wpisz poprawny adres e-mail.");
   if (loginMode !== "login") {
     if (pass.length < 6) return loginErr("Hasło musi mieć co najmniej 6 znaków.");
     if (pass !== pass2) return loginErr("Hasła się różnią – wpisz je jeszcze raz.");
-  }
+  } else if (!pass) return loginErr("Wpisz hasło.");
   if (loginMode === "register") name = titleCase(name);
-  const fn = { login: "zaloguj", register: "zaloz_konto", set: "ustaw_haslo" }[loginMode];
+  const [fn, args] = {
+    login: ["zaloguj", { p_email: email, p_haslo: pass }],
+    register: ["zaloz_konto", { p_nazwa: name, p_email: email, p_haslo: pass }],
+    set: ["ustaw_haslo", { p_email: email, p_haslo: pass }],
+  }[loginMode];
   $("login-btn").disabled = true;
   try {
-    const r = await rpc(fn, { p_nazwa: name, p_haslo: pass, p_urzadzenie: device() });
-    signIn(r);
+    signIn(await rpc(fn, Object.assign(args, { p_urzadzenie: device() })));
   } catch (err) {
     const c = err.code;
-    if (c === "KN002") return setLoginMode("set", `Konto <b>${esc(name)}</b> nie ma jeszcze hasła. Ustaw je teraz – będziesz go używać przy każdym logowaniu.`);
-    loginErr(c === "KN001" ? "Nie ma konta o takim imieniu i nazwisku. Sprawdź pisownię albo załóż konto."
-      : c === "28P01" ? (pass ? "Nieprawidłowe hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła." : "Wpisz hasło.")
-      : c === "KN003" ? "Konto o tym imieniu i nazwisku już istnieje – zaloguj się."
+    if (c === "KN002") return setLoginMode("set", "Administrator skasował hasło do tego konta. Ustaw nowe – będziesz go używać przy każdym logowaniu.");
+    loginErr(c === "KN001" ? "Nie ma konta z tym adresem e-mail. Jeśli logowałeś(-aś) się wcześniej imieniem i nazwiskiem, kliknij „Przenieś konto” poniżej."
+      : c === "28P01" ? "Nieprawidłowe hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła."
+      : c === "KN007" ? "Ten adres e-mail jest już używany – zaloguj się."
       : c === "KN006" ? "To konto ma już hasło – zaloguj się."
       : c === "KN004" ? "Wpisz pełne imię i nazwisko, np. Anna Kowalska."
       : c === "KN005" ? "Hasło musi mieć co najmniej 6 znaków."
+      : c === "KN010" ? "Wpisz poprawny adres e-mail."
       : "Nie udało się połączyć z bazą. Sprawdź internet i spróbuj ponownie.");
   } finally { $("login-btn").disabled = false; }
 });
 function signIn(r) {
-  user = { name: r.nazwa, token: r.token, admin: !!r.admin };
+  user = { name: r.nazwa, email: r.email || null, token: r.token, admin: !!r.admin };
   oldName = null; friends = null; frErr = null;
   saveUser(); lastPing = Date.now();
+  closeAccModal();
   syncProgress();
   if (user.admin) loadAdmin(); else renderSections();
+  if (!user.email) openAccModal("logged");
 }
+
+// ---------- okienko: konto sprzed zmian dostaje e-mail ----------
+// "logged" – zalogowany bez e-maila (nie da się zamknąć, można się wylogować);
+// "old" – niezalogowany: imię i nazwisko + obecne hasło (jeśli było) → e-mail i nowe hasło
+let accMode = null;
+function openAccModal(mode, name) {
+  accMode = mode;
+  const old = mode === "old";
+  $("acc-intro").innerHTML = (old ? "" : `Cześć, <b>${esc(user.name)}</b>! `)
+    + "Na stronie są teraz konta. Od teraz logujesz się <b>adresem e-mail i hasłem</b>, a imię i nazwisko zostaje jako nazwa widoczna dla znajomych. Twój postęp i znajomi zostają bez zmian.";
+  $("acc-name-row").hidden = !old; $("acc-old-row").hidden = !old;
+  $("acc-name").value = name || ""; $("acc-old").value = "";
+  $("acc-email").value = ""; $("acc-pass").value = ""; $("acc-pass2").value = "";
+  $("acc-pass-label").textContent = old ? "Nowe hasło (min. 6 znaków)" : "Hasło (min. 6 znaków)";
+  $("acc-cancel").textContent = old ? "Anuluj" : "Wyloguj";
+  $("acc-err").hidden = true;
+  $("acc-modal").hidden = false;
+  (old && !name ? $("acc-name") : $("acc-email")).focus();
+}
+function closeAccModal() { accMode = null; $("acc-modal").hidden = true; }
+const accErr = msg => { $("acc-err").textContent = msg; $("acc-err").hidden = false; };
+$("acc-cancel").addEventListener("click", () => accMode === "logged" ? $("u-logout").click() : closeAccModal());
+$("acc-modal").addEventListener("keydown", e => { if (e.key === "Escape" && accMode === "old") closeAccModal(); });
+$("acc-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = cleanName($("acc-name").value), email = $("acc-email").value.trim();
+  const pass = $("acc-pass").value, pass2 = $("acc-pass2").value;
+  if (accMode === "old" && name.split(" ").length < 2) return accErr("Wpisz imię i nazwisko, którymi logowałeś(-aś) się do tej pory.");
+  if (!validEmail(email)) return accErr("Wpisz poprawny adres e-mail.");
+  if (pass.length < 6) return accErr("Hasło musi mieć co najmniej 6 znaków.");
+  if (pass !== pass2) return accErr("Hasła się różnią – wpisz je jeszcze raz.");
+  $("acc-btn").disabled = true;
+  try {
+    if (accMode === "logged") {
+      const r = await rpc("dodaj_email", { p_token: user.token, p_email: email, p_haslo: pass });
+      user.email = r.email; saveUser(); closeAccModal();
+      toast("Zapisano – od teraz logujesz się e-mailem");
+    } else {
+      signIn(await rpc("przenies_konto", { p_nazwa: name, p_haslo_obecne: $("acc-old").value, p_email: email, p_haslo: pass, p_urzadzenie: device() }));
+      toast("Zapisano – od teraz logujesz się e-mailem");
+    }
+  } catch (err) {
+    const c = err.code;
+    if (c === "KN401") return sessionExpired();
+    accErr(c === "KN007" ? "Ten adres e-mail jest już używany przez inne konto."
+      : c === "KN010" ? "Wpisz poprawny adres e-mail."
+      : c === "KN008" ? "To konto ma już hasło – wpisz je w polu „Obecne hasło”."
+      : c === "28P01" ? "Nieprawidłowe obecne hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła."
+      : c === "KN009" ? "To konto ma już adres e-mail – zaloguj się nim."
+      : c === "KN001" ? "Nie ma konta o takim imieniu i nazwisku. Sprawdź pisownię albo załóż nowe konto."
+      : c === "KN005" ? "Hasło musi mieć co najmniej 6 znaków."
+      : "Nie udało się połączyć z bazą. Sprawdź internet i spróbuj ponownie.");
+  } finally { $("acc-btn").disabled = false; }
+});
 $("u-logout").addEventListener("click", () => {
   if (user) rpc("wyloguj", { p_token: user.token }).catch(() => {});
   user = null; friends = null; frErr = null; saveUser(); showLogin();
@@ -1718,7 +1829,7 @@ function manageHTML(u) {
   if (u.administrator) return "";
   const others = adminList.filter(x => x.publiczne_id !== u.publiczne_id)
     .sort((a, b) => a.imie_nazwisko.localeCompare(b.imie_nazwisko, "pl"));
-  const body = udMode === "reset" ? `<p>Hasło zostanie skasowane, a ${esc(u.imie_nazwisko)} zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu ustawi nowe hasło.</p>
+  const body = udMode === "reset" ? `<p>Hasło zostanie skasowane, a ${esc(u.imie_nazwisko)} zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu${u.email ? " e-mailem" : ""} ustawi nowe hasło.</p>
       <div class="factions" style="justify-content:flex-start">${udBtn("do-reset", "Resetuj hasło", "warn")}${udBtn("cancel", "Anuluj")}</div>`
     : udMode === "del" ? `<p>Konto <b>${esc(u.imie_nazwisko)}</b>, jego postęp w bazie i znajomości zostaną usunięte na stałe.</p>
       <div class="factions" style="justify-content:flex-start">${udBtn("do-del", "Usuń konto na stałe", "warn")}${udBtn("cancel", "Anuluj")}</div>`
@@ -1727,7 +1838,7 @@ function manageHTML(u) {
       <div class="factions" style="justify-content:flex-start">${udBtn("do-merge", "Połącz konta", "warn")}${udBtn("cancel", "Anuluj")}</div>`
     : `<div class="factions" style="justify-content:flex-start">${u.ma_haslo ? udBtn("reset", "Resetuj hasło") : ""}${udBtn("merge", "Połącz z innym kontem…")}${udBtn("del", "Usuń konto", "warn")}</div>`;
   return `<div class="panel manage"><h3>Konto</h3>
-    <p class="note">${u.ma_haslo ? "Hasło ustawione." : "Bez hasła – ustawi je przy następnym logowaniu."}</p>${body}</div>`;
+    <p class="note">${u.email ? "E-mail: <b>" + esc(u.email) + "</b>" : "Bez e-maila – poda go przy następnym wejściu na stronę."} · ${u.ma_haslo ? "hasło ustawione" : "bez hasła – ustawi je przy następnym logowaniu"}</p>${body}</div>`;
 }
 const udBtn = (act, label, cls) => `<button type="button" class="sbtn${cls ? " " + cls : ""}" data-ud="${act}">${label}</button>`;
 $("ud-body").addEventListener("click", async e => {
@@ -1778,7 +1889,7 @@ function renderAdmin(list) {
         <span class="dot${on ? " on" : ""}"></span>
         <div class="umain">
           <button type="button" class="ulink">${esc(u.imie_nazwisko)}</button>
-          <span class="umeta">${u.ma_haslo === false ? `<span class="chip warnchip">bez hasła</span> ` : ""}${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
+          <span class="umeta">${u.email === null ? `<span class="chip warnchip">bez e-maila</span> ` : u.ma_haslo === false ? `<span class="chip warnchip">bez hasła</span> ` : ""}${u.email ? esc(u.email) + " · " : ""}${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
         </div>
         <div class="upct"><b>${sm ? pct(sm.mastered, sm.words) : "–"}</b><small>opanowane</small></div>
       </li>`;
@@ -2456,7 +2567,7 @@ $("l-back").addEventListener("click", renderHome);
 
 $("testbanner").hidden = !IS_TEST;
 if (user && user.token) { lastPing = Date.now(); report(true); renderSections(); }
-else showLogin(oldName, "login", NEW_ACCOUNTS_INFO);
+else { showLogin(); if (oldName) openAccModal("old", oldName); }
 </script>
 </body>
 </html>
