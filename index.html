@@ -2691,6 +2691,15 @@ function setCardImage(card) {
   // druga wersja w tle, żeby przełączenie było natychmiastowe
   if (card.x.imgc) new Image().src = col ? card.x.img : card.x.imgc;
 }
+// Rysunek nie wczytał się (np. karta otwarta przed aktualizacją strony, a pliki już podmienione):
+// raz na sesję przeładuj stronę, żeby pobrać aktualną wersję.
+$("c-img-src").addEventListener("error", () => {
+  try {
+    if (sessionStorage.getItem("fiszki-reload")) return;
+    sessionStorage.setItem("fiszki-reload", "1");
+  } catch (e) { return; }
+  location.reload();
+});
 $("c-color").addEventListener("click", () => {
   store.annColor = !annColor(); save();
   if (cur && cur.card && cur.card.x) setCardImage(cur.card);
