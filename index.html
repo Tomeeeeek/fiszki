@@ -1058,8 +1058,29 @@ const ROZP_ORTOPEDIA = [
     ["Trauma columnae vertebralis", "uraz kręgosłupa"],
   ]},
 ];
+const ROZP_NEUROLOGIA = [
+  { id: "rn1", name: "Porcja 1", range: "brachialgia – neuralgia nervi ischiadici", words: [
+    ["brachialgia sinistra", "lewostronna rwa ramienna"],
+    ["discopathia C5-C6", "dyskopatia C5-C6"],
+    ["Fractura columnae vertebralis partis thoracalis, apoplexia spinalis, paraplegia inferior", "złamanie cz. piersiowej kręgosłupa, poprzeczne uszkodzenie rdzenia, porażenie kończyn dolnych"],
+    ["Fractura humeri, laesio nervi radialis", "złamanie kości ramiennej, uszkodzenie nerwu promieniowego"],
+    ["Insultus cerebri, hemiparesis dextra, aphasia", "udar mózgu, prawostronny niedowład połowiczy, afazja"],
+    ["Laesio nervi peronei communis, pes relaxatus", "uszkodzenie nerwu strzałkowego wspólnego, stopa wiotka (opadająca)"],
+    ["neuralgia nervi ischiadici dextri", "nerwoból prawego nerwu kulszowego"],
+  ]},
+  { id: "rn2", name: "Porcja 2", range: "neuralgia nervi trigemini – trauma columnae", words: [
+    ["neuralgia nervi trigemini", "nerwoból nerwu trójdzielnego"],
+    ["paralysis nervi facialis", "porażenie nerwu twarzowego"],
+    ["paralysis nervi tibialis, pes calcaneus", "porażenie nerwu piszczelowego, stopa piętowa"],
+    ["poliomyelitis anterior acuta", "ostre zapalenie rogów przednich rdzenia (choroba Heinego-Medina)"],
+    ["sclerosis multiplex", "stwardnienie rozsiane (SM)"],
+    ["trauma capitalis, commotio cerebri", "uraz głowy, wstrząśnienie mózgu"],
+    ["trauma columnae vertebralis, commotio medullae spinalis", "uraz kręgosłupa, wstrząśnienie rdzenia kręgowego"],
+  ]},
+];
 const ROZPOZNANIA = [
   { id: "rozp-orto", name: "Rozpoznania w ortopedii", range: "Amputatio – Trauma", rounds: ROZP_ORTOPEDIA, allId: "rozp-orto-all" },
+  { id: "rozp-neuro", name: "Rozpoznania w neurologii", range: "brachialgia – trauma", rounds: ROZP_NEUROLOGIA, allId: "rozp-neuro-all" },
 ];
 for (const g of ROZPOZNANIA) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
