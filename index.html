@@ -223,6 +223,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 /* ---------- osiągnięcia (widok statystyk) ---------- */
 .me-grid { position: relative; display: flex; flex-direction: column; gap: 16px; width: 100%; }
 .ach { gap: 14px; order: -1; }   /* wąski ekran: nad statystykami, a nie pod długą listą porcji */
+.ud-ach { order: 0; }            /* panel administratora: pod przyciskami zarządzania kontem */
 .ach h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .ach h3 small { font-family: var(--f-mono); font-size: 12px; font-weight: 400; color: var(--muted); }
 .ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 10px; }
@@ -1902,11 +1903,14 @@ function renderUser(i) {
   viewedUser = u.imie_nazwisko;
   const pg = u.postep, sm = summarize(pg);
   $("ud-title").innerHTML = `<span class="dot${isActive(u) ? " on" : ""}"></span>${nameHTML(u.imie_nazwisko)}<small>ostatnio aktywny ${ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")}</small>`;
+  // osiągnięcia widzi też administrator (liczone z danych użytkownika, bez zapisywania)
+  const src = { groups: (pg && pg.groups) || [], days: (pg && pg.days) || [], ach: (pg && pg.ach) || {} };
+  const ach = `<div class="panel ach ud-ach">${achievementsHTML(src, summarize(src), { days: src.days, ach: src.ach, own: false })}</div>`;
   if (!sm) {
-    $("ud-body").innerHTML = manageHTML(u) + `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
+    $("ud-body").innerHTML = manageHTML(u) + ach + `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.</p></div>`;
     return show("user");
   }
-  $("ud-body").innerHTML = manageHTML(u) + progressHTML(pg, sm) +
+  $("ud-body").innerHTML = manageHTML(u) + ach + progressHTML(pg, sm) +
     `<p class="note" style="text-align:center">Dane z przeglądarki użytkownika, zapisane ${ago(u.postep_aktualizacja || pg.t)}.</p>`;
   show("user");
 }
@@ -1995,6 +1999,11 @@ const ACHIEVEMENTS = [
       : { cur: 0, max: 1, txt: "opanowanych porcji" } },
   { name: "Centurion", desc: "Opanuj 100 słówek", glyph: "C",
     prog: a => ({ cur: Math.min(a.mastered, 100), max: 100, txt: "opanowanych fiszek" }) },
+  // cała grupa, np. „Określenia w ortopedii”: każda porcja ukończona przynajmniej raz
+  { name: "Magister", desc: "Ukończ wszystkie porcje jednej grupy", glyph: "M",
+    prog: a => a.bestGroup ? { cur: a.bestGroup.done, max: a.bestGroup.total,
+        txt: a.bestGroup.done >= a.bestGroup.total ? `ukończona grupa „${a.bestGroup.name}”` : `ukończonych porcji w grupie „${a.bestGroup.name}”` }
+      : { cur: 0, max: 1, txt: "ukończonych grup" } },
   streakAch("Wieczny Płomień", 14, "XIV"),
   streakAch("Niezłomny", 30, "XXX"),
 ];
@@ -2021,7 +2030,14 @@ function achList(pg, sm, src = { days: store.days, ach: null, own: true }) {
   const best = rounds.filter(r => r.mastered && r.status !== "ukończona")
     .sort((x, y) => y.mastered / y.total - x.mastered / x.total)[0];
   // porcja ukończona choć raz (także taka, którą ktoś zaczął od nowa)
-  const a = { mastered: sm.mastered, partsDone: rounds.filter(r => r.status === "ukończona" || r.done > 0).length, best,
+  const isDone = r => r.status === "ukończona" || r.done > 0;
+  // grupa najbliższa ukończenia (najwyższy odsetek ukończonych porcji, przy remisie mniej brakujących)
+  const bestGroup = pg.groups.map(g => {
+    const parts = g.rounds.filter(r => !r.all);
+    return { name: g.name, total: parts.length, done: parts.filter(isDone).length };
+  }).filter(g => g.total && g.done)
+    .sort((x, y) => y.done / y.total - x.done / x.total || (x.total - x.done) - (y.total - y.done))[0];
+  const a = { mastered: sm.mastered, partsDone: rounds.filter(isDone).length, best, bestGroup,
     streak: streak(src.days).n, bestStreak: bestStreak(src.days) };
   // zdobyte osiągnięcie zostaje na stałe (store.ach: nazwa → data zdobycia)
   if (src.own) store.ach = store.ach || {};
