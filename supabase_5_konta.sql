@@ -15,14 +15,38 @@
 create extension if not exists pgcrypto with schema extensions;
 
 -- Jedno konto na imię i nazwisko (bez względu na wielkość liter) -------------
+-- Wpisy o tym samym imieniu i nazwisku to ta sama osoba: zostaje wpis aktywny
+-- najpóźniej, a pozostałe są do niego dołączane (wizyty, znajomi, postęp).
 do $$
-declare v text;
+declare a public.uzytkownicy; b public.uzytkownicy; n text;
 begin
-  select string_agg(n, ', ') into v from (
-    select lower(imie_nazwisko) n from public.uzytkownicy group by 1 having count(*) > 1) d;
-  if v is not null then
-    raise exception 'Te imiona występują w bazie kilka razy: %. Usuń duplikaty i uruchom plik ponownie.', v;
-  end if;
+  for n in select lower(imie_nazwisko) from public.uzytkownicy group by 1 having count(*) > 1 loop
+    select * into a from public.uzytkownicy where lower(imie_nazwisko) = n
+     order by ostatnia_aktywnosc desc limit 1;
+    for b in select * from public.uzytkownicy where lower(imie_nazwisko) = n and id <> a.id loop
+      delete from public.znajomi where (od = a.id and do_kogo = b.id) or (od = b.id and do_kogo = a.id);
+      update public.znajomi y set status = 'znajomi'
+       where y.status = 'oczekuje' and (y.od = a.id or y.do_kogo = a.id)
+         and exists (select 1 from public.znajomi z where z.status = 'znajomi'
+                       and ((z.od = b.id and z.do_kogo = case when y.od = a.id then y.do_kogo else y.od end)
+                         or (z.do_kogo = b.id and z.od = case when y.od = a.id then y.do_kogo else y.od end)));
+      update public.znajomi z set od = a.id where z.od = b.id
+         and not exists (select 1 from public.znajomi y where (y.od = a.id and y.do_kogo = z.do_kogo) or (y.od = z.do_kogo and y.do_kogo = a.id));
+      update public.znajomi z set do_kogo = a.id where z.do_kogo = b.id
+         and not exists (select 1 from public.znajomi y where (y.od = a.id and y.do_kogo = z.od) or (y.od = z.od and y.do_kogo = a.id));
+      update public.uzytkownicy set
+        -- zostaje zapis z wielkimi literami („Amelia Walczak”, nie „amelia walczak”)
+        imie_nazwisko       = case when imie_nazwisko = lower(imie_nazwisko) and b.imie_nazwisko <> lower(b.imie_nazwisko)
+                                   then b.imie_nazwisko else imie_nazwisko end,
+        pierwsze_wejscie    = least(pierwsze_wejscie, b.pierwsze_wejscie),
+        liczba_wejsc        = liczba_wejsc + b.liczba_wejsc,
+        postep              = coalesce(postep, b.postep),
+        postep_aktualizacja = case when postep is null then b.postep_aktualizacja else postep_aktualizacja end
+       where id = a.id;
+      delete from public.uzytkownicy where id = b.id;
+      raise notice 'Połączono duplikat: % → %', b.imie_nazwisko, a.imie_nazwisko;
+    end loop;
+  end loop;
 end $$;
 drop index if exists public.uzytkownicy_nazwa_idx;
 create unique index if not exists uzytkownicy_nazwa_uidx on public.uzytkownicy (lower(imie_nazwisko));
