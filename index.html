@@ -1032,6 +1032,40 @@ for (const g of GROUPS) {
     words: g.rounds.flatMap(r => r.words) });
 }
 
+// ---------- łacina: rozpoznania ----------
+const ROZP_ORTOPEDIA = [
+  { id: "ro1", name: "Porcja 1", range: "Amputatio – Fractura colli femoris", words: [
+    ["Amputatio femoris dextri posttraumatica", "pourazowa amputacja prawego uda"],
+    ["Contractura ischaemica Volkmann manus dextrae", "przykurcz niedokrwienny Volkmanna prawej ręki"],
+    ["Contusio genus sinistri", "stłuczenie lewego kolana"],
+    ["Distorsio articulationis genus dextri", "skręcenie prawego stawu kolanowego"],
+    ["Dysplasia articulationis coxae dextrae congenita", "wrodzona dysplazja prawego stawu biodrowego"],
+    ["Elongatio tendinitis Achilles dextri", "wydłużenie prawego ścięgna Achillesa"],
+    ["Endoprothesoplastica articulationis coxae sinistrae", "wszczepienie endoprotezy lewego stawu biodrowego"],
+    ["Epicondylitis humeri", "zapalenie okołostawowe łokcia"],
+    ["Fractura basis cranii", "złamanie podstawy czaszki"],
+    ["Fractura colli femoris sinistri", "złamanie szyjki kości udowej lewej"],
+  ]},
+  { id: "ro2", name: "Porcja 2", range: "Fractura pelvis – Trauma", words: [
+    ["Fractura pelvis", "złamanie miednicy"],
+    ["Gonitis subacuta dextra post contusionem", "podostre zapalenie prawego stawu kolanowego po stłuczeniu"],
+    ["Laesio menisci medialis articulationis genus dextri", "uszkodzenie łąkotki przyśrodkowej prawego stawu kolanowego"],
+    ["Luxatio habitualis articulationis humeri sinistri", "zwichnięcie nawykowe lewego stawu ramiennego"],
+    ["Pes planovalgus sinister", "lewa stopa płasko-koślawa"],
+    ["Resectio menisci medialis articulationis genus dextri", "wycięcie łąkotki przyśrodkowej prawego stawu kolanowego"],
+    ["Subluxatio capitis radii sinistri", "podwichnięcie głowy lewej kości promieniowej"],
+    ["Syndroma periarthritis humero-scapularis", "zespół bolesnego barku"],
+    ["Trauma columnae vertebralis", "uraz kręgosłupa"],
+  ]},
+];
+const ROZPOZNANIA = [
+  { id: "rozp-orto", name: "Rozpoznania w ortopedii", range: "Amputatio – Trauma", rounds: ROZP_ORTOPEDIA, allId: "rozp-orto-all" },
+];
+for (const g of ROZPOZNANIA) {
+  g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem",
+    words: g.rounds.flatMap(r => r.words) });
+}
+
 // ---------- anatomia prawidłowa ----------
 // Fiszka obrazkowa: [opis, nazwa struktury, { img: "ścieżka do obrazka", hl: [[x1, y1, x2, y2], ...] }]
 // img – rysunek kości bez podpisów; hl – (opcjonalnie) odcinki do pogrubienia, w % szerokości/wysokości obrazka.
@@ -1455,7 +1489,14 @@ for (const g of ANATOMIA) {
 const SECTIONS = [
   { id: "lacina", name: "Łacina medyczna", desc: "Określenia łacińskie z tłumaczeniem na polski",
     sides: { a: "łacina", b: "polski", aIn: "po łacinie", bIn: "po polsku", italicA: true },
-    unit: ["słówko", "słówka", "słówek"], groups: GROUPS },
+    unit: ["fiszka", "fiszki", "fiszek"], groups: [...GROUPS, ...ROZPOZNANIA],
+    // dział → grupy → porcje; unit działu zastępuje unit dziedziny
+    parts: [
+      { id: "slowka", name: "Słówka", desc: "Pojedyncze określenia łacińskie", groups: GROUPS,
+        unit: ["słówko", "słówka", "słówek"] },
+      { id: "rozpoznania", name: "Rozpoznania", desc: "Pełne rozpoznania po łacinie", groups: ROZPOZNANIA,
+        unit: ["rozpoznanie", "rozpoznania", "rozpoznań"] },
+    ] },
   { id: "anatomia", name: "Anatomia prawidłowa", desc: "Struktury kości na rysunkach", images: true,
     sides: { a: "wskazana struktura", b: "nazwa", aIn: "wskazana struktura", bIn: "nazwę struktury", italicA: false },
     unit: ["fiszka", "fiszki", "fiszek"], groups: ANATOMIA,
@@ -1466,8 +1507,12 @@ const SECTIONS = [
     ] },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
+// grupa dziedziczy jednostkę („słówko”, „rozpoznanie”) po swoim dziale
+for (const sec of SECTIONS) for (const pt of sec.parts || []) if (pt.unit) pt.groups.forEach(g => g.unit = pt.unit);
 let S = SECTIONS[0], G = GROUPS[0], ROUNDS = G.rounds;
-const units = (n, sec = S) => plural(n, ...sec.unit);
+// src: dziedzina, dział albo grupa; domyślnie bieżący dział (jeśli ma własną jednostkę) lub dziedzina
+const unitOf = src => (src && src.unit) || (P && P.unit) || S.unit;
+const units = (n, src) => plural(n, ...unitOf(src));
 
 const GAPS = [2, 5, 11, 22];      // po ilu pytaniach słówko wraca, wg pudełka
 const MASTER = GAPS.length;       // pudełko = opanowane
@@ -2287,7 +2332,7 @@ function checkNewMaterials() {
     const all = fresh.length === g.rounds.filter(r => r.id !== g.allId).length;
     const n = fresh.length, cards = fresh.reduce((k, r) => k + r.words.length, 0);
     addNotif({ id: "new:" + fresh.map(r => r.id).join(","), type: "new",
-      text: `<b>${esc(g.section.name)} › ${esc(g.name)}</b> – ${all ? "nowa grupa" : `${n} ${plural(n, "nowa porcja", "nowe porcje", "nowych porcji")}`} (${cards} ${units(cards, g.section)})` });
+      text: `<b>${esc(g.section.name)} › ${esc(g.name)}</b> – ${all ? "nowa grupa" : `${n} ${plural(n, "nowa porcja", "nowe porcje", "nowych porcji")}`} (${cards} ${units(cards, g.unit ? g : g.section)})` });
   }
   store.known = ids; save();
 }
@@ -2430,7 +2475,7 @@ function renderParts() {
       : `<span class="chip">${pt.groups.length} ${plural(pt.groups.length, "grupa", "grupy", "grup")}</span>`;
     return `<button type="button" class="round" data-part="${i}">
       <span class="num">${i + 1}</span><span class="name">${esc(pt.name)}</span>
-      <span class="meta">${chip}</span><span class="range">${esc(pt.desc)} · ${cards} ${units(cards, S)}</span>
+      <span class="meta">${chip}</span><span class="range">${esc(pt.desc)} · ${cards} ${units(cards, pt.unit ? pt : S)}</span>
     </button>`;
   }).join("");
   show("parts");
@@ -2484,7 +2529,7 @@ function renderHome() {
   $("h-sub").textContent = `${G.range} · ${total} ${units(total)} w ${parts} ${parts === 1 ? "porcji" : "porcjach"}`;
   $("dir-lp").textContent = `${S.sides.a} → ${S.sides.b}`;
   $("dir-pl").textContent = `${S.sides.b} → ${S.sides.a}`;
-  $("showlist").textContent = `Pokaż listę wszystkich ${S.unit[2]}`;
+  $("showlist").textContent = `Pokaż listę wszystkich ${unitOf()[2]}`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
   $("dir").hidden = !!S.images;   // fiszki obrazkowe mają jeden kierunek
@@ -2665,7 +2710,7 @@ function finishRound() {
   const score = c => c.err + (c.half || 0) / 2;
   const hard = st.cards.filter(score).sort((a, b) => score(b) - score(a)).slice(0, 8);
   $("d-hard").hidden = !hard.length;
-  $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze ${S.unit[1]}</h3><table class="tbl">${hard.map(c =>
+  $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze ${unitOf()[1]}</h3><table class="tbl">${hard.map(c =>
     `<tr><td>${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td>${esc(c.p)}</td></tr>`).join("")}</table>` : "";
   let nx = cur.ri + 1;
   while (nx < ROUNDS.length && !ROUNDS[nx].words.length) nx++;   // pomiń puste porcje
