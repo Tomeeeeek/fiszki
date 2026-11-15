@@ -2643,6 +2643,11 @@ function startRound(ri) {
   const r = ROUNDS[ri];
   if (!r || !r.words.length) return;
   if (!store.rounds[r.id]) { store.rounds[r.id] = freshState(r); save(); }
+  // zapisany postęp trzyma kopię danych fiszki – odśwież je z aktualnej wersji (np. nowe rysunki, poprawione linie)
+  const cx = new Map(r.words.map(([l, , x]) => [l, x]));
+  for (const c of store.rounds[r.id].cards) {
+    if (cx.has(c.l)) { if (cx.get(c.l)) c.x = cx.get(c.l); else delete c.x; }
+  }
   cur = { ri, st: store.rounds[r.id] };
   $("s-title").innerHTML = `${r.name}<small>${r.range}</small>`;
   show("study");
