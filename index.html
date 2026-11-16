@@ -642,7 +642,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <header class="top">
       <span class="eyebrow">Nauka metodą powtórek</span>
       <h1>Fiszki <em>do nauki</em></h1>
-      <p>Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu.</p>
+      <p>Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu (schemat SuperMemo) albo po wybranej przez Ciebie liczbie dobrych odpowiedzi.</p>
     </header>
     <div class="userbar">
       <span>Zalogowany: <b id="u-name"></b></span>
@@ -651,7 +651,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     </div>
     <span class="eyebrow">Wybierz dziedzinę</span>
     <div class="rounds separate" id="sections"></div>
-    <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
+    <footer>Postęp zapisuje się na Twoim koncie – możesz uczyć się na kilku urządzeniach.</footer>
   </section>
 
   <!-- DZIAŁY (np. anatomia: układ kostny, stawy i więzadła) -->
@@ -1676,6 +1676,126 @@ for (const g of ANATOMIA) {
     sub: g.rounds.some(r => r.sub) ? "Powtórka" : undefined, words: g.rounds.flatMap(r => r.words) });
 }
 
+// Kształcenie ruchowe: pozycje i ćwiczenia gimnastyczne z rysunków (podręcznik „Nauczanie ruchu”, rozdz. 7, rys. 11–113).
+// Dane: narzedzia/ksztalcenie/dane.py; rysunki wycina narzedzia/ksztalcenie/wytnij.py. Kategoria (x.cat) jest podpowiedzią na fiszce.
+const RUCH_POZYCJE = [
+  { id: "kr1", name: "Porcja 1", range: "w wykroku – w siadzie wykroczno-zakrocznym", words: [
+    ["pozycja wyjściowa w staniu – rys. 11", "W wykroku / wykrok", {"img": "ruch/011.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 12", "W zakroku / zakrok", {"img": "ruch/012.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 13", "W pozycji wykroczno-zakrocznej", {"img": "ruch/013.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 14", "W rozkroku jednonóż", {"img": "ruch/014.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 15", "W rozkroku / rozkrok", {"img": "ruch/015.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 16", "W uniku / unik", {"img": "ruch/016.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w staniu – rys. 17", "W wypadzie / wypad", {"img": "ruch/017.webp", "cat": "pozycja wyjściowa w staniu"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 18", "W przysiadzie / przysiad", {"img": "ruch/018.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 19", "W półprzysiadzie / półprzysiad", {"img": "ruch/019.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 20", "W przysiadzie podpartym / przysiad podparty", {"img": "ruch/020.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 21", "W przysiadzie podpartym o kolanach rozwartych / przysiad podparty o kolanach rozwartych", {"img": "ruch/021.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 22", "W przysiadzie jednonóż – druga noga w wykroku", {"img": "ruch/022.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w przysiadzie – rys. 23", "W przysiadzie podpartym jednonóż – druga noga w wykroku / przysiad podparty – druga noga w wykroku", {"img": "ruch/023.webp", "cat": "pozycja wyjściowa w przysiadzie"}],
+    ["pozycja wyjściowa w klęku – rys. 24", "W klęku (obunóż) / klęk", {"img": "ruch/024.webp", "cat": "pozycja wyjściowa w klęku"}],
+    ["pozycja wyjściowa w klęku – rys. 25", "W klęku w rozkroku / w klęku obunóż o nogach w rozkroku / klęk w rozkroku", {"img": "ruch/025.webp", "cat": "pozycja wyjściowa w klęku"}],
+    ["pozycja wyjściowa w klęku – rys. 26", "W klęku jednonóż / klęk jednonóż", {"img": "ruch/026.webp", "cat": "pozycja wyjściowa w klęku"}],
+    ["pozycja wyjściowa w klęku – rys. 27", "W klęku podpartym (obunóż) / klęk podparty", {"img": "ruch/027.webp", "cat": "pozycja wyjściowa w klęku"}],
+    ["pozycja wyjściowa w klęku – rys. 28", "W klęku podpartym jednonóż – druga noga w zakroku", {"img": "ruch/028.webp", "cat": "pozycja wyjściowa w klęku"}],
+    ["pozycja wyjściowa w siadzie – rys. 29", "W siadzie (prostym)", {"img": "ruch/029.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 30", "W siadzie w rozkroku / w siadzie o nogach prostych w rozkroku", {"img": "ruch/030.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 31", "W siadzie wykroczno-zakrocznym", {"img": "ruch/031.webp", "cat": "pozycja wyjściowa w siadzie"}],
+  ] },
+  { id: "kr2", name: "Porcja 2", range: "w siadzie rozkrocznym – w siadzie na ławeczce", words: [
+    ["pozycja wyjściowa w siadzie – rys. 32", "W siadzie rozkrocznym", {"img": "ruch/032.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 33", "W siadzie równoważnym", {"img": "ruch/033.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 34", "W siadzie o nogach ugiętych", {"img": "ruch/034.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 35", "W siadzie o nogach ugiętych w rozkroku", {"img": "ruch/035.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 36", "W siadzie skulonym", {"img": "ruch/036.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 37", "W siadzie skrzyżnym", {"img": "ruch/037.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 38", "W siadzie klęcznym / siad klęczny", {"img": "ruch/038.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w siadzie – rys. 39", "W siadzie bokiem", {"img": "ruch/039.webp", "cat": "pozycja wyjściowa w siadzie"}],
+    ["pozycja wyjściowa w leżeniu – rys. 40", "W leżeniu (przodem)", {"img": "ruch/040.webp", "cat": "pozycja wyjściowa w leżeniu"}],
+    ["pozycja wyjściowa w leżeniu – rys. 41", "W leżeniu tyłem", {"img": "ruch/041.webp", "cat": "pozycja wyjściowa w leżeniu"}],
+    ["pozycja wyjściowa w leżeniu – rys. 42", "W leżeniu bokiem", {"img": "ruch/042.webp", "cat": "pozycja wyjściowa w leżeniu"}],
+    ["pozycja wyjściowa w leżeniu – rys. 43", "W leżeniu przewrotnym", {"img": "ruch/043.webp", "cat": "pozycja wyjściowa w leżeniu"}],
+    ["pozycja wyjściowa w leżeniu – rys. 44", "W leżeniu przerzutnym", {"img": "ruch/044.webp", "cat": "pozycja wyjściowa w leżeniu"}],
+    ["pozycja wyjściowa w podporze – rys. 45", "W podporze (przodem)", {"img": "ruch/045.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja wyjściowa w podporze – rys. 46", "W podporze tyłem / w podporze leżąc tyłem", {"img": "ruch/046.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja wyjściowa w podporze – rys. 47", "W podporze bokiem / w podporze leżąc bokiem", {"img": "ruch/047.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja wyjściowa w podporze – rys. 48", "W podporze łukiem (leżąc przodem)", {"img": "ruch/048.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja wyjściowa w podporze – rys. 49", "W podporze łukiem tyłem / w podporze łukiem leżąc tyłem", {"img": "ruch/049.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja wyjściowa w podporze – rys. 50", "W podporze łukiem bokiem / w podporze łukiem leżąc bokiem", {"img": "ruch/050.webp", "cat": "pozycja wyjściowa w podporze"}],
+    ["pozycja izolowana – rys. 51", "W opadzie (tułowia w przód) / opad", {"img": "ruch/051.webp", "cat": "pozycja izolowana"}],
+    ["pozycja izolowana – rys. 52", "W siadzie na ławeczce", {"img": "ruch/052.webp", "cat": "pozycja izolowana"}],
+  ] },
+  { id: "kr3", name: "Porcja 3", range: "w wadze – wykrok wspięty obunóż", words: [
+    ["pozycja równoważna – rys. 53", "W wadze / waga", {"img": "ruch/053.webp", "cat": "pozycja równoważna"}],
+    ["pozycja równoważna – rys. 54", "W staniu jednonóż wspiętym (z drugą nogą i ramionami w bok)", {"img": "ruch/054.webp", "cat": "pozycja równoważna"}],
+    ["położenie ramion – rys. 55", "Ramiona na głowie", {"img": "ruch/055.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 56", "Ramiona na karku", {"img": "ruch/056.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 57", "Ramiona na barkach", {"img": "ruch/057.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 58", "Ramiona na biodrach", {"img": "ruch/058.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 59", "Ramiona łukiem nad głową", {"img": "ruch/059.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 60", "Skurcz ramion pionowy", {"img": "ruch/060.webp", "cat": "położenie ramion"}],
+    ["położenie ramion – rys. 61", "Skurcz ramion poziomy", {"img": "ruch/061.webp", "cat": "położenie ramion"}],
+    ["położenie ramion w leżeniu tyłem – rys. 62", "Ramiona wzdłuż tułowia (na podłożu)", {"img": "ruch/062.webp", "cat": "położenie ramion w leżeniu tyłem"}],
+    ["położenie ramion w leżeniu tyłem – rys. 63", "Ramiona w górę", {"img": "ruch/063.webp", "cat": "położenie ramion w leżeniu tyłem"}],
+    ["położenie ramion w leżeniu tyłem – rys. 64", "Ramiona za głową (na podłożu)", {"img": "ruch/064.webp", "cat": "położenie ramion w leżeniu tyłem"}],
+    ["ćwiczenie kroczne – rys. 65", "Wypad / w wypadzie", {"img": "ruch/065.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 66", "Unik / w uniku", {"img": "ruch/066.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 67", "Waga / w wadze", {"img": "ruch/067.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 68", "Rozkrok / w rozkroku", {"img": "ruch/068.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 69", "Rozkrok wspięty", {"img": "ruch/069.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 70", "Rozkrok wspięty jednonóż", {"img": "ruch/070.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 71", "Wykrok / w wykroku", {"img": "ruch/071.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 72", "Wykrok wspięty jednonóż", {"img": "ruch/072.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 73", "Wykrok wspięty obunóż", {"img": "ruch/073.webp", "cat": "ćwiczenie kroczne"}],
+  ] },
+  { id: "kr4", name: "Porcja 4", range: "zakrok – skłon tułowia", words: [
+    ["ćwiczenie kroczne – rys. 74", "Zakrok / w zakroku", {"img": "ruch/074.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 75", "Zakrok wspięty jednonóż", {"img": "ruch/075.webp", "cat": "ćwiczenie kroczne"}],
+    ["ćwiczenie kroczne – rys. 76", "Zakrok wspięty obunóż", {"img": "ruch/076.webp", "cat": "ćwiczenie kroczne"}],
+    ["klęk – rys. 77", "Klęk / w klęku", {"img": "ruch/077.webp", "cat": "klęk"}],
+    ["klęk – rys. 78", "Klęk w rozkroku / klęk o nogach w rozkroku / w klęku w rozkroku", {"img": "ruch/078.webp", "cat": "klęk"}],
+    ["klęk – rys. 79", "Klęk podparty / w klęku podpartym", {"img": "ruch/079.webp", "cat": "klęk"}],
+    ["klęk – rys. 80", "Siad klęczny / w siadzie klęcznym", {"img": "ruch/080.webp", "cat": "klęk"}],
+    ["klęk – rys. 81", "Siad klęczny w opadzie", {"img": "ruch/081.webp", "cat": "klęk"}],
+    ["klęk – rys. 82", "Siad klęczno-wykroczny", {"img": "ruch/082.webp", "cat": "klęk"}],
+    ["klęk – rys. 83", "Klęk jednonóż / w klęku jednonóż", {"img": "ruch/083.webp", "cat": "klęk"}],
+    ["klęk – rys. 84", "Klęk jednonóż – druga noga w wykroku", {"img": "ruch/084.webp", "cat": "klęk"}],
+    ["klęk – rys. 85", "Klęk podparty jednonóż – druga noga w wykroku", {"img": "ruch/085.webp", "cat": "klęk"}],
+    ["przysiad – rys. 86", "Przysiad / w przysiadzie", {"img": "ruch/086.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 87", "Półprzysiad / w półprzysiadzie", {"img": "ruch/087.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 88", "Przysiad wykroczno-zakroczny", {"img": "ruch/088.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 89", "Przysiad w rozkroku / przysiad o nogach w rozkroku", {"img": "ruch/089.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 90", "Przysiad podparty / w przysiadzie podpartym", {"img": "ruch/090.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 91", "Przysiad podparty o kolanach rozwartych / w przysiadzie podpartym o kolanach rozwartych", {"img": "ruch/091.webp", "cat": "przysiad"}],
+    ["przysiad – rys. 92", "Przysiad podparty – druga noga w wykroku / w przysiadzie podpartym jednonóż – druga noga w wykroku", {"img": "ruch/092.webp", "cat": "przysiad"}],
+    ["ćwiczenie tułowia – rys. 93", "Skłon tułowia (w przód) / skłon", {"img": "ruch/093.webp", "cat": "ćwiczenie tułowia"}],
+  ] },
+  { id: "kr5", name: "Porcja 5", range: "skłon tułowia w tył – chwyt odwrotny", words: [
+    ["ćwiczenie tułowia – rys. 94", "Skłon tułowia w tył / skłon w tył", {"img": "ruch/094.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 95", "Skłon tułowia w bok / skłon w bok", {"img": "ruch/095.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 96", "Opad (tułowia) / w opadzie", {"img": "ruch/096.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 97", "Opad w tył / opad tułowia w tył", {"img": "ruch/097.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 98", "Skręt (tułowia)", {"img": "ruch/098.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 99", "Skrętoskłon / skrętoskłony", {"img": "ruch/099.webp", "cat": "ćwiczenie tułowia"}],
+    ["ćwiczenie tułowia – rys. 100", "Krążenie tułowia / krążenia", {"img": "ruch/100.webp", "cat": "ćwiczenie tułowia"}],
+    ["ustawienie przy ławeczce – rys. 101", "Poprzek – przodem przed ławeczką / poprzek przed ławeczką", {"img": "ruch/101.webp", "cat": "ustawienie przy ławeczce"}],
+    ["ustawienie przy ławeczce – rys. 102", "Poprzek – w środku tyłem po prawej stronie ławeczki / poprzek w środku tyłem po prawej", {"img": "ruch/102.webp", "cat": "ustawienie przy ławeczce"}],
+    ["ustawienie przy ławeczce – rys. 103", "Pobok – na ławeczce lewym bokiem na końcu ławeczki / pobok na lewym bokiem na końcu", {"img": "ruch/103.webp", "cat": "ustawienie przy ławeczce"}],
+    ["chwyt – rys. 104", "Chwyt zamknięty", {"img": "ruch/104.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 105", "Chwyt otwarty", {"img": "ruch/105.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 106", "Nachwyt", {"img": "ruch/106.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 107", "Podchwyt", {"img": "ruch/107.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 108", "Dwuchwyt", {"img": "ruch/108.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 109", "Chwyt normalny", {"img": "ruch/109.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 110", "Chwyt spojony", {"img": "ruch/110.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 111", "Chwyt rozpięty", {"img": "ruch/111.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 112", "Chwyt skrzyżny", {"img": "ruch/112.webp", "cat": "chwyt"}],
+    ["chwyt – rys. 113", "Chwyt odwrotny", {"img": "ruch/113.webp", "cat": "chwyt"}],
+  ] },
+];
+const RUCH = [{ id: "kr", name: "Pozycje i ćwiczenia gimnastyczne", range: "nazewnictwo gimnastyczne na rysunkach", rounds: RUCH_POZYCJE, allId: "kr-all" }];
+for (const g of RUCH) g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem", words: g.rounds.flatMap(r => r.words) });
+
 // Dziedziny (sekcje strony). Każda dziedzina ma własne grupy fiszek.
 // sides: nazwy stron karty – a = pierwszy element pary w danych, b = drugi.
 const SECTIONS = [
@@ -1697,6 +1817,9 @@ const SECTIONS = [
       { id: "kostny", name: "Układ kostny", desc: "Kości kończyny górnej i dolnej", groups: ANATOMIA },
       { id: "wiezadla", name: "Stawy i więzadła", desc: "Więzadła i torebki stawowe", groups: STAWY },
     ] },
+  { id: "ruch", name: "Kształcenie ruchowe", desc: "Nazewnictwo pozycji i ćwiczeń gimnastycznych na rysunkach", images: true,
+    sides: { a: "pozycja na rysunku", b: "nazwa", aIn: "pozycja na rysunku", bIn: "nazwę pozycji", italicA: false, ansLabel: "nazwa pozycji" },
+    unit: ["pozycja", "pozycje", "pozycji"], groups: RUCH },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
 // grupa dziedziczy jednostkę („słówko”, „rozpoznanie”) po swoim dziale
@@ -3038,7 +3161,7 @@ function nextCard() {
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
   const v = isImg ? viewOf(card) : null;
-  $("c-lang").textContent = isImg && v.view ? `${S.sides.a} · widok ${v.view}` : lat ? S.sides.a : S.sides.b;
+  $("c-lang").textContent = isImg && v.view ? `${S.sides.a} · widok ${v.view}` : isImg && v.cat ? `${S.sides.a} · ${v.cat}` : lat ? S.sides.a : S.sides.b;
   $("c-prompt").hidden = isImg;
   $("c-img").hidden = !isImg;
   if (isImg) {
@@ -3071,7 +3194,7 @@ function reveal(typed) {
   if (cur.phase !== "ask") return;
   const { card, dir } = cur;
   const ans = dir === "lp" ? card.p : card.l;
-  $("c-anslabel").textContent = card.x && card.x.img ? "nazwa struktury" : dir === "lp" ? S.sides.bIn : S.sides.aIn;
+  $("c-anslabel").textContent = card.x && card.x.img ? (S.sides.ansLabel || "nazwa struktury") : dir === "lp" ? S.sides.bIn : S.sides.aIn;
   $("c-anstext").textContent = ans;
   $("c-anstext").className = "text" + (dir === "pl" && S.sides.italicA ? " lat" : "");
   $("c-answer").hidden = false;
