@@ -182,15 +182,13 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .modal-box h2 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 28px; }
 .acc-intro { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
 .acc-intro b { color: var(--ink); }
-.mopt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
-.mopt:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.mopt input { margin: 4px 0 0; accent-color: var(--accent); flex: none; }
-.mopt b { display: block; font-size: 15.5px; }
-.mopt small { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
-.need-row { display: flex; align-items: center; gap: 10px; padding: 0 2px 0 40px; }
-.need-row.off { opacity: .45; }
-.need-row b { min-width: 2ch; text-align: center; font-size: 20px; font-variant-numeric: tabular-nums; }
-.needbtn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 18px; line-height: 1; }
+.learnmode { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.lm-label { font-size: 14px; color: var(--muted); }
+.lm-note { flex-basis: 100%; margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.need-row { display: inline-flex; align-items: center; gap: 8px; }
+.need-row[hidden] { display: none; }
+.need-row b { min-width: 2ch; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
+.needbtn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 18px; line-height: 1; }
 .needbtn:disabled { opacity: .4; }
 .need-row span { color: var(--muted); font-size: 14px; }
 .login-info { margin: 0; font-size: 14px; line-height: 1.45; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
@@ -571,31 +569,6 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <button type="button" class="textbtn" id="acc-cancel" style="align-self:center"></button>
     </form>
   </div>
-  <!-- WYBÓR TRYBU NAUKI (przed rozpoczęciem porcji) -->
-  <div class="modal" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-title" hidden>
-    <form class="panel modal-box" id="mode-form" novalidate>
-      <h2 id="mode-title">Jak chcesz się uczyć?</h2>
-      <p class="acc-intro" id="mode-sub"></p>
-      <label class="mopt">
-        <input type="radio" name="lmode" value="sm">
-        <span><b>Schemat SuperMemo</b>
-          <small>Powtórki w coraz dłuższych odstępach. Do zaliczenia potrzeba co najmniej 4 dobrych odpowiedzi, a pomyłka cofa na początek.</small></span>
-      </label>
-      <label class="mopt">
-        <input type="radio" name="lmode" value="custom">
-        <span><b>Własna liczba powtórek</b>
-          <small>Sam(a) ustawiasz, ile dobrych odpowiedzi zalicza każdą pozycję. Pomyłka cofa licznik do zera.</small></span>
-      </label>
-      <div class="need-row" id="mode-need-row">
-        <button type="button" class="needbtn" id="mode-minus" aria-label="Mniej">−</button>
-        <b id="mode-need">3</b>
-        <button type="button" class="needbtn" id="mode-plus" aria-label="Więcej">+</button>
-        <span id="mode-need-txt">dobre odpowiedzi</span>
-      </div>
-      <button type="submit" class="btn primary" id="mode-go">Zaczynamy</button>
-      <button type="button" class="textbtn" id="mode-cancel" style="align-self:center">Anuluj</button>
-    </form>
-  </div>
   <!-- PANEL ADMINISTRATORA -->
   <section id="v-admin" class="wrap" style="gap:16px" hidden>
     <div class="studybar">
@@ -712,6 +685,20 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <button type="button" data-dir="mix">na zmianę</button>
       </div>
       <label class="check"><input type="checkbox" id="shuffle"> losowa kolejność</label>
+      <div class="learnmode">
+        <span class="lm-label">Zaliczenie</span>
+        <div class="seg" role="group" aria-label="Tryb nauki" id="lmode">
+          <button type="button" data-lmode="sm">SuperMemo</button>
+          <button type="button" data-lmode="custom">własna liczba</button>
+        </div>
+        <span class="need-row" id="lm-need">
+          <button type="button" class="needbtn" data-step="-1" aria-label="Mniej dobrych odpowiedzi">−</button>
+          <b id="lm-n">3</b>
+          <button type="button" class="needbtn" data-step="1" aria-label="Więcej dobrych odpowiedzi">+</button>
+          <span id="lm-ntxt">dobre odpowiedzi</span>
+        </span>
+        <p class="lm-note" id="lm-note"></p>
+      </div>
     </div>
 
     <div class="rounds" id="rounds"></div>
@@ -2723,6 +2710,7 @@ function renderHome() {
   $("showlist").textContent = `Pokaż listę wszystkich ${unitOf()[2]}`;
   document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
   $("shuffle").checked = store.shuffle;
+  renderLearnMode();
   $("dir").hidden = !!S.images;   // fiszki obrazkowe mają jeden kierunek
   $("rounds").innerHTML = ROUNDS.map((r, i) =>
     (r.sub && r.sub !== (ROUNDS[i - 1] || {}).sub ? `<div class="subhead">${esc(r.sub)}</div>` : "") + roundHTML(r, i)).join("");
@@ -2745,7 +2733,7 @@ function renderHome() {
       <span class="num">${num}</span>
       <span class="name">${r.name}${st ? " · w trakcie" : ""}</span>
       <span class="meta">${chip}${bar}${reset}</span>
-      <span class="range">${r.range}</span>
+      <span class="range">${r.range}${st ? ` · ${st.mode === "custom" ? `zaliczenie po ${st.need}` : "SuperMemo"}` : ""}</span>
     </button>`;
   }
 }
@@ -2767,57 +2755,36 @@ $("rounds").addEventListener("keydown", e => {
 // ---------- nauka ----------
 let cur = null; // { ri, st, card, dir, phase: 'ask'|'grade'|'next' }
 
-// Nowa porcja: najpierw wybór trybu nauki (okienko), zaczęta – od razu dalej w zapisanym trybie.
-let modeRound = null, modeNeed = 3;
-function askMode(ri) {
-  const r = ROUNDS[ri];
-  modeRound = ri;
-  modeNeed = Math.min(NEED_MAX, Math.max(NEED_MIN, store.learnNeed || 3));
-  $("mode-sub").innerHTML = `<b>${esc(r.name)}</b> · ${r.words.length} ${units(r.words.length)}`;
-  const m = store.learnMode === "custom" ? "custom" : "sm";
-  $("mode-form").querySelector(`input[value="${m}"]`).checked = true;
-  renderModeNeed();
-  $("mode-modal").hidden = false;
-  $("mode-go").focus();
+// Tryb nauki: ustawienie w widoku grupy (store.learnMode / store.learnNeed), stosowane przy rozpoczęciu porcji od nowa.
+const learnNeed = () => Math.min(NEED_MAX, Math.max(NEED_MIN, store.learnNeed || 3));
+function renderLearnMode() {
+  const custom = store.learnMode === "custom", n = learnNeed();
+  $("lmode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.lmode === "custom") === custom)));
+  $("lm-need").hidden = !custom;
+  $("lm-n").textContent = n;
+  $("lm-ntxt").textContent = plural(n, "dobra odpowiedź", "dobre odpowiedzi", "dobrych odpowiedzi");
+  $("lm-need").querySelector('[data-step="-1"]').disabled = n <= NEED_MIN;
+  $("lm-need").querySelector('[data-step="1"]').disabled = n >= NEED_MAX;
+  $("lm-note").textContent = (custom
+    ? `Pozycja jest zaliczona po ${n} ${plural(n, "dobrej odpowiedzi", "dobrych odpowiedziach", "dobrych odpowiedziach")}; pomyłka cofa licznik do zera.`
+    : "Powtórki w coraz dłuższych odstępach, do zaliczenia co najmniej 4 dobre odpowiedzi; pomyłka cofa na początek.")
+    + " Dotyczy porcji zaczynanych od nowa – zaczęte kończysz w dotychczasowym trybie.";
 }
-function renderModeNeed() {
-  const custom = $("mode-form").querySelector('input[value="custom"]').checked;
-  $("mode-need").textContent = modeNeed;
-  $("mode-need-txt").textContent = plural(modeNeed, "dobra odpowiedź", "dobre odpowiedzi", "dobrych odpowiedzi");
-  $("mode-minus").disabled = modeNeed <= NEED_MIN;
-  $("mode-plus").disabled = modeNeed >= NEED_MAX;
-  $("mode-need-row").classList.toggle("off", !custom);
-}
-function closeMode() { $("mode-modal").hidden = true; modeRound = null; }
-$("mode-form").addEventListener("change", renderModeNeed);
-// zmiana liczby (albo kliknięcie w wiersz licznika) wybiera tryb własny
-$("mode-need-row").addEventListener("click", e => {
-  const b = e.target.closest("button");
-  if (b) modeNeed = Math.min(NEED_MAX, Math.max(NEED_MIN, modeNeed + (b.id === "mode-plus" ? 1 : -1)));
-  $("mode-form").querySelector('input[value="custom"]').checked = true;
-  renderModeNeed();
+$("lmode").addEventListener("click", e => {
+  const b = e.target.closest("[data-lmode]"); if (!b) return;
+  store.learnMode = b.dataset.lmode; save(); renderLearnMode();
 });
-$("mode-cancel").addEventListener("click", closeMode);
-$("mode-modal").addEventListener("click", e => { if (e.target === $("mode-modal")) closeMode(); });
-$("mode-modal").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); closeMode(); } });
-$("mode-form").addEventListener("submit", e => {
-  e.preventDefault();
-  if (modeRound === null) return;
-  const mode = $("mode-form").querySelector('input[name="lmode"]:checked').value;
-  store.learnMode = mode;
-  if (mode === "custom") store.learnNeed = modeNeed;
-  const ri = modeRound;
-  closeMode();
-  startRound(ri, { mode, need: modeNeed });
+$("lm-need").addEventListener("click", e => {
+  const b = e.target.closest("[data-step]"); if (!b) return;
+  store.learnNeed = Math.min(NEED_MAX, Math.max(NEED_MIN, learnNeed() + +b.dataset.step)); save(); renderLearnMode();
 });
 const modeText = st => st.mode === "custom"
   ? `zaliczenie po ${st.need} ${plural(st.need, "dobrej odpowiedzi", "dobrych odpowiedziach", "dobrych odpowiedziach")}` : "schemat SuperMemo";
-function startRound(ri, mode) {
+function startRound(ri) {
   const r = ROUNDS[ri];
   if (!r || !r.words.length) return;
   if (!store.rounds[r.id]) {
-    if (!mode) return askMode(ri);
-    store.rounds[r.id] = freshState(r, mode); save();
+    store.rounds[r.id] = freshState(r, { mode: store.learnMode === "custom" ? "custom" : "sm", need: learnNeed() }); save();
   }
   // zapisany postęp trzyma kopię danych fiszki – odśwież je z aktualnej wersji (np. nowe rysunki, poprawione linie)
   const cx = new Map(r.words.map(([l, , x]) => [l, x]));
