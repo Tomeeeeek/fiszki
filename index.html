@@ -1542,6 +1542,25 @@ const ANATOMIA = [
   { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
   { id: "kd", name: "Kończyna dolna", range: "kości kończyny dolnej", rounds: KONCZYNA_DOLNA, allId: "kd-all" },
 ];
+// Stawy i więzadła: rysunek z podpisanymi kośćmi (zostają widoczne), pytanie tylko o więzadła.
+const STAW_BARKOWY = { img: "anatomia/real/staw-barkowy.webp", imgc: "anatomia/real/staw-barkowy-kolor.webp", view: "od przodu" };
+const SW_KONCZYNA_GORNA = [
+  { id: "sw-kg-bark", name: "Stawy obręczy barkowej i staw ramienny", range: "więzadła obojczyka i łopatki, torebka stawu ramiennego", words: [
+    ["staw barkowy (przód) – więzadło stożkowate", "Więzadło stożkowate", { ...STAW_BARKOWY, hl: [[41.58, 10.54, 45.75, 29.24]] }],
+    ["staw barkowy (przód) – więzadło czworoboczne", "Więzadło czworoboczne", { ...STAW_BARKOWY, hl: [[70.18, 9.4, 56.13, 30.48]] }],
+    ["staw barkowy (przód) – więzadło poprzeczne górne łopatki", "Więzadło poprzeczne górne łopatki", { ...STAW_BARKOWY, hl: [[30.39, 23.86, 42.73, 40.39]] }],
+    ["staw barkowy (przód) – więzadło poprzeczne dolne łopatki", "Więzadło poprzeczne dolne łopatki", { ...STAW_BARKOWY, hl: [[44.04, 76.76, 62.83, 52.89]] }],
+    ["staw barkowy (przód) – więzadło kruczo-ramienne", "Więzadło kruczo-ramienne", { ...STAW_BARKOWY, hl: [[94.85, 38.95, 87.58, 43.39]] }],
+    ["staw barkowy (przód) – torebka stawowa", "Torebka stawowa (stawu ramiennego)", { ...STAW_BARKOWY, hl: [[100.0, 53.93, 81.05, 53.0]] }],
+  ] },
+  { id: "sw-kg-lokciowy", name: "Staw łokciowy", range: "w przygotowaniu", words: [] },
+  { id: "sw-kg-nadgarstek", name: "Staw promieniowo-nadgarstkowy", range: "w przygotowaniu", words: [] },
+];
+const STAWY = [
+  { id: "sw-kg", name: "Kończyna górna", range: "stawy i więzadła kończyny górnej", rounds: SW_KONCZYNA_GORNA, allId: "sw-kg-all" },
+];
+for (const g of STAWY) g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie więzadła razem",
+  words: g.rounds.flatMap(r => r.words) });
 for (const g of ANATOMIA) {
   g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie kości razem",
     sub: g.rounds.some(r => r.sub) ? "Powtórka" : undefined, words: g.rounds.flatMap(r => r.words) });
@@ -1560,13 +1579,13 @@ const SECTIONS = [
       { id: "rozpoznania", name: "Rozpoznania", desc: "Pełne rozpoznania po łacinie", groups: ROZPOZNANIA,
         unit: ["rozpoznanie", "rozpoznania", "rozpoznań"] },
     ] },
-  { id: "anatomia", name: "Anatomia prawidłowa", desc: "Struktury kości na rysunkach", images: true,
+  { id: "anatomia", name: "Anatomia prawidłowa", desc: "Struktury kości, stawów i więzadeł na rysunkach", images: true,
     sides: { a: "wskazana struktura", b: "nazwa", aIn: "wskazana struktura", bIn: "nazwę struktury", italicA: false },
-    unit: ["fiszka", "fiszki", "fiszek"], groups: ANATOMIA,
+    unit: ["fiszka", "fiszki", "fiszek"], groups: [...ANATOMIA, ...STAWY],
     // dodatkowy poziom: dział → grupy → porcje
     parts: [
       { id: "kostny", name: "Układ kostny", desc: "Kości kończyny górnej i dolnej", groups: ANATOMIA },
-      { id: "wiezadla", name: "Stawy i więzadła", desc: "W przygotowaniu", groups: [] },
+      { id: "wiezadla", name: "Stawy i więzadła", desc: "Więzadła i torebki stawowe", groups: STAWY },
     ] },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
@@ -1615,6 +1634,7 @@ function variants(ans) {
   for (const p of [...raw]) if (p.includes("(")) { raw.add(p.split("(")[0]); raw.add(p.replace(/[()]/g, " ")); }
   const out = new Set([...raw].map(norm));
   for (const v of [...out]) if (/^kosc /.test(v)) out.add(v.slice(5));   // „kość łódeczkowata” → też „łódeczkowata”
+  for (const v of [...out]) if (/^wiezadlo /.test(v)) out.add(v.slice(9));   // „więzadło stożkowate” → też „stożkowate”
   out.delete("");
   return out;
 }
