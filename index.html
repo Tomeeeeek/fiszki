@@ -2100,8 +2100,34 @@ function buildProgress() {
       .map(([l, n]) => ({ l, p: WORD_PL.get(l) || "", n })),
     days: (store.days || []).slice().sort().slice(-400),   // kalendarz i seria – widzą je znajomi
     ach: store.ach || {},
+    czas: activeTime().total,
   };
 }
+// ---------- czas aktywnej nauki ----------
+// Liczymy tylko czas, gdy karta jest widoczna, użytkownik jest zalogowany i w ostatniej minucie coś zrobił
+// (klik, klawisz, dotyk, przewijanie). store.tm: id urządzenia → dzień → sekundy (urządzenia sumujemy).
+const DEV_KEY = "fiszki-urzadzenie" + ENV.suffix;
+let DEV_ID = null;
+try { DEV_ID = localStorage.getItem(DEV_KEY); if (!DEV_ID) { DEV_ID = Math.random().toString(36).slice(2, 10); localStorage.setItem(DEV_KEY, DEV_ID); } } catch (e) { DEV_ID = "x"; }
+let lastInput = Date.now();
+["pointerdown", "keydown", "touchstart", "wheel", "scroll"].forEach(ev => addEventListener(ev, () => { lastInput = Date.now(); }, { passive: true, capture: true }));
+const TICK = 15;
+setInterval(() => {
+  if (!user || document.visibilityState !== "visible" || Date.now() - lastInput > 60000) return;
+  const d = dayKey(new Date());
+  store.tm = store.tm || {}; const m = store.tm[DEV_ID] = store.tm[DEV_ID] || {};
+  m[d] = (m[d] || 0) + TICK;
+  save(true); scheduleSync(60000);
+  if (!$("v-me").hidden && !viewedFriend && $("me-time")) $("me-time").innerHTML = timeTileHTML(activeTime());
+}, TICK * 1000);
+function activeTime(tm = store.tm) {
+  let total = 0, today = 0; const d = dayKey(new Date());
+  for (const days of Object.values(tm || {})) for (const [k, v] of Object.entries(days || {})) { total += v; if (k === d) today += v; }
+  return { total, today };
+}
+const fmtTime = s => s < 60 ? "< 1 min" : s < 3600 ? `${Math.floor(s / 60)} min` : `${Math.floor(s / 3600)} h ${Math.floor(s % 3600 / 60)} min`;
+const timeTileHTML = t => `<span class="k">Czas nauki</span><b>${fmtTime(t.total)}</b><small>${t.today !== undefined ? `dzisiaj ${fmtTime(t.today)}` : "aktywnie na stronie"}</small>`;
+
 // ---------- postęp na koncie (supabase_7_postep_konta.sql) ----------
 // Stan nauki (porcje, ukończone, statystyki, trudne, kalendarz, osiągnięcia) jest zapisany na koncie i łączony
 // z tym, co jest w przeglądarce – nic nie jest nadpisywane w ciemno:
@@ -2110,7 +2136,7 @@ function buildProgress() {
 // Ustawienia (kierunek, losowanie, tryb, kolory) zostają na urządzeniu. store.sv – wersja stanu z bazy,
 // na której bazuje przeglądarka (baza odrzuca zapis na starszej wersji → łączymy i zapisujemy ponownie).
 // store.owner – czyj to stan; inne konto na tym samym urządzeniu zaczyna od swojego stanu z bazy.
-const SYNC_KEYS = ["rounds", "done", "stats", "hard", "days", "ach", "rt"];
+const SYNC_KEYS = ["rounds", "done", "stats", "hard", "days", "ach", "rt", "tm"];
 const touchRound = id => { store.rt = store.rt || {}; store.rt[id] = Date.now(); };
 const ownerOf = u => ((u && (u.email || u.name)) || "").toLowerCase();
 function syncPayload() {
@@ -2148,6 +2174,8 @@ function mergeState(a, b) {   // a – przeglądarka, b – baza
     hard: maxObj(a.hard, b.hard, Math.max),
     days: [...new Set([...(a.days || []), ...(b.days || [])])].sort(),
     ach: maxObj(a.ach, b.ach, (p, q) => typeof p === "string" && typeof q === "string" ? (p < q ? p : q) : p || q),
+    // czas nauki: urządzenie → dzień → sekundy; każde urządzenie liczy swój, łączymy większą wartością
+    tm: maxObj(a.tm, b.tm, (p, q) => maxObj(p, q, Math.max)),
   };
 }
 // porównanie niezależne od kolejności kluczy (baza zapisuje jsonb z posortowanymi kluczami)
@@ -2415,6 +2443,8 @@ function progressHTML(pg, sm) {
     <div class="tile"><span class="k">Porcje ukończone</span><b>${sm.partsDone}/${sm.parts}</b><small>bez powtórek całości</small></div>
     <div class="tile"><span class="k">Odpowiedzi</span><b>${ans}</b><small>łącznie we wszystkich porcjach</small></div>
     <div class="tile"><span class="k">Skuteczność</span><b>${pct(sm.yes, ans)}</b><small>odpowiedzi „pamiętałem”</small></div>
+    ${pg.own ? `<div class="tile" id="me-time">${timeTileHTML(activeTime())}</div>`
+      : typeof pg.czas === "number" ? `<div class="tile">${timeTileHTML({ total: pg.czas })}</div>` : ""}
   </div>`;
   const split = ans ? `<div class="panel" style="gap:8px">
     <div class="split"><span style="width:${sm.yes / ans * 100}%;background:var(--ok)"></span><span style="width:${sm.mid / ans * 100}%;background:var(--mid)"></span><span style="width:${sm.no / ans * 100}%;background:var(--bad)"></span></div>
@@ -2735,10 +2765,10 @@ function renderMe(friend) {
     show("me"); window.scrollTo(0, 0);
     return;
   }
-  const pg = buildProgress(), sm = summarize(pg);
+  const pg = Object.assign(buildProgress(), { own: true }), sm = summarize(pg);
   const ans = sm.yes + sm.mid + sm.no;
   $("me-title").textContent = "Twoje statystyki";
-  $("me-sub").innerHTML = `${nameHTML(user.name)} · postęp zapisany w tej przeglądarce`;
+  $("me-sub").innerHTML = `${nameHTML(user.name)} · postęp zapisany na Twoim koncie`;
   $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Nie masz jeszcze odpowiedzi. Wybierz porcję i odpowiedz na kilka fiszek, a statystyki pojawią się tutaj.</p></div>`)
     + progressHTML(pg, sm);
   $("me-ach").hidden = false;
