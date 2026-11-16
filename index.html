@@ -2351,7 +2351,7 @@ function buildProgress() {
       .map(([l, n]) => ({ l, p: WORD_PL.get(l) || "", n })),
     days: (store.days || []).slice().sort().slice(-400),   // kalendarz i seria – widzą je znajomi
     ach: store.ach || {},
-    czas: activeTime().total,
+    ...(SHOW_TIME ? { czas: activeTime().total } : {}),
   };
 }
 // ---------- czas aktywnej nauki ----------
@@ -2362,9 +2362,11 @@ let DEV_ID = null;
 try { DEV_ID = localStorage.getItem(DEV_KEY); if (!DEV_ID) { DEV_ID = Math.random().toString(36).slice(2, 10); localStorage.setItem(DEV_KEY, DEV_ID); } } catch (e) { DEV_ID = "x"; }
 let lastInput = Date.now();
 ["pointerdown", "keydown", "touchstart", "wheel", "scroll"].forEach(ev => addEventListener(ev, () => { lastInput = Date.now(); }, { passive: true, capture: true }));
+// licznik czasu na razie tylko na wersji testowej (na stronie głównej wyłączony – zmień na true, by włączyć)
+const SHOW_TIME = IS_TEST;
 const TICK = 15;
 setInterval(() => {
-  if (!user || document.visibilityState !== "visible" || Date.now() - lastInput > 60000) return;
+  if (!SHOW_TIME || !user || document.visibilityState !== "visible" || Date.now() - lastInput > 60000) return;
   const d = dayKey(new Date());
   store.tm = store.tm || {}; const m = store.tm[DEV_ID] = store.tm[DEV_ID] || {};
   m[d] = (m[d] || 0) + TICK;
@@ -2694,7 +2696,7 @@ function progressHTML(pg, sm) {
     <div class="tile"><span class="k">Porcje ukończone</span><b>${sm.partsDone}/${sm.parts}</b><small>bez powtórek całości</small></div>
     <div class="tile"><span class="k">Odpowiedzi</span><b>${ans}</b><small>łącznie we wszystkich porcjach</small></div>
     <div class="tile"><span class="k">Skuteczność</span><b>${pct(sm.yes, ans)}</b><small>odpowiedzi „pamiętałem”</small></div>
-    ${pg.own ? `<div class="tile" id="me-time">${timeTileHTML(activeTime())}</div>`
+    ${!SHOW_TIME ? "" : pg.own ? `<div class="tile" id="me-time">${timeTileHTML(activeTime())}</div>`
       : typeof pg.czas === "number" ? `<div class="tile">${timeTileHTML({ total: pg.czas })}</div>` : ""}
   </div>`;
   const split = ans ? `<div class="panel" style="gap:8px">
