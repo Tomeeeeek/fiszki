@@ -1638,6 +1638,27 @@ const SW_KONCZYNA_GORNA = [
 const STAWY = [
   { id: "sw-kg", name: "Kończyna górna", range: "stawy i więzadła kończyny górnej", rounds: SW_KONCZYNA_GORNA, allId: "sw-kg-all" },
 ];
+// Ta sama struktura na kilku rysunkach (np. guzek większy od przodu i od tyłu) to jedna pozycja do nauki:
+// opis „kość ramienna (przód) – guzek większy” + „kość ramienna (tył) – guzek większy” → „kość ramienna – guzek większy”
+// z rysunkami w x.alts (kolejne pokazania przełączają rysunek, każda dobra odpowiedź liczy się do tej samej pozycji).
+// x.from – dawne opisy (do przeniesienia zapisanego postępu).
+function mergeViews(rounds) {
+  for (const r of rounds) {
+    const out = [], by = new Map();
+    for (const w of r.words) {
+      const [l, p, x] = w, m = x && x.img && l.match(/^(.*?) \([^)]*\) – (.*)$/);
+      if (!m) { out.push(w); continue; }
+      const key = m[1] + "|" + p, g = by.get(key);
+      if (!g) { const nw = [l, p, x, m[1] + " – " + m[2]]; by.set(key, nw); out.push(nw); continue; }
+      if (!g[2].alts) g[2] = Object.assign({}, g[2], { alts: [g[2]], from: [g[0]] });
+      g[2].alts.push(x); g[2].from.push(l);
+    }
+    r.words = out.map(w => w.length === 4 ? (w[2].alts ? [w[3], w[1], w[2]] : w.slice(0, 3)) : w);
+  }
+}
+mergeViews(SW_KONCZYNA_GORNA); for (const g of ANATOMIA) mergeViews(g.rounds);
+// rysunek do pokazania: przy kilku – po kolei, wg liczby odpowiedzi na tę pozycję
+const viewOf = card => card.x && card.x.alts ? card.x.alts[(card.n || 0) % card.x.alts.length] : card.x;
 for (const g of STAWY) g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie więzadła razem",
   words: g.rounds.flatMap(r => r.words) });
 for (const g of ANATOMIA) {
@@ -1686,6 +1707,9 @@ const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opan
 let store = { dir: "lp", shuffle: true, rounds: {}, done: [], stats: {}, hard: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
 store.stats = store.stats || {}; store.hard = store.hard || {};
+// trudne pozycje zapisane pod dawnymi opisami (przed połączeniem widoków) → nowy opis
+for (const g of ALL_GROUPS) for (const r of g.rounds) for (const [l, , x] of r.words) for (const f of (x && x.from) || [])
+  if (store.hard[f]) { store.hard[l] = (store.hard[l] || 0) + store.hard[f]; delete store.hard[f]; }
 // quiet – bez wysyłania na konto (np. zapis stanu właśnie pobranego z bazy)
 function save(quiet) {
   try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
@@ -2898,12 +2922,34 @@ $("lm-need").addEventListener("click", e => {
 });
 const modeText = st => st.mode === "custom"
   ? `zaliczenie po ${st.need} ${plural(st.need, "dobrej odpowiedzi", "dobrych odpowiedziach", "dobrych odpowiedziach")}` : "schemat SuperMemo";
+// Zapisana porcja z dawnymi pozycjami (np. osobno „… (przód) – guzek większy” i „… (tył) – guzek większy”):
+// łączymy je w jedną pozycję (lepsze pudełko, suma pomyłek), brakujące pozycje dochodzą jako nowe.
+function migrateCards(st, r) {
+  const now = new Set(r.words.map(w => w[0]));
+  if (st.cards.length === r.words.length && st.cards.every(c => now.has(c.l))) return;
+  const alias = new Map();
+  r.words.forEach(([l, , x]) => ((x && x.from) || []).forEach(f => alias.set(f, l)));
+  const by = new Map(), order = [];
+  for (const c of st.cards) {
+    const nl = now.has(c.l) ? c.l : alias.get(c.l);
+    if (!nl) continue;
+    const e = by.get(nl);
+    if (!e) { by.set(nl, Object.assign({}, c, { l: nl })); order.push(nl); continue; }
+    if (c.seen && (!e.seen || c.box > e.box)) { e.box = c.box; e.seen = true; }
+    e.due = Math.min(e.due, c.due); e.err += c.err || 0;
+    if (c.half) e.half = (e.half || 0) + c.half;
+    e.n = (e.n || 0) + (c.n || 0);
+  }
+  for (const [l, p] of r.words) if (!by.has(l)) { by.set(l, { l, p, box: 0, due: 0, seen: false, err: 0 }); order.push(l); }
+  st.cards = order.map(l => Object.assign(by.get(l), { p: r.words.find(w => w[0] === l)[1] }));
+}
 function startRound(ri) {
   const r = ROUNDS[ri];
   if (!r || !r.words.length) return;
   if (!store.rounds[r.id]) {
     store.rounds[r.id] = freshState(r, { mode: store.learnMode === "custom" ? "custom" : "sm", need: learnNeed() }); touchRound(r.id); save();
   }
+  migrateCards(store.rounds[r.id], r);
   // zapisany postęp trzyma kopię danych fiszki – odśwież je z aktualnej wersji (np. nowe rysunki, poprawione linie)
   const cx = new Map(r.words.map(([l, , x]) => [l, x]));
   for (const c of store.rounds[r.id].cards) {
@@ -2949,13 +2995,13 @@ function highlightSVG(segs, tipList) {
 // Użytkownik przełącza tryb przyciskiem na rysunku (zapamiętywane w store.annColor, domyślnie kolorowy).
 const annColor = () => store.annColor !== false;
 function setCardImage(card) {
-  const col = annColor() && card.x.imgc;
-  $("c-img-src").src = col ? card.x.imgc : card.x.img;
-  $("c-color").hidden = !card.x.imgc;
+  const v = viewOf(card), col = annColor() && v.imgc;
+  $("c-img-src").src = col ? v.imgc : v.img;
+  $("c-color").hidden = !v.imgc;
   $("c-color").setAttribute("aria-pressed", String(annColor()));
   $("c-color").title = `Kolorowe struktury: ${annColor() ? "włączone (kliknij, aby wyłączyć)" : "wyłączone (kliknij, aby włączyć)"}`;
   // druga wersja w tle, żeby przełączenie było natychmiastowe
-  if (card.x.imgc) new Image().src = col ? card.x.img : card.x.imgc;
+  if (v.imgc) new Image().src = col ? v.img : v.imgc;
 }
 // Rysunek nie wczytał się (np. karta otwarta przed aktualizacją strony, a pliki już podmienione):
 // raz na sesję przeładuj stronę, żeby pobrać aktualną wersję.
@@ -2979,15 +3025,16 @@ function nextCard() {
   const dir = isImg ? "lp" : store.dir === "mix" ? (Math.random() < .5 ? "lp" : "pl") : store.dir;
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
-  $("c-lang").textContent = isImg && card.x.view ? `${S.sides.a} · widok ${card.x.view}` : lat ? S.sides.a : S.sides.b;
+  const v = isImg ? viewOf(card) : null;
+  $("c-lang").textContent = isImg && v.view ? `${S.sides.a} · widok ${v.view}` : lat ? S.sides.a : S.sides.b;
   $("c-prompt").hidden = isImg;
   $("c-img").hidden = !isImg;
   if (isImg) {
     setCardImage(card);
-    $("c-img-hl").innerHTML = highlightSVG(card.x.hl || [], card.x.tips);
+    $("c-img-hl").innerHTML = highlightSVG(v.hl || [], v.tips);
     // nakładka pikselowa: dokładny kształt złożonych klamer (gotowy przezroczysty obrazek)
-    $("c-img-ov").hidden = !card.x.hlimg;
-    if (card.x.hlimg) $("c-img-ov").src = card.x.hlimg; else $("c-img-ov").removeAttribute("src");
+    $("c-img-ov").hidden = !v.hlimg;
+    if (v.hlimg) $("c-img-ov").src = v.hlimg; else $("c-img-ov").removeAttribute("src");
   } else {
     $("c-prompt").textContent = lat ? card.l : card.p;
     $("c-prompt").className = "prompt" + (lat && S.sides.italicA ? " lat" : "");
@@ -3043,6 +3090,7 @@ function grade(level) {
   const { st, card } = cur;
   ping();
   st.step++; st.answers++;
+  card.n = (card.n || 0) + 1;
   if (!card.seen) { card.seen = true; card.box = level === "yes" ? 1 : 0; }
   else if (level === "yes") card.box++;
   else if (level === "no") { card.box = 0; card.err++; }
