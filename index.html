@@ -389,23 +389,20 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .lb-inner svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .lb-inner svg line { stroke: #e2401c; stroke-width: 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .lb-inner svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 9; }
-.lb-inner svg line.tip { stroke-width: 6.5; }
-.lb-inner svg line.tip.halo { stroke-width: 10; }
+.hltips { position: absolute; inset: 0; pointer-events: none; }
+.hltip { position: absolute; width: 5.5px; height: 5.5px; margin: -2.75px 0 0 -2.75px; border-radius: 50%; background: #e2401c; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .95); }
+.lb-inner .hltip { width: 6.5px; height: 6.5px; margin: -3.25px 0 0 -3.25px; box-shadow: 0 0 0 1.75px rgba(255, 255, 255, .95); }
 .lb-close { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: #17262c; font-size: 18px; }
 .cimg svg line { stroke: #e2401c; stroke-width: 4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .cimg svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 7.5; }
-.cimg svg line.tip { stroke-width: 5.5; }
-.cimg svg line.tip.halo { stroke-width: 8.5; }
 /* telefon: rysunek jest mały, więc linia i kropka cieńsze, żeby nie zasłaniały struktury */
 @media (max-width: 600px) {
   .cimg svg line { stroke-width: 3; }
   .cimg svg line.halo { stroke-width: 5.5; }
-  .cimg svg line.tip { stroke-width: 4; }
-  .cimg svg line.tip.halo { stroke-width: 6.5; }
+  .cimg .hltip { width: 4px; height: 4px; margin: -2px 0 0 -2px; box-shadow: 0 0 0 1.25px rgba(255, 255, 255, .95); }
   .lb-inner svg line { stroke-width: 4; }
   .lb-inner svg line.halo { stroke-width: 7; }
-  .lb-inner svg line.tip { stroke-width: 5; }
-  .lb-inner svg line.tip.halo { stroke-width: 8; }
+  .lb-inner .hltip { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .95); }
 }
 
 .answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
@@ -491,6 +488,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <div class="lb-inner">
     <img id="lb-img" alt="Powiększony rysunek kości">
     <svg id="lb-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="hltips" id="lb-tips" aria-hidden="true"></div>
     <img id="lb-ov" class="ovimg" alt="" aria-hidden="true" hidden>
   </div>
   <button type="button" class="lb-close" id="lb-close" aria-label="Zamknij powiększenie">✕</button>
@@ -735,6 +733,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <div class="cimg" id="c-img" hidden>
         <img id="c-img-src" alt="Rysunek kości z pogrubioną linią wskazującą strukturę">
         <svg id="c-img-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="hltips" id="c-img-tips" aria-hidden="true"></div>
         <img id="c-img-ov" class="ovimg" alt="" aria-hidden="true" hidden>
         <button type="button" class="zoombtn colorbtn" id="c-color" aria-pressed="true" title="Kolorowe struktury: włączone (kliknij, aby wyłączyć)">
           <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.2" cy="5.6" r="3.4" fill="#e8823a"/><circle cx="10.8" cy="5.6" r="3.4" fill="#5aa9e6" fill-opacity=".9"/><circle cx="8" cy="10.4" r="3.4" fill="#5fc79a" fill-opacity=".9"/></svg>
@@ -2996,10 +2995,12 @@ function highlightSVG(segs, tipList) {
     k = Math.max(1, k);
     segs = [[c + dx * k, d + dy * k, c, d]];
   }
-  return segs.map(([a, b, c, d]) => line(a, b, c, d, "halo")).join("")
-    + tips.map(([x, y]) => line(x, y, x, y, "tip halo")).join("")
-    + segs.map(([a, b, c, d]) => line(a, b, c, d, "")).join("")
-    + tips.map(([x, y]) => line(x, y, x, y, "tip")).join("");
+  // kropki jako elementy HTML (nie odcinki zerowej długości w SVG): Safari na iPhonie rysuje takie odcinki
+  // w rozciągniętym układzie rysunku – wielki owal zamiast małej kropki
+  return {
+    svg: segs.map(([a, b, c, d]) => line(a, b, c, d, "halo")).join("") + segs.map(([a, b, c, d]) => line(a, b, c, d, "")).join(""),
+    tips: tips.map(([x, y]) => `<i class="hltip" style="left:${x}%;top:${y}%"></i>`).join(""),
+  };
 }
 
 // Rysunki anatomiczne: img – kość bez kolorów, imgc – ta sama kość z pokolorowanymi strukturami.
@@ -3042,7 +3043,8 @@ function nextCard() {
   $("c-img").hidden = !isImg;
   if (isImg) {
     setCardImage(card);
-    $("c-img-hl").innerHTML = highlightSVG(v.hl || [], v.tips);
+    const h = highlightSVG(v.hl || [], v.tips);
+    $("c-img-hl").innerHTML = h.svg; $("c-img-tips").innerHTML = h.tips;
     // nakładka pikselowa: dokładny kształt złożonych klamer (gotowy przezroczysty obrazek)
     $("c-img-ov").hidden = !v.hlimg;
     if (v.hlimg) $("c-img-ov").src = v.hlimg; else $("c-img-ov").removeAttribute("src");
@@ -3148,6 +3150,7 @@ function finishRound() {
 function openZoom() {
   $("lb-img").src = $("c-img-src").src;
   $("lb-hl").innerHTML = $("c-img-hl").innerHTML;
+  $("lb-tips").innerHTML = $("c-img-tips").innerHTML;
   $("lb-ov").hidden = $("c-img-ov").hidden;
   if (!$("c-img-ov").hidden) $("lb-ov").src = $("c-img-ov").src;
   $("lightbox").hidden = false;
