@@ -1679,7 +1679,7 @@ for (const g of ANATOMIA) {
 // Kształcenie ruchowe: pozycje i ćwiczenia gimnastyczne z rysunków (podręcznik „Nauczanie ruchu”, rozdz. 7, rys. 11–113).
 // Dane: narzedzia/ksztalcenie/dane.py; rysunki wycina narzedzia/ksztalcenie/wytnij.py. Kategoria (x.cat) jest podpowiedzią na fiszce.
 const RUCH_POZYCJE = [
-  { id: "kr1", name: "Porcja 1", range: "w wykroku – w siadzie wykroczno-zakrocznym", words: [
+  { id: "kr1", name: "Porcja 1", range: "w wykroku – w klęku podpartym jednonóż", words: [
     ["pozycja wyjściowa w staniu – rys. 11", "W wykroku / wykrok", {"img": "ruch/011.webp", "cat": "pozycja wyjściowa w staniu"}],
     ["pozycja wyjściowa w staniu – rys. 12", "W zakroku / zakrok", {"img": "ruch/012.webp", "cat": "pozycja wyjściowa w staniu"}],
     ["pozycja wyjściowa w staniu – rys. 13", "W pozycji wykroczno-zakrocznej", {"img": "ruch/013.webp", "cat": "pozycja wyjściowa w staniu"}],
@@ -1698,11 +1698,11 @@ const RUCH_POZYCJE = [
     ["pozycja wyjściowa w klęku – rys. 26", "W klęku jednonóż / klęk jednonóż", {"img": "ruch/026.webp", "cat": "pozycja wyjściowa w klęku"}],
     ["pozycja wyjściowa w klęku – rys. 27", "W klęku podpartym (obunóż) / klęk podparty", {"img": "ruch/027.webp", "cat": "pozycja wyjściowa w klęku"}],
     ["pozycja wyjściowa w klęku – rys. 28", "W klęku podpartym jednonóż – druga noga w zakroku", {"img": "ruch/028.webp", "cat": "pozycja wyjściowa w klęku"}],
+  ] },
+  { id: "kr2", name: "Porcja 2", range: "w siadzie – w podporze tyłem", words: [
     ["pozycja wyjściowa w siadzie – rys. 29", "W siadzie (prostym)", {"img": "ruch/029.webp", "cat": "pozycja wyjściowa w siadzie"}],
     ["pozycja wyjściowa w siadzie – rys. 30", "W siadzie w rozkroku / w siadzie o nogach prostych w rozkroku", {"img": "ruch/030.webp", "cat": "pozycja wyjściowa w siadzie"}],
     ["pozycja wyjściowa w siadzie – rys. 31", "W siadzie wykroczno-zakrocznym", {"img": "ruch/031.webp", "cat": "pozycja wyjściowa w siadzie"}],
-  ] },
-  { id: "kr2", name: "Porcja 2", range: "w siadzie rozkrocznym – w siadzie na ławeczce", words: [
     ["pozycja wyjściowa w siadzie – rys. 32", "W siadzie rozkrocznym", {"img": "ruch/032.webp", "cat": "pozycja wyjściowa w siadzie"}],
     ["pozycja wyjściowa w siadzie – rys. 33", "W siadzie równoważnym", {"img": "ruch/033.webp", "cat": "pozycja wyjściowa w siadzie"}],
     ["pozycja wyjściowa w siadzie – rys. 34", "W siadzie o nogach ugiętych", {"img": "ruch/034.webp", "cat": "pozycja wyjściowa w siadzie"}],
@@ -1718,14 +1718,14 @@ const RUCH_POZYCJE = [
     ["pozycja wyjściowa w leżeniu – rys. 44", "W leżeniu przerzutnym", {"img": "ruch/044.webp", "cat": "pozycja wyjściowa w leżeniu"}],
     ["pozycja wyjściowa w podporze – rys. 45", "W podporze (przodem)", {"img": "ruch/045.webp", "cat": "pozycja wyjściowa w podporze"}],
     ["pozycja wyjściowa w podporze – rys. 46", "W podporze tyłem / w podporze leżąc tyłem", {"img": "ruch/046.webp", "cat": "pozycja wyjściowa w podporze"}],
+  ] },
+  { id: "kr3", name: "Porcja 3", range: "w podporze bokiem – ramiona za głową", words: [
     ["pozycja wyjściowa w podporze – rys. 47", "W podporze bokiem / w podporze leżąc bokiem", {"img": "ruch/047.webp", "cat": "pozycja wyjściowa w podporze"}],
     ["pozycja wyjściowa w podporze – rys. 48", "W podporze łukiem (leżąc przodem)", {"img": "ruch/048.webp", "cat": "pozycja wyjściowa w podporze"}],
     ["pozycja wyjściowa w podporze – rys. 49", "W podporze łukiem tyłem / w podporze łukiem leżąc tyłem", {"img": "ruch/049.webp", "cat": "pozycja wyjściowa w podporze"}],
     ["pozycja wyjściowa w podporze – rys. 50", "W podporze łukiem bokiem / w podporze łukiem leżąc bokiem", {"img": "ruch/050.webp", "cat": "pozycja wyjściowa w podporze"}],
     ["pozycja izolowana – rys. 51", "W opadzie (tułowia w przód) / opad", {"img": "ruch/051.webp", "cat": "pozycja izolowana"}],
     ["pozycja izolowana – rys. 52", "W siadzie na ławeczce", {"img": "ruch/052.webp", "cat": "pozycja izolowana"}],
-  ] },
-  { id: "kr3", name: "Porcja 3", range: "w wadze – wykrok wspięty obunóż", words: [
     ["pozycja równoważna – rys. 53", "W wadze / waga", {"img": "ruch/053.webp", "cat": "pozycja równoważna"}],
     ["pozycja równoważna – rys. 54", "W staniu jednonóż wspiętym (z drugą nogą i ramionami w bok)", {"img": "ruch/054.webp", "cat": "pozycja równoważna"}],
     ["położenie ramion – rys. 55", "Ramiona na głowie", {"img": "ruch/055.webp", "cat": "położenie ramion"}],
@@ -1738,6 +1738,8 @@ const RUCH_POZYCJE = [
     ["położenie ramion w leżeniu tyłem – rys. 62", "Ramiona wzdłuż tułowia (na podłożu)", {"img": "ruch/062.webp", "cat": "położenie ramion w leżeniu tyłem"}],
     ["położenie ramion w leżeniu tyłem – rys. 63", "Ramiona w górę", {"img": "ruch/063.webp", "cat": "położenie ramion w leżeniu tyłem"}],
     ["położenie ramion w leżeniu tyłem – rys. 64", "Ramiona za głową (na podłożu)", {"img": "ruch/064.webp", "cat": "położenie ramion w leżeniu tyłem"}],
+  ] },
+  { id: "kr4", name: "Porcja 4", range: "wypad – siad klęczno-wykroczny", words: [
     ["ćwiczenie kroczne – rys. 65", "Wypad / w wypadzie", {"img": "ruch/065.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 66", "Unik / w uniku", {"img": "ruch/066.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 67", "Waga / w wadze", {"img": "ruch/067.webp", "cat": "ćwiczenie kroczne"}],
@@ -1747,8 +1749,6 @@ const RUCH_POZYCJE = [
     ["ćwiczenie kroczne – rys. 71", "Wykrok / w wykroku", {"img": "ruch/071.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 72", "Wykrok wspięty jednonóż", {"img": "ruch/072.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 73", "Wykrok wspięty obunóż", {"img": "ruch/073.webp", "cat": "ćwiczenie kroczne"}],
-  ] },
-  { id: "kr4", name: "Porcja 4", range: "zakrok – skłon tułowia", words: [
     ["ćwiczenie kroczne – rys. 74", "Zakrok / w zakroku", {"img": "ruch/074.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 75", "Zakrok wspięty jednonóż", {"img": "ruch/075.webp", "cat": "ćwiczenie kroczne"}],
     ["ćwiczenie kroczne – rys. 76", "Zakrok wspięty obunóż", {"img": "ruch/076.webp", "cat": "ćwiczenie kroczne"}],
@@ -1758,6 +1758,8 @@ const RUCH_POZYCJE = [
     ["klęk – rys. 80", "Siad klęczny / w siadzie klęcznym", {"img": "ruch/080.webp", "cat": "klęk"}],
     ["klęk – rys. 81", "Siad klęczny w opadzie", {"img": "ruch/081.webp", "cat": "klęk"}],
     ["klęk – rys. 82", "Siad klęczno-wykroczny", {"img": "ruch/082.webp", "cat": "klęk"}],
+  ] },
+  { id: "kr5", name: "Porcja 5", range: "klęk jednonóż – krążenie tułowia", words: [
     ["klęk – rys. 83", "Klęk jednonóż / w klęku jednonóż", {"img": "ruch/083.webp", "cat": "klęk"}],
     ["klęk – rys. 84", "Klęk jednonóż – druga noga w wykroku", {"img": "ruch/084.webp", "cat": "klęk"}],
     ["klęk – rys. 85", "Klęk podparty jednonóż – druga noga w wykroku", {"img": "ruch/085.webp", "cat": "klęk"}],
@@ -1769,8 +1771,6 @@ const RUCH_POZYCJE = [
     ["przysiad – rys. 91", "Przysiad podparty o kolanach rozwartych / w przysiadzie podpartym o kolanach rozwartych", {"img": "ruch/091.webp", "cat": "przysiad"}],
     ["przysiad – rys. 92", "Przysiad podparty – druga noga w wykroku / w przysiadzie podpartym jednonóż – druga noga w wykroku", {"img": "ruch/092.webp", "cat": "przysiad"}],
     ["ćwiczenie tułowia – rys. 93", "Skłon tułowia (w przód) / skłon", {"img": "ruch/093.webp", "cat": "ćwiczenie tułowia"}],
-  ] },
-  { id: "kr5", name: "Porcja 5", range: "skłon tułowia w tył – chwyt odwrotny", words: [
     ["ćwiczenie tułowia – rys. 94", "Skłon tułowia w tył / skłon w tył", {"img": "ruch/094.webp", "cat": "ćwiczenie tułowia"}],
     ["ćwiczenie tułowia – rys. 95", "Skłon tułowia w bok / skłon w bok", {"img": "ruch/095.webp", "cat": "ćwiczenie tułowia"}],
     ["ćwiczenie tułowia – rys. 96", "Opad (tułowia) / w opadzie", {"img": "ruch/096.webp", "cat": "ćwiczenie tułowia"}],
@@ -1778,9 +1778,13 @@ const RUCH_POZYCJE = [
     ["ćwiczenie tułowia – rys. 98", "Skręt (tułowia)", {"img": "ruch/098.webp", "cat": "ćwiczenie tułowia"}],
     ["ćwiczenie tułowia – rys. 99", "Skrętoskłon / skrętoskłony", {"img": "ruch/099.webp", "cat": "ćwiczenie tułowia"}],
     ["ćwiczenie tułowia – rys. 100", "Krążenie tułowia / krążenia", {"img": "ruch/100.webp", "cat": "ćwiczenie tułowia"}],
+  ] },
+  { id: "kr-lawka", name: "Ustawienia przy ławeczce", range: "poprzek i pobok", words: [
     ["ustawienie przy ławeczce – rys. 101", "Poprzek – przodem przed ławeczką / poprzek przed ławeczką", {"img": "ruch/101.webp", "cat": "ustawienie przy ławeczce"}],
     ["ustawienie przy ławeczce – rys. 102", "Poprzek – w środku tyłem po prawej stronie ławeczki / poprzek w środku tyłem po prawej", {"img": "ruch/102.webp", "cat": "ustawienie przy ławeczce"}],
     ["ustawienie przy ławeczce – rys. 103", "Pobok – na ławeczce lewym bokiem na końcu ławeczki / pobok na lewym bokiem na końcu", {"img": "ruch/103.webp", "cat": "ustawienie przy ławeczce"}],
+  ] },
+  { id: "kr-chwyty", name: "Chwyty", range: "rodzaje chwytów", words: [
     ["chwyt – rys. 104", "Chwyt zamknięty", {"img": "ruch/104.webp", "cat": "chwyt"}],
     ["chwyt – rys. 105", "Chwyt otwarty", {"img": "ruch/105.webp", "cat": "chwyt"}],
     ["chwyt – rys. 106", "Nachwyt", {"img": "ruch/106.webp", "cat": "chwyt"}],
