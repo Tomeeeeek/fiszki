@@ -636,7 +636,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <footer>Postęp zapisuje się w tej przeglądarce po każdej odpowiedzi.</footer>
   </section>
 
-  <!-- DZIAŁY (np. anatomia: układ kostny, więzadła) -->
+  <!-- DZIAŁY (np. anatomia: układ kostny, stawy i więzadła) -->
   <section id="v-parts" class="wrap" style="gap:22px" hidden>
     <div class="studybar"><button type="button" class="back" id="p-back">← Dziedziny</button></div>
     <header class="top">
@@ -1566,7 +1566,7 @@ const SECTIONS = [
     // dodatkowy poziom: dział → grupy → porcje
     parts: [
       { id: "kostny", name: "Układ kostny", desc: "Kości kończyny górnej i dolnej", groups: ANATOMIA },
-      { id: "wiezadla", name: "Więzadła", desc: "W przygotowaniu", groups: [] },
+      { id: "wiezadla", name: "Stawy i więzadła", desc: "W przygotowaniu", groups: [] },
     ] },
 ];
 const ALL_GROUPS = SECTIONS.flatMap(sec => sec.groups.map(g => Object.assign(g, { section: sec })));
