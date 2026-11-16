@@ -1686,7 +1686,11 @@ const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opan
 let store = { dir: "lp", shuffle: true, rounds: {}, done: [], stats: {}, hard: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
 store.stats = store.stats || {}; store.hard = store.hard || {};
-function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+// quiet – bez wysyłania na konto (np. zapis stanu właśnie pobranego z bazy)
+function save(quiet) {
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+  if (!quiet) try { if (user && user.token) scheduleSync(); } catch (e) {}
+}
 
 // ---------- porównywanie odpowiedzi ----------
 // Sprawdzanie jest wyrozumiałe: wielkość liter, polskie znaki, interpunkcja, nadmiarowe
@@ -1833,7 +1837,7 @@ async function report(newVisit) {
       if (!$("v-sections").hidden) renderSections();
     }
     if (r && user && !r.email && $("acc-modal").hidden) openAccModal("logged");   // konto sprzed zmian
-    if (newVisit) syncProgress();
+    if (newVisit) { lastPull = Date.now(); pullState(); }
   } catch (e) { if (e.code === "KN401") sessionExpired(); /* brak sieci – nauka działa dalej */ }
 }
 // sesja wygasła albo administrator zresetował hasło / usunął konto
@@ -1863,20 +1867,134 @@ function buildProgress() {
     ach: store.ach || {},
   };
 }
-let syncTimer = null, lastSync = 0;
+// ---------- postęp na koncie (supabase_7_postep_konta.sql) ----------
+// Stan nauki (porcje, ukończone, statystyki, trudne, kalendarz, osiągnięcia) jest zapisany na koncie i łączony
+// z tym, co jest w przeglądarce – nic nie jest nadpisywane w ciemno:
+//  • porcja w trakcie: wygrywa nowsza zmiana (store.rt: id porcji → czas ostatniej zmiany, także usunięcia),
+//  • ukończone porcje, dni nauki, osiągnięcia – suma; liczniki statystyk i trudnych słówek – większa wartość.
+// Ustawienia (kierunek, losowanie, tryb, kolory) zostają na urządzeniu. store.sv – wersja stanu z bazy,
+// na której bazuje przeglądarka (baza odrzuca zapis na starszej wersji → łączymy i zapisujemy ponownie).
+// store.owner – czyj to stan; inne konto na tym samym urządzeniu zaczyna od swojego stanu z bazy.
+const SYNC_KEYS = ["rounds", "done", "stats", "hard", "days", "ach", "rt"];
+const touchRound = id => { store.rt = store.rt || {}; store.rt[id] = Date.now(); };
+const ownerOf = u => ((u && (u.email || u.name)) || "").toLowerCase();
+function syncPayload() {
+  const o = {};
+  for (const k of SYNC_KEYS) if (store[k] !== undefined) o[k] = store[k];
+  // kopie danych fiszek (rysunki, linie) nie są potrzebne – startRound uzupełnia je z aktualnej wersji strony
+  if (o.rounds) o.rounds = Object.fromEntries(Object.entries(o.rounds).map(([id, st]) =>
+    [id, Object.assign({}, st, { cards: st.cards.map(c => { const { x, ...rest } = c; return rest; }) })]));
+  return o;
+}
+function mergeState(a, b) {   // a – przeglądarka, b – baza
+  a = a || {}; b = b || {};
+  const rt = Object.assign({}, b.rt || {});
+  for (const [k, t] of Object.entries(a.rt || {})) rt[k] = Math.max(rt[k] || 0, t);
+  const rounds = {};
+  for (const id of new Set([...Object.keys(a.rounds || {}), ...Object.keys(b.rounds || {}), ...Object.keys(a.rt || {}), ...Object.keys(b.rt || {})])) {
+    const ta = (a.rt || {})[id] || 0, tb = (b.rt || {})[id] || 0;
+    const ra = (a.rounds || {})[id], rb = (b.rounds || {})[id];
+    const pick = ta > tb ? ra : tb > ta ? rb : (ra && rb ? ((ra.answers || 0) >= (rb.answers || 0) ? ra : rb) : ra || rb);
+    if (pick) {
+      // dane fiszek (x) z wersji w przeglądarce, jeśli ta sama porcja
+      const xs = new Map(((ra && ra.cards) || []).filter(c => c.x).map(c => [c.l, c.x]));
+      pick.cards.forEach(c => { if (!c.x && xs.has(c.l)) c.x = xs.get(c.l); });
+      rounds[id] = pick;
+    }
+  }
+  const maxObj = (x, y, f) => { const o = Object.assign({}, y || {}); for (const [k, v] of Object.entries(x || {})) o[k] = k in o ? f(v, o[k]) : v; return o; };
+  const stats = maxObj(a.stats, b.stats, (p, q) => {
+    const o = Object.assign({}, q); for (const [k, v] of Object.entries(p)) o[k] = Math.max(v || 0, o[k] || 0); return o;
+  });
+  return {
+    rounds, rt,
+    done: [...new Set([...(a.done || []), ...(b.done || [])])].sort(),
+    stats,
+    hard: maxObj(a.hard, b.hard, Math.max),
+    days: [...new Set([...(a.days || []), ...(b.days || [])])].sort(),
+    ach: maxObj(a.ach, b.ach, (p, q) => typeof p === "string" && typeof q === "string" ? (p < q ? p : q) : p || q),
+  };
+}
+// porównanie niezależne od kolejności kluczy (baza zapisuje jsonb z posortowanymi kluczami)
+const canon = v => Array.isArray(v) ? "[" + v.map(canon).join(",") + "]"
+  : v && typeof v === "object" ? "{" + Object.keys(v).filter(k => v[k] !== undefined).sort().map(k => JSON.stringify(k) + ":" + canon(v[k])).join(",") + "}"
+  : JSON.stringify(v === undefined ? null : v);
+const sameState = (a, b) => canon(a) === canon(b);
+function applyState(s) {
+  for (const k of SYNC_KEYS) store[k] = s[k];
+  // porcja otwarta właśnie teraz zostaje w tej samej postaci (nauka trwa na tym obiekcie)
+  if (cur && cur.st) { const id = ROUNDS[cur.ri] && ROUNDS[cur.ri].id; if (id) store.rounds[id] = cur.st; }
+  save(true);
+}
+function refreshViews() {   // po wczytaniu stanu z bazy – odśwież widok, jeśli to lista (nie w trakcie odpowiadania)
+  if (!$("v-home").hidden) renderHome();
+  else if (!$("v-groups").hidden) renderGroups();
+  else if (!$("v-parts").hidden) renderParts();
+  else if (!$("v-sections").hidden) renderSections();
+  else if (!$("v-me").hidden && !viewedFriend) renderMe();
+}
+let syncTimer = null, lastSync = 0, stateOk = null, pulling = null;   // stateOk: null – nie wiadomo, false – brak funkcji w bazie
+// konto na tym urządzeniu: inne niż poprzednio → zaczynamy od pustego stanu (stan poprzedniego konta jest w bazie)
+function claimStore() {
+  const me = ownerOf(user);
+  if (!me) return;
+  if (store.owner && store.owner !== me) { for (const k of SYNC_KEYS) delete store[k]; store.rounds = {}; store.done = []; store.stats = {}; store.hard = {}; delete store.sv; }
+  if (store.owner !== me) { store.owner = me; save(true); }
+}
+async function pullState() {
+  if (!user || !user.token || stateOk === false) return;
+  if (pulling) return pulling;
+  pulling = (async () => {
+    claimStore();
+    try {
+      const r = await rpc("pobierz_stan", { p_token: user.token });
+      stateOk = true;
+      if (r && r.stan) {
+        const before = canon(syncPayload());
+        applyState(mergeState(syncPayload(), r.stan)); store.sv = r.wersja; save(true);
+        if (canon(syncPayload()) !== before) refreshViews();
+        if (!sameState(syncPayload(), r.stan)) await syncProgress();
+      } else {
+        store.sv = (r && r.wersja) || 0; save(true);
+        await syncProgress();
+      }
+    } catch (e) {
+      if (e.code === "KN401") sessionExpired();
+      else if (e.code === "PGRST202" || /pobierz_stan/.test(e.message || "")) { stateOk = false; syncProgress(); }   // baza bez aktualizacji 7
+    } finally { pulling = null; }
+  })();
+  return pulling;
+}
 async function syncProgress(keepalive) {
   clearTimeout(syncTimer); syncTimer = null;
   if (!user || !user.token) return;
   lastSync = Date.now();
-  try { await rpc("zapisz_postep", { p_token: user.token, p_postep: buildProgress() }, keepalive); }
-  catch (e) { if (e.code === "KN401") sessionExpired(); }
+  try {
+    if (stateOk === false) return void await rpc("zapisz_postep", { p_token: user.token, p_postep: buildProgress() }, keepalive);
+    for (let i = 0; i < 3; i++) {
+      const stan = syncPayload(), body = { p_token: user.token, p_stan: stan, p_postep: buildProgress(), p_bazowa: store.sv || 0, p_wymus: false };
+      const r = await rpc("zapisz_stan", body, keepalive && JSON.stringify(body).length < 60000);
+      if (!r || !r.konflikt) { store.sv = r ? r.wersja : store.sv; save(true); return; }
+      // w międzyczasie zapisało inne urządzenie – łączymy i próbujemy jeszcze raz
+      applyState(mergeState(syncPayload(), r.stan)); store.sv = r.wersja; save(true); refreshViews();
+    }
+  } catch (e) {
+    if (e.code === "KN401") sessionExpired();
+    else if (e.code === "PGRST202" || /zapisz_stan/.test(e.message || "")) {   // baza bez aktualizacji 7 – sam podgląd postępu
+      stateOk = false;
+      try { await rpc("zapisz_postep", { p_token: user.token, p_postep: buildProgress() }, keepalive); } catch (e2) {}
+    }
+  }
 }
-function scheduleSync() {   // najwyżej jeden zapis na 20 s
+function scheduleSync(ms) {   // najwyżej jeden zapis na 10 s
   if (syncTimer) return;
-  syncTimer = setTimeout(syncProgress, Math.max(0, 20000 - (Date.now() - lastSync)));
+  syncTimer = setTimeout(syncProgress, Math.max(ms || 0, 10000 - (Date.now() - lastSync)));
 }
+let lastPull = 0;
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden" && syncTimer) syncProgress(true);
+  // powrót do karty: sprawdź, czy inne urządzenie czegoś nie zapisało
+  if (document.visibilityState === "visible" && user && $("v-login").hidden && Date.now() - lastPull > 30000) { lastPull = Date.now(); pullState(); }
 });
 // Obecność na stronie: sygnał co 30 s, gdy karta jest widoczna.
 // Aktywny = ostatni sygnał młodszy niż 2 minuty.
@@ -1965,7 +2083,7 @@ function signIn(r) {
   oldName = null; friends = null; frErr = null;
   saveUser(); lastPing = Date.now();
   closeAccModal();
-  syncProgress();
+  lastPull = Date.now(); pullState();
   if (user.admin) loadAdmin(); else renderSections();
   if (!user.email) openAccModal("logged");
   checkNewMaterials(); loadFriends(); updateBell();
@@ -2744,7 +2862,7 @@ $("dir").addEventListener("click", e => {
 $("shuffle").addEventListener("change", e => { store.shuffle = e.target.checked; save(); });
 $("rounds").addEventListener("click", e => {
   const r = e.target.closest("[data-reset]");
-  if (r) { e.stopPropagation(); delete store.rounds[r.dataset.reset]; save(); renderHome(); return; }
+  if (r) { e.stopPropagation(); delete store.rounds[r.dataset.reset]; touchRound(r.dataset.reset); save(); renderHome(); return; }
   const b = e.target.closest("[data-round]"); if (b) startRound(+b.dataset.round);
 });
 $("rounds").addEventListener("keydown", e => {
@@ -2784,7 +2902,7 @@ function startRound(ri) {
   const r = ROUNDS[ri];
   if (!r || !r.words.length) return;
   if (!store.rounds[r.id]) {
-    store.rounds[r.id] = freshState(r, { mode: store.learnMode === "custom" ? "custom" : "sm", need: learnNeed() }); save();
+    store.rounds[r.id] = freshState(r, { mode: store.learnMode === "custom" ? "custom" : "sm", need: learnNeed() }); touchRound(r.id); save();
   }
   // zapisany postęp trzyma kopię danych fiszki – odśwież je z aktualnej wersji (np. nowe rysunki, poprawione linie)
   const cx = new Map(r.words.map(([l, , x]) => [l, x]));
@@ -2937,8 +3055,8 @@ function grade(level) {
   const miss = level === "no" ? 1 : level === "mid" ? 0.5 : 0;
   if (miss) store.hard[card.l] = (store.hard[card.l] || 0) + miss;
   markDay();
+  touchRound(ROUNDS[cur.ri].id);
   save();
-  scheduleSync();
   checkAchievements();
   nextCard();
 }
@@ -2947,7 +3065,7 @@ function finishRound() {
   if (!store.done.includes(r.id)) store.done.push(r.id);
   const x = store.stats[r.id] = store.stats[r.id] || { yes: 0, mid: 0, no: 0, done: 0 };
   x.done++;
-  delete store.rounds[r.id]; save();
+  delete store.rounds[r.id]; touchRound(r.id); save(true);
   syncProgress();
   $("d-title").textContent = r.name + " ukończona";
   const errs = st.cards.reduce((s, c) => s + c.err, 0);
