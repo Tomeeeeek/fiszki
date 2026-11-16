@@ -387,15 +387,26 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .lb-inner { position: relative; line-height: 0; }
 .lb-inner img { display: block; max-width: 94vw; max-height: 92vh; width: auto; height: auto; border-radius: 10px; background: #ffffff; }
 .lb-inner svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.lb-inner svg line { stroke: #e2401c; stroke-width: 6.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.lb-inner svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 11.5; }
-.lb-inner svg line.tip { stroke-width: 9; }
-.lb-inner svg line.tip.halo { stroke-width: 13; }
+.lb-inner svg line { stroke: #e2401c; stroke-width: 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.lb-inner svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 9; }
+.lb-inner svg line.tip { stroke-width: 6.5; }
+.lb-inner svg line.tip.halo { stroke-width: 10; }
 .lb-close { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: #17262c; font-size: 18px; }
-.cimg svg line { stroke: #e2401c; stroke-width: 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.cimg svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 9; }
-.cimg svg line.tip { stroke-width: 7; }
-.cimg svg line.tip.halo { stroke-width: 10; }
+.cimg svg line { stroke: #e2401c; stroke-width: 4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.cimg svg line.halo { stroke: rgba(255, 255, 255, .95); stroke-width: 7.5; }
+.cimg svg line.tip { stroke-width: 5.5; }
+.cimg svg line.tip.halo { stroke-width: 8.5; }
+/* telefon: rysunek jest mały, więc linia i kropka cieńsze, żeby nie zasłaniały struktury */
+@media (max-width: 600px) {
+  .cimg svg line { stroke-width: 3; }
+  .cimg svg line.halo { stroke-width: 5.5; }
+  .cimg svg line.tip { stroke-width: 4; }
+  .cimg svg line.tip.halo { stroke-width: 6.5; }
+  .lb-inner svg line { stroke-width: 4; }
+  .lb-inner svg line.halo { stroke-width: 7; }
+  .lb-inner svg line.tip { stroke-width: 5; }
+  .lb-inner svg line.tip.halo { stroke-width: 8; }
+}
 
 .answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
 .answer .label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
