@@ -1573,7 +1573,7 @@ const KONCZYNA_DOLNA = [
 ];
 // Czaszka i kości czaszki: wszystkie podpisy to pytania. Dane: narzedzia/anatomia/realistyczne/czaszka (stawy_fiszki.py, ALLQ=1).
 const CZASZKA = [
-  { id: "cz-przod", name: "Czaszka od przodu", range: "kości twarzoczaszki i oczodół", words: [
+  { id: "cz-calosc", name: "Czaszka jako całość", range: "od przodu, z boku, w przekroju i od dołu", words: [
     ["czaszka (przód) – gładzizna", "Gładzizna", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[37.06, 1.06, 2.55, 35.5]]}],
     ["czaszka (przód) – wcięcie czołowe", "Wcięcie czołowe", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[55.69, 3.58, 28.04, 33.25]]}],
     ["czaszka (przód) – otwór nadoczodołowy", "Otwór nadoczodołowy", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[71.18, 6.75, 31.96, 33.58]]}],
@@ -1598,8 +1598,6 @@ const CZASZKA = [
     ["czaszka (przód) – dół nadkłowy", "Dół nadkłowy", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[80.78, 70.99, 34.31, 64.24]]}],
     ["czaszka (przód) – wyrostek zębodołowy szczęki", "Wyrostek zębodołowy szczęki", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[77.84, 78.15, 24.31, 71.32]]}],
     ["czaszka (przód) – otwór bródkowy", "Otwór bródkowy", {"img": "anatomia/real/czaszka-przod.webp", "imgc": "anatomia/real/czaszka-przod-kolor.webp", "view": "od przodu", "hl": [[53.92, 92.32, 33.73, 88.08]]}],
-  ] },
-  { id: "cz-bok", name: "Czaszka z boku", range: "boczna powierzchnia czaszki", words: [
     ["czaszka (bok) – kresa skroniowa", "Kresa skroniowa", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[30.27, 0.0, 18.16, 40.7], [30.49, 0.0, 49.78, 17.6]], "tips": [[18.16, 40.7], [49.78, 17.6]]}],
     ["czaszka (bok) – powierzchnia skroniowa części łuskowej kości skroniowej", "Powierzchnia skroniowa części łuskowej kości skroniowej", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[92.38, 11.1, 52.91, 42.15]]}],
     ["czaszka (bok) – powierzchnia skroniowa kości czołowej", "Powierzchnia skroniowa kości czołowej", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[97.87, 18.39, 68.61, 33.86]]}],
@@ -1626,8 +1624,6 @@ const CZASZKA = [
     ["czaszka (bok) – kolec nosowy przedni", "Kolec nosowy przedni", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[99.22, 64.57, 95.96, 64.69]]}],
     ["czaszka (bok) – grzebień jarzmowo-zębodołowy", "Grzebień jarzmowo-zębodołowy", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[98.99, 69.51, 76.68, 66.82]]}],
     ["czaszka (bok) – powierzchnia podskroniowa trzonu szczęki i guz szczęki", "Powierzchnia podskroniowa trzonu szczęki i guz szczęki", {"img": "anatomia/real/czaszka-bok.webp", "imgc": "anatomia/real/czaszka-bok-kolor.webp", "view": "z boku", "hl": [[99.22, 74.66, 68.39, 67.26]]}],
-  ] },
-  { id: "cz-przekroj", name: "Czaszka w przekroju", range: "przekrój strzałkowy", words: [
     ["czaszka (przekrój) – bruzda tętnicy oponowej środkowej", "Bruzda tętnicy oponowej środkowej", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[40.15, 1.38, 43.47, 34.6]]}],
     ["czaszka (przekrój) – grzbiet siodła", "Grzbiet siodła", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[55.79, 1.38, 43.97, 43.37]]}],
     ["czaszka (przekrój) – stok", "Stok", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[71.67, 0.0, 50.25, 51.9]]}],
@@ -1652,8 +1648,6 @@ const CZASZKA = [
     ["czaszka (przekrój) – blaszka przyśrodkowa wyrostka skrzydłowatego", "Blaszka przyśrodkowa wyrostka skrzydłowatego", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[38.18, 92.04, 35.59, 66.78]]}],
     ["czaszka (przekrój) – blaszka boczna wyrostka skrzydłowatego", "Blaszka boczna wyrostka skrzydłowatego", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[48.77, 93.31, 39.41, 64.94], [39.41, 64.94, 40.52, 61.59]], "tips": [[40.52, 61.59]]}],
     ["czaszka (przekrój) – wyrostek skrzydłowaty", "Wyrostek skrzydłowaty", {"img": "anatomia/real/czaszka-przekroj.webp", "imgc": "anatomia/real/czaszka-przekroj-kolor.webp", "view": "przekrój strzałkowy", "hl": [[38.18, 92.04, 35.84, 68.97], [48.4, 92.16, 39.41, 64.94], [39.41, 64.94, 40.52, 61.59]], "tips": [[35.84, 68.97], [40.52, 61.59]]}],
-  ] },
-  { id: "cz-dol", name: "Podstawa czaszki", range: "otwory podstawy czaszki od dołu", words: [
     ["czaszka (dół) – dół przysieczny", "Dół przysieczny", {"img": "anatomia/real/czaszka-dol.webp", "imgc": "anatomia/real/czaszka-dol-kolor.webp", "view": "od dołu", "hl": [[44.27, 0.11, 49.43, 9.25]]}],
     ["czaszka (dół) – otwór podniebienny większy", "Otwór podniebienny większy", {"img": "anatomia/real/czaszka-dol.webp", "imgc": "anatomia/real/czaszka-dol-kolor.webp", "view": "od dołu", "hl": [[25.79, 10.73, 38.54, 25.5]]}],
     ["czaszka (dół) – otwory podniebienne mniejsze", "Otwory podniebienne mniejsze", {"img": "anatomia/real/czaszka-dol.webp", "imgc": "anatomia/real/czaszka-dol-kolor.webp", "view": "od dołu", "hl": [[11.75, 17.64, 37.68, 28.59]]}],
@@ -1671,9 +1665,7 @@ const CZASZKA = [
     ["czaszka (dół) – kanał kłykciowy", "Kanał kłykciowy", {"img": "anatomia/real/czaszka-dol.webp", "imgc": "anatomia/real/czaszka-dol-kolor.webp", "view": "od dołu", "hl": [[94.13, 74.39, 67.91, 65.46]]}],
     ["czaszka (dół) – otwór wielki", "Otwór wielki", {"img": "anatomia/real/czaszka-dol.webp", "imgc": "anatomia/real/czaszka-dol-kolor.webp", "view": "od dołu", "hl": [[72.35, 96.17, 53.15, 65.99]]}],
   ] },
-];
-const KOSCI_CZASZKI = [
-  { id: "kc-czolowa", name: "Kość czołowa", range: "os frontale", words: [
+  { id: "kc-czolowa", sub: "Kości czaszki", name: "Kość czołowa", range: "os frontale", words: [
     ["kość czołowa (przód) – powierzchnia zewnętrzna łuski", "Powierzchnia zewnętrzna łuski", {"img": "anatomia/real/kosc-czolowa-przod.webp", "imgc": "anatomia/real/kosc-czolowa-przod-kolor.webp", "view": "od przodu", "hl": [[84.51, 5.04, 73.84, 14.71], [73.84, 14.71, 73.14, 14.57]], "tips": [[73.14, 14.57]]}],
     ["kość czołowa (przód) – guz czołowy", "Guz czołowy", {"img": "anatomia/real/kosc-czolowa-przod.webp", "imgc": "anatomia/real/kosc-czolowa-przod-kolor.webp", "view": "od przodu", "hl": [[3.32, 24.65, 19.52, 32.07]]}],
     ["kość czołowa (przód) – kresa skroniowa", "Kresa skroniowa", {"img": "anatomia/real/kosc-czolowa-przod.webp", "imgc": "anatomia/real/kosc-czolowa-przod-kolor.webp", "view": "od przodu", "hl": [[100.0, 39.08, 94.97, 40.62]]}],
@@ -1696,7 +1688,7 @@ const KOSCI_CZASZKI = [
     ["kość czołowa (tył) – wcięcie sitowe", "Wcięcie sitowe", {"img": "anatomia/real/kosc-czolowa-tyl.webp", "imgc": "anatomia/real/kosc-czolowa-tyl-kolor.webp", "view": "od tyłu (od wewnątrz)", "hl": [[64.17, 100.0, 57.02, 94.61], [57.02, 94.61, 57.28, 94.38]], "tips": [[57.28, 94.38]]}],
     ["kość czołowa (tył) – kolec nosowy", "Kolec nosowy", {"img": "anatomia/real/kosc-czolowa-tyl.webp", "imgc": "anatomia/real/kosc-czolowa-tyl-kolor.webp", "view": "od tyłu (od wewnątrz)", "hl": [[44.26, 100.0, 50.21, 95.17]]}],
   ] },
-  { id: "kc-ciemieniowa", name: "Kość ciemieniowa", range: "os parietale", words: [
+  { id: "kc-ciemieniowa", sub: "Kości czaszki", name: "Kość ciemieniowa", range: "os parietale", words: [
     ["kość ciemieniowa – kąt czołowy", "Kąt czołowy", {"img": "anatomia/real/kosc-ciemieniowa.webp", "imgc": "anatomia/real/kosc-ciemieniowa-kolor.webp", "view": "od zewnątrz", "hl": [[7.28, 6.07, 11.32, 5.97], [11.32, 5.97, 13.88, 6.69]], "tips": [[13.88, 6.69]]}],
     ["kość ciemieniowa – guz ciemieniowy", "Guz ciemieniowy", {"img": "anatomia/real/kosc-ciemieniowa.webp", "imgc": "anatomia/real/kosc-ciemieniowa-kolor.webp", "view": "od zewnątrz", "hl": [[100.0, 23.05, 80.61, 31.17]]}],
     ["kość ciemieniowa – kresa skroniowa górna", "Kresa skroniowa górna", {"img": "anatomia/real/kosc-ciemieniowa.webp", "imgc": "anatomia/real/kosc-ciemieniowa-kolor.webp", "view": "od zewnątrz", "hl": [[0.0, 29.42, 14.47, 30.76], [14.47, 30.76, 17.03, 30.66], [17.03, 30.66, 17.81, 31.28]], "tips": [[17.81, 31.28]]}],
@@ -1706,7 +1698,7 @@ const KOSCI_CZASZKI = [
     ["kość ciemieniowa – kąt klinowy", "Kąt klinowy", {"img": "anatomia/real/kosc-ciemieniowa.webp", "imgc": "anatomia/real/kosc-ciemieniowa-kolor.webp", "view": "od zewnątrz", "hl": [[0.0, 62.55, 8.66, 58.33]]}],
     ["kość ciemieniowa – kąt sutkowy", "Kąt sutkowy", {"img": "anatomia/real/kosc-ciemieniowa.webp", "imgc": "anatomia/real/kosc-ciemieniowa-kolor.webp", "view": "od zewnątrz", "hl": [[85.33, 98.97, 73.52, 90.12]]}],
   ] },
-  { id: "kc-potyliczna", name: "Kość potyliczna", range: "os occipitale", words: [
+  { id: "kc-potyliczna", sub: "Kości czaszki", name: "Kość potyliczna", range: "os occipitale", words: [
     ["kość potyliczna – guzek gardłowy", "Guzek gardłowy", {"img": "anatomia/real/kosc-potyliczna.webp", "imgc": "anatomia/real/kosc-potyliczna-kolor.webp", "view": "od dołu", "hl": [[36.25, 12.54, 51.28, 13.04]]}],
     ["kość potyliczna – kłykieć potyliczny", "Kłykieć potyliczny", {"img": "anatomia/real/kosc-potyliczna.webp", "imgc": "anatomia/real/kosc-potyliczna-kolor.webp", "view": "od dołu", "hl": [[70.41, 16.48, 62.99, 21.64]]}],
     ["kość potyliczna – wyrostek szyjny", "Wyrostek szyjny", {"img": "anatomia/real/kosc-potyliczna.webp", "imgc": "anatomia/real/kosc-potyliczna-kolor.webp", "view": "od dołu", "hl": [[93.82, 28.72, 85.82, 32.86]]}],
@@ -1718,7 +1710,7 @@ const KOSCI_CZASZKI = [
     ["kość potyliczna – grzebień potyliczny zewnętrzny", "Grzebień potyliczny zewnętrzny", {"img": "anatomia/real/kosc-potyliczna.webp", "imgc": "anatomia/real/kosc-potyliczna-kolor.webp", "view": "od dołu", "hl": [[16.08, 93.63, 50.81, 76.04]]}],
     ["kość potyliczna – guzowatość potyliczna zewnętrzna", "Guzowatość potyliczna zewnętrzna", {"img": "anatomia/real/kosc-potyliczna.webp", "imgc": "anatomia/real/kosc-potyliczna-kolor.webp", "view": "od dołu", "hl": [[77.07, 98.99, 52.62, 89.69]]}],
   ] },
-  { id: "kc-klinowa", name: "Kość klinowa", range: "os sphenoidale", words: [
+  { id: "kc-klinowa", sub: "Kości czaszki", name: "Kość klinowa", range: "os sphenoidale", words: [
     ["kość klinowa – kolec sitowy", "Kolec sitowy", {"img": "anatomia/real/kosc-klinowa.webp", "imgc": "anatomia/real/kosc-klinowa-kolor.webp", "view": "od przodu", "hl": [[50.47, 5.39, 51.02, 29.29]]}],
     ["kość klinowa – małżowina klinowa", "Małżowina klinowa", {"img": "anatomia/real/kosc-klinowa.webp", "imgc": "anatomia/real/kosc-klinowa-kolor.webp", "view": "od przodu", "hl": [[55.1, 13.69, 54.63, 42.76]]}],
     ["kość klinowa – powierzchnia przednia trzonu kości klinowej", "Powierzchnia przednia trzonu kości klinowej", {"img": "anatomia/real/kosc-klinowa.webp", "imgc": "anatomia/real/kosc-klinowa-kolor.webp", "view": "od przodu", "hl": [[34.14, 13.69, 40.74, 38.38]]}],
@@ -1743,7 +1735,7 @@ const KOSCI_CZASZKI = [
     ["kość klinowa – blaszka przyśrodkowa wyrostka skrzydłowatego", "Blaszka przyśrodkowa wyrostka skrzydłowatego", {"img": "anatomia/real/kosc-klinowa.webp", "imgc": "anatomia/real/kosc-klinowa-kolor.webp", "view": "od przodu", "hl": [[38.93, 99.66, 36.81, 87.65]]}],
     ["kość klinowa – wcięcie skrzydłowe", "Wcięcie skrzydłowe", {"img": "anatomia/real/kosc-klinowa.webp", "imgc": "anatomia/real/kosc-klinowa-kolor.webp", "view": "od przodu", "hl": [[31.79, 99.1, 34.38, 92.03]]}],
   ] },
-  { id: "kc-skroniowa", name: "Kość skroniowa", range: "os temporale", words: [
+  { id: "kc-skroniowa", sub: "Kości czaszki", name: "Kość skroniowa", range: "os temporale", words: [
     ["kość skroniowa (zewnątrz) – bruzda tętnicy skroniowej środkowej", "Bruzda tętnicy skroniowej środkowej", {"img": "anatomia/real/kosc-skroniowa-zewn.webp", "imgc": "anatomia/real/kosc-skroniowa-zewn-kolor.webp", "view": "od zewnątrz", "hl": [[5.88, 44.74, 44.64, 50.27]]}],
     ["kość skroniowa (zewnątrz) – wyrostek jarzmowy", "Wyrostek jarzmowy", {"img": "anatomia/real/kosc-skroniowa-zewn.webp", "imgc": "anatomia/real/kosc-skroniowa-zewn-kolor.webp", "view": "od zewnątrz", "hl": [[0.09, 61.21, 10.33, 65.99]]}],
     ["kość skroniowa (zewnątrz) – guzek stawowy", "Guzek stawowy", {"img": "anatomia/real/kosc-skroniowa-zewn.webp", "imgc": "anatomia/real/kosc-skroniowa-zewn-kolor.webp", "view": "od zewnątrz", "hl": [[0.09, 71.31, 14.12, 71.41], [14.12, 71.41, 14.03, 72.16]], "tips": [[14.03, 72.16]]}],
@@ -1770,7 +1762,7 @@ const KOSCI_CZASZKI = [
     ["kość skroniowa (wewnątrz) – dół szyjny", "Dół szyjny", {"img": "anatomia/real/kosc-skroniowa-wewn.webp", "imgc": "anatomia/real/kosc-skroniowa-wewn-kolor.webp", "view": "od wewnątrz", "hl": [[50.57, 96.92, 41.76, 79.23]]}],
     ["kość skroniowa (wewnątrz) – wyrostek rylcowaty", "Wyrostek rylcowaty", {"img": "anatomia/real/kosc-skroniowa-wewn.webp", "imgc": "anatomia/real/kosc-skroniowa-wewn-kolor.webp", "view": "od wewnątrz", "hl": [[30.49, 100.0, 32.67, 96.26]]}],
   ] },
-  { id: "kc-sitowa", name: "Kość sitowa", range: "os ethmoidale", words: [
+  { id: "kc-sitowa", sub: "Kości czaszki", name: "Kość sitowa", range: "os ethmoidale", words: [
     ["kość sitowa – grzebień koguci", "Grzebień koguci", {"img": "anatomia/real/kosc-sitowa.webp", "imgc": "anatomia/real/kosc-sitowa-kolor.webp", "view": "od przodu", "hl": [[35.21, 6.23, 28.02, 17.34]]}],
     ["kość sitowa – skrzydło grzebienia koguciego", "Skrzydło grzebienia koguciego", {"img": "anatomia/real/kosc-sitowa.webp", "imgc": "anatomia/real/kosc-sitowa-kolor.webp", "view": "od przodu", "hl": [[41.92, 18.75, 29.94, 29.94]]}],
     ["kość sitowa – blaszka sitowa", "Blaszka sitowa", {"img": "anatomia/real/kosc-sitowa.webp", "imgc": "anatomia/real/kosc-sitowa-kolor.webp", "view": "od przodu", "hl": [[50.06, 28.03, 42.16, 36.23]]}],
@@ -1782,7 +1774,7 @@ const KOSCI_CZASZKI = [
     ["kość sitowa – małżowina nosowa środkowa", "Małżowina nosowa środkowa", {"img": "anatomia/real/kosc-sitowa.webp", "imgc": "anatomia/real/kosc-sitowa-kolor.webp", "view": "od przodu", "hl": [[58.68, 99.08, 52.1, 90.45]]}],
     ["kość sitowa – wyrostek haczykowaty", "Wyrostek haczykowaty", {"img": "anatomia/real/kosc-sitowa.webp", "imgc": "anatomia/real/kosc-sitowa-kolor.webp", "view": "od przodu", "hl": [[85.51, 94.62, 70.78, 90.02], [70.78, 90.02, 68.86, 89.17]], "tips": [[68.86, 89.17]]}],
   ] },
-  { id: "kc-szczeka", name: "Szczęka", range: "maxilla", words: [
+  { id: "kc-szczeka", sub: "Kości czaszki", name: "Szczęka", range: "maxilla", words: [
     ["szczęka – brzeg podoczodołowy", "Brzeg podoczodołowy", {"img": "anatomia/real/szczeka.webp", "imgc": "anatomia/real/szczeka-kolor.webp", "view": "z boku", "hl": [[0.0, 13.87, 30.21, 19.82]]}],
     ["szczęka – bruzda łzowa", "Bruzda łzowa", {"img": "anatomia/real/szczeka.webp", "imgc": "anatomia/real/szczeka-kolor.webp", "view": "z boku", "hl": [[42.14, 5.76, 33.22, 10.55]]}],
     ["szczęka – grzebień łzowy przedni", "Grzebień łzowy przedni", {"img": "anatomia/real/szczeka.webp", "imgc": "anatomia/real/szczeka-kolor.webp", "view": "z boku", "hl": [[46.27, 11.23, 35.34, 17.58], [35.34, 17.58, 34.56, 18.65]], "tips": [[34.56, 18.65]]}],
@@ -1798,7 +1790,7 @@ const KOSCI_CZASZKI = [
     ["szczęka – grzebień jarzmowo-zębodołowy", "Grzebień jarzmowo-zębodołowy", {"img": "anatomia/real/szczeka.webp", "imgc": "anatomia/real/szczeka-kolor.webp", "view": "z boku", "hl": [[100.0, 72.95, 57.53, 68.75]]}],
     ["szczęka – łęki zębodołowe", "Łęki zębodołowe", {"img": "anatomia/real/szczeka.webp", "imgc": "anatomia/real/szczeka-kolor.webp", "view": "z boku", "hl": [[0.0, 79.59, 10.48, 79.79]]}],
   ] },
-  { id: "kc-jarzmowa", name: "Kość jarzmowa", range: "os zygomaticum", words: [
+  { id: "kc-jarzmowa", sub: "Kości czaszki", name: "Kość jarzmowa", range: "os zygomaticum", words: [
     ["kość jarzmowa (bok) – guzek brzeżny", "Guzek brzeżny", {"img": "anatomia/real/kosc-jarzmowa-boczna.webp", "imgc": "anatomia/real/kosc-jarzmowa-boczna-kolor.webp", "view": "od strony bocznej", "hl": [[49.23, 32.84, 41.37, 34.02]]}],
     ["kość jarzmowa (bok) – otwór jarzmowo-twarzowy", "Otwór jarzmowo-twarzowy", {"img": "anatomia/real/kosc-jarzmowa-boczna.webp", "imgc": "anatomia/real/kosc-jarzmowa-boczna-kolor.webp", "view": "od strony bocznej", "hl": [[0.0, 70.28, 20.33, 61.39], [20.33, 61.39, 24.92, 60.12]], "tips": [[24.92, 60.12]]}],
     ["kość jarzmowa (części) – wyrostek czołowy", "Wyrostek czołowy", {"img": "anatomia/real/kosc-jarzmowa-czesci.webp", "imgc": "anatomia/real/kosc-jarzmowa-czesci-kolor.webp", "view": "od strony bocznej – części", "hl": [[42.79, 17.42, 29.2, 19.74], [29.2, 19.74, 29.43, 19.18]], "tips": [[29.43, 19.18]]}],
@@ -1810,7 +1802,7 @@ const KOSCI_CZASZKI = [
     ["kość jarzmowa (przyśrodkowo) – otwory jarzmowo-oczodołowe", "Otwory jarzmowo-oczodołowe", {"img": "anatomia/real/kosc-jarzmowa-przysrodkowa.webp", "imgc": "anatomia/real/kosc-jarzmowa-przysrodkowa-kolor.webp", "view": "od strony przyśrodkowej", "hl": [[12.14, 49.67, 25.24, 52.3], [12.14, 49.67, 28.61, 59.43]], "tips": [[25.24, 52.3], [28.61, 59.43]]}],
     ["kość jarzmowa (przyśrodkowo) – otwór jarzmowo-skroniowy", "Otwór jarzmowo-skroniowy", {"img": "anatomia/real/kosc-jarzmowa-przysrodkowa.webp", "imgc": "anatomia/real/kosc-jarzmowa-przysrodkowa-kolor.webp", "view": "od strony przyśrodkowej", "hl": [[52.88, 56.69, 42.79, 62.17]]}],
   ] },
-  { id: "kc-zuchwa", name: "Żuchwa", range: "mandibula", words: [
+  { id: "kc-zuchwa", sub: "Kości czaszki", name: "Żuchwa", range: "mandibula", words: [
     ["żuchwa (bok) – wcięcie żuchwy", "Wcięcie żuchwy", {"img": "anatomia/real/zuchwa-boczna.webp", "imgc": "anatomia/real/zuchwa-boczna-kolor.webp", "view": "z boku", "hl": [[22.36, 8.49, 20.95, 26.11]]}],
     ["żuchwa (bok) – łuk zębodołowy żuchwy", "Łuk zębodołowy żuchwy", {"img": "anatomia/real/zuchwa-boczna.webp", "imgc": "anatomia/real/zuchwa-boczna-kolor.webp", "view": "z boku", "hl": [[100.0, 54.03, 84.66, 66.14]]}],
     ["żuchwa (bok) – część zębodołowa żuchwy", "Część zębodołowa żuchwy", {"img": "anatomia/real/zuchwa-boczna.webp", "imgc": "anatomia/real/zuchwa-boczna-kolor.webp", "view": "z boku", "hl": [[100.0, 65.61, 90.55, 75.37]]}],
@@ -1832,8 +1824,7 @@ const KOSCI_CZASZKI = [
 const ANATOMIA = [
   { id: "kg", name: "Kończyna górna", range: "kości kończyny górnej", rounds: KONCZYNA_GORNA, allId: "kg-all" },
   { id: "kd", name: "Kończyna dolna", range: "kości kończyny dolnej", rounds: KONCZYNA_DOLNA, allId: "kd-all" },
-  { id: "cz", name: "Czaszka", range: "czaszka jako całość", rounds: CZASZKA, allId: "cz-all" },
-  { id: "kc", name: "Kości czaszki", range: "poszczególne kości czaszki", rounds: KOSCI_CZASZKI, allId: "kc-all" },
+  { id: "cz", name: "Czaszka", range: "czaszka i kości czaszki", rounds: CZASZKA, allId: "cz-all" },
 ];
 // Stawy i więzadła: rysunki z podpisanymi kośćmi (zostają widoczne), pytanie o więzadła, torebki i ścięgna.
 // Dane generuje narzedzia/anatomia/realistyczne/stawy_fiszki.py (stawy/fiszki.json).
