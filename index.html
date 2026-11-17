@@ -518,11 +518,11 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <button type="button" class="zoombtn m3d-color" id="m3d-color" aria-pressed="true" title="Kolorowe struktury" hidden>
       <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.2" cy="5.6" r="3.4" fill="#e8823a"/><circle cx="10.8" cy="5.6" r="3.4" fill="#5aa9e6" fill-opacity=".9"/><circle cx="8" cy="10.4" r="3.4" fill="#5fc79a" fill-opacity=".9"/></svg>
     </button>
-    <div class="m3d-pad" id="m3d-pad" role="group" aria-label="Przesuwanie modelu">
-      <button type="button" data-pan="0,1" aria-label="Przesuń model w górę">▲</button>
-      <button type="button" data-pan="-1,0" aria-label="Przesuń model w lewo">◀</button>
-      <button type="button" data-pan="1,0" aria-label="Przesuń model w prawo">▶</button>
-      <button type="button" data-pan="0,-1" aria-label="Przesuń model w dół">▼</button>
+    <div class="m3d-pad" id="m3d-pad" role="group" aria-label="Przesuwanie widoku">
+      <button type="button" data-pan="0,1" aria-label="Pokaż wyższą część kości">▲</button>
+      <button type="button" data-pan="-1,0" aria-label="Pokaż lewą część kości">◀</button>
+      <button type="button" data-pan="1,0" aria-label="Pokaż prawą część kości">▶</button>
+      <button type="button" data-pan="0,-1" aria-label="Pokaż niższą część kości">▼</button>
     </div></div>
   <p id="m3d-info"></p>
   <div class="m3d-list" id="m3d-list" hidden></div>
@@ -3995,6 +3995,8 @@ function open3d() {
   $("m3d-credit").innerHTML = m.credit;
   $("m3d-color").hidden = true;
   $("m3d-box").firstElementChild.addEventListener("load", applyColor3d);
+  // po ręcznym przesunięciu/obróceniu modelu (mysz, palce) kolejne W A S D liczą się od bieżącego widoku
+  $("m3d-box").firstElementChild.addEventListener("camera-change", e => { if (m3d && e.detail && e.detail.source === "user-interaction") m3d.pan = null; });
   $("m3d").hidden = false;
   $("m3d-close").focus();
   render3d();
@@ -4011,18 +4013,19 @@ function render3d() {
   $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości, aby zobaczyć nazwę struktury")
     + "<br>przeciągnij, aby obrócić · kółko myszy lub rozsunięcie palców – przybliżenie · klawisze W A S D lub strzałki na ekranie – przesuwanie";
 }
-// Przesuwanie modelu na ekranie (dx, dy = −1/0/1: w prawo, w górę) – przybliżenie działa wtedy na dowolny fragment kości,
-// nie tylko na jej środek. Klawisze W A S D, a na telefonie przyciski strzałek (przytrzymanie przesuwa płynnie).
+// Przesuwanie widoku (dx, dy = −1/0/1: w prawo, w górę) – jak kamerą w grze: W/▲ pokazuje wyższą część kości (kość zjeżdża
+// w dół ekranu), S/▼ niższą, A/◀ i D/▶ – lewą i prawą. Dzięki temu przybliżenie działa na dowolny fragment, nie tylko na środek.
+// m3d.pan – docelowy punkt, na który patrzy kamera (kolejne kroki sumują się, zanim animacja dojedzie).
 function pan3d(dx, dy) {
-  const mv = $("m3d-box").firstElementChild; if (!mv || !mv.getCameraOrbit) return;
-  const o = mv.getCameraOrbit(), t = mv.getCameraTarget();
+  const mv = $("m3d-box").firstElementChild; if (!m3d || !mv || !mv.getCameraOrbit) return;
+  const o = mv.getCameraOrbit();
+  if (!m3d.pan) { const t = mv.getCameraTarget(); m3d.pan = [t.x, t.y, t.z]; }
   const right = [Math.cos(o.theta), 0, -Math.sin(o.theta)];
   const fwd = [-Math.sin(o.phi) * Math.sin(o.theta), -Math.cos(o.phi), -Math.sin(o.phi) * Math.cos(o.theta)];
   const up = [right[1] * fwd[2] - right[2] * fwd[1], right[2] * fwd[0] - right[0] * fwd[2], right[0] * fwd[1] - right[1] * fwd[0]];
   const step = o.radius * Math.tan(mv.getFieldOfView() * Math.PI / 360) * 0.12;
-  // model w prawo/górę = punkt, na który patrzy kamera, w lewo/dół
-  const p = [t.x, t.y, t.z].map((v, i) => v - (right[i] * dx + up[i] * dy) * step);
-  mv.cameraTarget = `${p[0]}m ${p[1]}m ${p[2]}m`;
+  m3d.pan = m3d.pan.map((v, i) => v + (right[i] * dx + up[i] * dy) * step);
+  mv.cameraTarget = `${m3d.pan[0]}m ${m3d.pan[1]}m ${m3d.pan[2]}m`;
 }
 let panTimer = null;
 const stopPan = () => { clearInterval(panTimer); panTimer = null; };
@@ -4057,6 +4060,7 @@ function view3d(p) {
 function focus3d(name) {
   const mv = $("m3d-box").firstElementChild; if (!mv || !m3d) return;
   const v = view3d(name && m3d.m.pts[name]);
+  m3d.pan = null;
   mv.cameraTarget = v.target; mv.cameraOrbit = v.orbit; mv.fieldOfView = v.fov;
 }
 // move: obróć kamerę na wprost struktury (wybór z listy); kliknięcie punktu na kości kamery nie rusza
