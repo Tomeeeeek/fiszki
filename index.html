@@ -383,10 +383,25 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .colorbtn { right: 50px; }
 .m3dbtn { right: auto; left: 8px; width: auto; padding: 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
 .m3dbtn[hidden] { display: none; }
-.m3d { cursor: default; flex-direction: column; gap: 10px; }
-.m3d model-viewer { width: min(94vw, 900px); height: min(78vh, 900px); border-radius: 10px; background: radial-gradient(circle at 50% 40%, #33454c, #121b1f); --poster-color: transparent; }
-.m3d p { margin: 0; max-width: 94vw; text-align: center; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.72); }
+.lightbox.m3d { cursor: default; flex-direction: column; gap: 8px; justify-content: flex-start; overflow-y: auto; }
+.m3d-stage { position: relative; flex: none; margin-top: 44px; }
+.m3d model-viewer { display: block; width: min(94vw, 900px); height: min(56vh, 760px); border-radius: 10px; background: radial-gradient(circle at 50% 40%, #33454c, #121b1f); --poster-color: transparent; }
+.m3d-reset { position: absolute; left: 8px; bottom: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(10,18,21,.7); color: #fff; font-size: 13px; }
+.m3d p { margin: 0; max-width: min(94vw, 900px); text-align: center; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.75); }
+.m3d p b { color: #fff; }
 .m3d p a { color: inherit; }
+#m3d-credit { font-size: 11.5px; color: rgba(255,255,255,.5); }
+.m3d-list { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: min(94vw, 900px); max-height: 30vh; overflow-y: auto; padding: 2px; }
+.m3d-list[hidden] { display: none; }
+.m3d-list button { padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); font-size: 12.5px; }
+.m3d-list button[aria-pressed="true"] { background: #e8823a; border-color: #e8823a; color: #1a0f05; font-weight: 700; }
+.hs { position: relative; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; transition: opacity .2s; }
+.hs::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: #5fd0b8; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9), 0 1px 4px rgba(0,0,0,.6); }
+.hs:not([data-visible]) { opacity: .12; pointer-events: none; }
+.hs.on::before, .hs.asked::before { inset: 5px; background: #e8823a; box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(232,130,58,.35), 0 1px 5px rgba(0,0,0,.6); }
+.hs.on { z-index: 2; }
+.hs-label { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; padding: 4px 9px; border-radius: 7px; background: rgba(10,18,21,.92); color: #fff; font-size: 13px; font-weight: 600; pointer-events: none; }
+.hs-label:empty { display: none; }
 .colorbtn[aria-pressed="false"] svg { filter: grayscale(1); opacity: .45; }
 .lightbox { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(8, 14, 16, .9);
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out; }
@@ -491,8 +506,10 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   </defs>
 </svg>
 <div class="lightbox m3d" id="m3d" role="dialog" aria-modal="true" aria-label="Model 3D kości" hidden>
-  <div id="m3d-box"></div>
-  <p id="m3d-note"></p>
+  <div class="m3d-stage"><div id="m3d-box"></div><button type="button" class="m3d-reset" id="m3d-reset">cała kość</button></div>
+  <p id="m3d-info"></p>
+  <div class="m3d-list" id="m3d-list" hidden></div>
+  <p id="m3d-credit"></p>
   <button type="button" class="lb-close" id="m3d-close" aria-label="Zamknij model 3D">✕</button>
 </div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Powiększony rysunek" hidden>
@@ -3800,29 +3817,106 @@ function closeZoom() {
 $("c-zoom").addEventListener("click", openZoom);
 
 // ---------- model 3D kości (próba) ----------
-// Rysunek (początek nazwy pliku) → model .glb. Modele: BodyParts3D, przygotowane skryptem narzedzia/anatomia/obj_do_glb.py.
+// Rysunek (początek nazwy pliku) → model .glb z punktami struktur. Klucz punktu = odpowiedź fiszki,
+// wartość = [x, y, z, nx, ny, nz] w metrach, w układzie modelu (Y – góra, +Z – przód, +X – strona przyśrodkowa).
+// Modele i punkty powstają skryptami z narzedzia/anatomia (stl_do_glb.py, punkt_na_modelu.py).
 // Biblioteka <model-viewer> wczytuje się dopiero przy pierwszym otwarciu modelu.
 const MODELS_3D = [
-  ["anatomia/real/kosc-ramienna-", { src: "anatomia/3d/kosc-ramienna.glb", name: "Kość ramienna (prawa)" }],
+  ["anatomia/real/kosc-ramienna-", { src: "anatomia/3d/kosc-ramienna.glb", name: "Kość ramienna (prawa)",
+    credit: 'Model: „Human humerus”, Eric Bauer / Elon University (uproszczony, odbicie lustrzane), licencja <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" target="_blank" rel="noopener">CC BY 4.0</a>',
+    pts: {
+      "Koniec bliższy": [-0.0038, 0.1384, 0.0185, 0.5, 0.67, 0.55],
+      "Głowa (kości ramiennej)": [0.0077, 0.1281, -0.0199, 0.34, 0.17, -0.92],
+      "Guzek większy": [-0.0161, 0.1257, 0.015, -0.68, -0.11, 0.72],
+      "Guzek mniejszy": [0.0057, 0.1255, 0.0205, 0.15, 0.05, 0.99],
+      "Szyjka anatomiczna": [-0.0068, 0.1242, -0.015, -0.42, -0.44, -0.79],
+      "Bruzda międzyguzkowa": [-0.0013, 0.1129, 0.0138, -0.09, -0.29, 0.95],
+      "Szyjka chirurgiczna": [-0.0058, 0.1, 0.0107, 0.28, -0.23, 0.93],
+      "Grzebień guzka mniejszego": [0.0016, 0.0922, 0.0078, 0.28, -0.24, 0.93],
+      "Grzebień guzka większego": [-0.0078, 0.0909, 0.0102, 0.42, -0.21, 0.88],
+      "Powierzchnia przednio-przyśrodkowa trzonu": [-0.0, 0.0319, -0.0, 0.85, -0.05, 0.52],
+      "Bruzda nerwu promieniowego": [-0.0098, 0.0057, -0.0099, -0.64, 0.01, -0.77],
+      "Powierzchnia przednio-boczna trzonu": [-0.0109, 0.0252, 0.0048, -0.89, -0.03, 0.45],
+      "Guzowatość naramienna": [-0.0149, 0.023, -0.0011, -0.99, -0.02, 0.11],
+      "Otwór odżywczy": [-0.0009, 0.0012, -0.0009, 0.83, -0.05, 0.56],
+      "Trzon": [-0.007, -0.0162, 0.0028, -0.1, -0.09, 0.99],
+      "Brzeg przyśrodkowy trzonu": [0.0011, -0.0206, -0.0048, 0.81, 0.05, 0.58],
+      "Powierzchnia tylna trzonu": [-0.0065, -0.0224, -0.0137, -0.27, 0.04, -0.96],
+      "Brzeg boczny trzonu": [-0.0125, -0.029, -0.0054, -1.0, -0.04, -0.08],
+      "Grzebień nadkłykciowy przyśrodkowy": [0.0107, -0.1131, 0.0028, 0.58, 0.42, 0.7],
+      "Grzebień nadkłykciowy boczny": [-0.0102, -0.1131, 0.0022, -0.75, 0.21, 0.63],
+      "Koniec dalszy": [0.0, -0.117, 0.0033, -0.27, -0.08, 0.96],
+      "Dół dziobiasty": [0.0007, -0.1235, 0.0038, -0.04, 0.14, 0.99],
+      "Dół promieniowy": [-0.0118, -0.1242, 0.0025, -0.29, 0.49, 0.82],
+      "Dół wyrostka łokciowego": [0.0046, -0.1251, 0.0036, 0.1, -0.38, -0.92],
+      "Nadkłykieć boczny (kości ramiennej)": [-0.0242, -0.1285, 0.0017, -0.62, 0.4, 0.68],
+      "Nadkłykieć przyśrodkowy (kości ramiennej)": [0.0241, -0.1293, 0.0061, 0.69, -0.13, 0.71],
+      "Bruzda nerwu łokciowego": [0.0164, -0.1321, -0.0016, 0.06, -0.23, -0.97],
+      "Główka (kości ramiennej)": [-0.0147, -0.1352, 0.0178, 0.02, 0.05, 1.0],
+      "Bloczek (kości ramiennej)": [0.0039, -0.1366, 0.0157, -0.32, -0.17, 0.93],
+    } }],
 ];
 const MODEL_VIEWER_JS = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js";
 const model3dOf = card => { const img = card && card.x && card.x.img; const m = img && MODELS_3D.find(([pre]) => img.startsWith(pre)); return m ? m[1] : null; };
-let mvLoading = null;
+let mvLoading = null, m3d = null;   // m3d: { m, names: czy wolno pokazać nazwy, asked: struktura z bieżącej fiszki, sel: wybrana }
 function open3d() {
   const m = cur && model3dOf(cur.card); if (!m) return;
-  $("m3d-note").innerHTML = `${esc(m.name)} · przeciągnij, aby obrócić · kółko myszy lub dwa palce – przybliżenie<br>Model: BodyParts3D, © The Database Center for Life Science, licencja <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" target="_blank" rel="noopener">CC BY 4.0</a>`;
-  $("m3d-box").innerHTML = `<model-viewer src="${m.src}" alt="${esc(m.name)} – model 3D" camera-controls touch-action="none" interaction-prompt="none" shadow-intensity="0.6" exposure="0.62" environment-image="neutral" camera-orbit="0deg 80deg auto" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 180deg auto"></model-viewer>`;
+  const asked = m.pts[cur.card.p] ? cur.card.p : null;
+  // przed odsłonięciem odpowiedzi widać tylko wskazany punkt, bez nazw – żeby model nie podpowiadał
+  m3d = { m, names: cur.phase !== "ask", asked, sel: asked };
+  const all = Object.keys(m.pts), shown = m3d.names ? all : all.filter(n => n === asked), v0 = view3d(asked && m.pts[asked]);
+  $("m3d-box").innerHTML = `<model-viewer src="${m.src}" alt="${esc(m.name)} – model 3D" camera-controls touch-action="none" interaction-prompt="none" shadow-intensity="0.6" exposure="0.62" environment-image="neutral" camera-orbit="${v0.orbit}" camera-target="${v0.target}" field-of-view="${v0.fov}" min-camera-orbit="auto 0deg 0.07m" max-camera-orbit="auto 180deg auto" min-field-of-view="8deg">${
+    shown.map(n => { const p = m.pts[n]; return `<button type="button" class="hs" slot="hotspot-${all.indexOf(n)}" data-position="${p[0]}m ${p[1]}m ${p[2]}m" data-normal="${p[3]} ${p[4]} ${p[5]}" data-visibility-attribute="visible" data-hs="${esc(n)}"${m3d.names ? ` aria-label="${esc(n)}"` : ' aria-label="Wskazana struktura"'}><span class="hs-label"></span></button>`; }).join("")}</model-viewer>`;
+  $("m3d-list").innerHTML = m3d.names ? all.map(n => `<button type="button" data-hs="${esc(n)}">${esc(n)}</button>`).join("") : "";
+  $("m3d-list").hidden = !m3d.names;
+  $("m3d-credit").innerHTML = m.credit;
   $("m3d").hidden = false;
   $("m3d-close").focus();
-  mvLoading = mvLoading || import(MODEL_VIEWER_JS).catch(() => { mvLoading = null; if (!$("m3d").hidden) $("m3d-note").textContent = "Nie udało się wczytać podglądu 3D – sprawdź połączenie z internetem."; });
+  render3d();
+  mvLoading = mvLoading || import(MODEL_VIEWER_JS).catch(() => { mvLoading = null; if (!$("m3d").hidden) $("m3d-info").textContent = "Nie udało się wczytać podglądu 3D – sprawdź połączenie z internetem."; });
+}
+function render3d() {
+  const { m, names, asked, sel } = m3d;
+  $("m3d-box").querySelectorAll(".hs").forEach(b => {
+    const on = b.dataset.hs === sel;
+    b.classList.toggle("on", on); b.classList.toggle("asked", b.dataset.hs === asked);
+    b.firstElementChild.textContent = names && on ? b.dataset.hs : "";
+  });
+  $("m3d-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.hs === sel)));
+  $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (!names
+    ? (asked ? "pomarańczowy punkt to wskazana struktura – nazwy pojawią się po odsłonięciu odpowiedzi" : "nazwy struktur pojawią się po odsłonięciu odpowiedzi")
+    : sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości albo nazwę z listy")
+    + "<br>przeciągnij, aby obrócić · kółko myszy lub dwa palce – przybliżenie";
+}
+// ustawia kamerę na wprost punktu struktury (name = null → cała kość)
+function view3d(p) {
+  if (!p) return { target: "auto auto auto", orbit: "0deg 80deg auto", fov: "auto" };
+  const deg = r => r * 180 / Math.PI;
+  return { target: `${p[0]}m ${p[1]}m ${p[2]}m`, fov: "30deg",
+    orbit: `${deg(Math.atan2(p[3], p[5])).toFixed(1)}deg ${Math.min(150, Math.max(30, deg(Math.acos(p[4])))).toFixed(1)}deg 0.24m` };
+}
+function focus3d(name) {
+  const mv = $("m3d-box").firstElementChild; if (!mv || !m3d) return;
+  const v = view3d(name && m3d.m.pts[name]);
+  mv.cameraTarget = v.target; mv.cameraOrbit = v.orbit; mv.fieldOfView = v.fov;
+}
+function select3d(name) {
+  if (!m3d || !m3d.names) return;
+  m3d.sel = m3d.sel === name ? null : name;
+  render3d(); focus3d(m3d.sel);
 }
 function close3d() {
-  $("m3d").hidden = true; $("m3d-box").innerHTML = "";
+  $("m3d").hidden = true; $("m3d-box").innerHTML = ""; m3d = null;
   if (!$("v-study").hidden) $("c-3d").focus();
 }
+$("m3d").addEventListener("click", e => {
+  const b = e.target.closest("[data-hs]");
+  if (b) select3d(b.dataset.hs); else if (e.target === $("m3d")) close3d();
+});
+$("m3d-reset").addEventListener("click", () => { if (m3d && m3d.names) m3d.sel = null; if (m3d) render3d(); focus3d(null); });
 $("c-3d").addEventListener("click", open3d);
 $("m3d-close").addEventListener("click", close3d);
-$("m3d").addEventListener("click", e => { if (e.target === $("m3d")) close3d(); });
+
 $("lightbox").addEventListener("click", closeZoom);
 
 $("f-ask").addEventListener("submit", e => { e.preventDefault(); reveal($("f-input").value.trim()); });
