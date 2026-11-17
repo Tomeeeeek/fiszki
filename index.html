@@ -3938,7 +3938,31 @@ const MODELS_3D = [
       "Powierzchnia stawowa nadgarstkowa": [0.0, -0.103, -0.0001, 0.45, -0.88, 0.17],
       "Wyrostek rylcowaty (kości promieniowej)": [-0.0098, -0.1071, 0.0078, 0.17, -0.53, 0.83],
     } }],
+  ["anatomia/real/kosci-nadgarstka", { src: "anatomia/3d/reka.glb", name: "Kości ręki (prawa, od strony dłoniowej)",
+    credit: 'Model: „Hand”, Team Skeleton Wars (model rysowany, nie skan; przeskalowany), licencja <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" target="_blank" rel="noopener">CC BY 4.0</a>',
+    pts: {
+      "Paliczek dalszy": [-0.0074, 0.0905, -0.0026, -0.19, -0.3, 0.93],
+      "Paliczek środkowy": [-0.0074, 0.0742, -0.0111, -0.19, -0.34, 0.92],
+      "Paliczek bliższy": [-0.0075, 0.0383, -0.0173, 0.16, 0.02, 0.99],
+      "Głowa (kości śródręcza)": [-0.0074, 0.0064, -0.01, -0.09, 0.04, 0.99],
+      "Trzon (kości śródręcza)": [-0.0075, -0.0298, -0.0174, -0.05, 0.07, 1.0],
+      "Podstawa (kości śródręcza)": [-0.0074, -0.0594, -0.0124, -0.12, -0.24, 0.96],
+      "Wyrostek rylcowaty (trzeciej kości śródręcza)": [-0.0045, -0.0605, -0.0273, 0.26, -0.1, -0.96],
+      "Haczyk (kości haczykowatej)": [-0.0263, -0.0682, -0.0051, -0.54, 0.33, 0.78],
+      "Kość czworoboczna większa": [0.018, -0.0694, -0.0084, 0.71, -0.36, 0.61],
+      "Kość czworoboczna mniejsza": [0.0036, -0.0702, -0.0104, -0.3, 0.13, 0.95],
+      "Guzek kości czworobocznej większej": [0.0131, -0.073, -0.0054, -0.09, -0.05, 0.99],
+      "Kość główkowata": [-0.0073, -0.0731, -0.0121, -0.21, -0.22, 0.95],
+      "Kość haczykowata": [-0.0194, -0.0739, -0.0109, -0.41, -0.13, 0.9],
+      "Guzek kości łódeczkowatej": [0.0113, -0.0804, -0.0128, 0.37, 0.08, 0.93],
+      "Kość trójgraniasta": [-0.0275, -0.0804, -0.013, 0.11, 0.13, 0.98],
+      "Kość grochowata": [-0.0353, -0.0819, -0.0087, 0.59, -0.1, 0.8],
+      "Kość łódeczkowata": [0.0048, -0.0866, -0.0078, 0.53, -0.47, 0.71],
+      "Kość księżycowata": [-0.0137, -0.0891, -0.0093, -0.04, -0.13, 0.99],
+    } }],
 ];
+// kość śródręcza i paliczki korzystają z tego samego modelu ręki co nadgarstek
+for (const pre of ["anatomia/real/kosc-srodrecza", "anatomia/real/paliczki-reki"]) MODELS_3D.push([pre, MODELS_3D.find(m => m[0] === "anatomia/real/kosci-nadgarstka")[1]]);
 const MODEL_VIEWER_JS = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js";
 const model3dOf = card => { const img = card && card.x && card.x.img; const m = img && MODELS_3D.find(([pre]) => img.startsWith(pre)); return m ? m[1] : null; };
 let mvLoading = null, m3d = null;   // m3d: { m: model, sel: wybrana struktura }
