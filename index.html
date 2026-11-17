@@ -381,6 +381,12 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .zoombtn svg { position: static; width: 16px; height: 16px; }
 .zoombtn:hover { background: #ffffff; color: #0e6b5e; }
 .colorbtn { right: 50px; }
+.m3dbtn { right: auto; left: 8px; width: auto; padding: 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+.m3dbtn[hidden] { display: none; }
+.m3d { cursor: default; flex-direction: column; gap: 10px; }
+.m3d model-viewer { width: min(94vw, 900px); height: min(78vh, 900px); border-radius: 10px; background: radial-gradient(circle at 50% 40%, #33454c, #121b1f); --poster-color: transparent; }
+.m3d p { margin: 0; max-width: 94vw; text-align: center; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.72); }
+.m3d p a { color: inherit; }
 .colorbtn[aria-pressed="false"] svg { filter: grayscale(1); opacity: .45; }
 .lightbox { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(8, 14, 16, .9);
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out; }
@@ -484,6 +490,11 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     </symbol>
   </defs>
 </svg>
+<div class="lightbox m3d" id="m3d" role="dialog" aria-modal="true" aria-label="Model 3D kości" hidden>
+  <div id="m3d-box"></div>
+  <p id="m3d-note"></p>
+  <button type="button" class="lb-close" id="m3d-close" aria-label="Zamknij model 3D">✕</button>
+</div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Powiększony rysunek" hidden>
   <div class="lb-inner">
     <img id="lb-img" alt="Powiększony rysunek kości">
@@ -742,6 +753,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <svg id="c-img-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
         <div class="hltips" id="c-img-tips" aria-hidden="true"></div>
         <img id="c-img-ov" class="ovimg" alt="" aria-hidden="true" hidden>
+        <button type="button" class="zoombtn m3dbtn" id="c-3d" title="Obejrzyj kość jako model 3D" hidden>3D</button>
         <button type="button" class="zoombtn colorbtn" id="c-color" aria-pressed="true" title="Kolorowe struktury: włączone (kliknij, aby wyłączyć)">
           <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.2" cy="5.6" r="3.4" fill="#e8823a"/><circle cx="10.8" cy="5.6" r="3.4" fill="#5aa9e6" fill-opacity=".9"/><circle cx="8" cy="10.4" r="3.4" fill="#5fc79a" fill-opacity=".9"/></svg>
         </button>
@@ -3634,6 +3646,7 @@ function setCardImage(card) {
   const v = viewOf(card), col = annColor() && v.imgc;
   $("c-img-src").src = col ? v.imgc : v.img;
   $("c-color").hidden = !v.imgc;
+  $("c-3d").hidden = !model3dOf(card);
   $("c-color").setAttribute("aria-pressed", String(annColor()));
   $("c-color").title = `Kolorowe struktury: ${annColor() ? "włączone (kliknij, aby wyłączyć)" : "wyłączone (kliknij, aby włączyć)"}`;
   // druga wersja w tle, żeby przełączenie było natychmiastowe
@@ -3785,6 +3798,31 @@ function closeZoom() {
   if (!$("v-study").hidden) $("c-zoom").focus();
 }
 $("c-zoom").addEventListener("click", openZoom);
+
+// ---------- model 3D kości (próba) ----------
+// Rysunek (początek nazwy pliku) → model .glb. Modele: BodyParts3D, przygotowane skryptem narzedzia/anatomia/obj_do_glb.py.
+// Biblioteka <model-viewer> wczytuje się dopiero przy pierwszym otwarciu modelu.
+const MODELS_3D = [
+  ["anatomia/real/kosc-ramienna-", { src: "anatomia/3d/kosc-ramienna.glb", name: "Kość ramienna (prawa)" }],
+];
+const MODEL_VIEWER_JS = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js";
+const model3dOf = card => { const img = card && card.x && card.x.img; const m = img && MODELS_3D.find(([pre]) => img.startsWith(pre)); return m ? m[1] : null; };
+let mvLoading = null;
+function open3d() {
+  const m = cur && model3dOf(cur.card); if (!m) return;
+  $("m3d-note").innerHTML = `${esc(m.name)} · przeciągnij, aby obrócić · kółko myszy lub dwa palce – przybliżenie<br>Model: BodyParts3D, © The Database Center for Life Science, licencja <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" target="_blank" rel="noopener">CC BY 4.0</a>`;
+  $("m3d-box").innerHTML = `<model-viewer src="${m.src}" alt="${esc(m.name)} – model 3D" camera-controls touch-action="none" interaction-prompt="none" shadow-intensity="0.6" exposure="0.62" environment-image="neutral" camera-orbit="0deg 80deg auto" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 180deg auto"></model-viewer>`;
+  $("m3d").hidden = false;
+  $("m3d-close").focus();
+  mvLoading = mvLoading || import(MODEL_VIEWER_JS).catch(() => { mvLoading = null; if (!$("m3d").hidden) $("m3d-note").textContent = "Nie udało się wczytać podglądu 3D – sprawdź połączenie z internetem."; });
+}
+function close3d() {
+  $("m3d").hidden = true; $("m3d-box").innerHTML = "";
+  if (!$("v-study").hidden) $("c-3d").focus();
+}
+$("c-3d").addEventListener("click", open3d);
+$("m3d-close").addEventListener("click", close3d);
+$("m3d").addEventListener("click", e => { if (e.target === $("m3d")) close3d(); });
 $("lightbox").addEventListener("click", closeZoom);
 
 $("f-ask").addEventListener("submit", e => { e.preventDefault(); reveal($("f-input").value.trim()); });
@@ -3799,6 +3837,7 @@ $("back").addEventListener("click", () => { cur = null; renderHome(); });
 $("d-menu").addEventListener("click", renderHome);
 
 document.addEventListener("keydown", e => {
+  if (!$("m3d").hidden) { if (e.key === "Escape") { e.preventDefault(); close3d(); } return; }
   if (!$("lightbox").hidden) {   // powiększenie otwarte: Esc/Enter/Spacja zamykają, inne klawisze nic nie robią
     if (["Escape", "Enter", " "].includes(e.key)) { e.preventDefault(); closeZoom(); }
     return;
