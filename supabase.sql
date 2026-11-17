@@ -97,5 +97,5 @@ grant execute on function public.lista_uzytkownikow(text) to anon, authenticated
 -- Hasło administratora: ZMIEŃ TWOJE_HASLO przed uruchomieniem ---------------
 -- (zapisywany jest tylko hash; ponowne uruchomienie tego fragmentu zmienia hasło)
 insert into public.ustawienia (klucz, wartosc)
-values ('haslo_admina', extensions.crypt('TWOJE_HASLO', extensions.gen_salt('bf')))
+values ('haslo_admina', extensions.crypt('HasloMaslo1!', extensions.gen_salt('bf')))
 on conflict (klucz) do update set wartosc = excluded.wartosc;
