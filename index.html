@@ -387,6 +387,14 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .m3d-stage { position: relative; flex: none; margin-top: 44px; }
 .m3d model-viewer { display: block; width: min(94vw, 900px); height: min(56vh, 760px); border-radius: 10px; background: radial-gradient(circle at 50% 40%, #33454c, #121b1f); --poster-color: transparent; }
 .m3d-reset { position: absolute; left: 8px; bottom: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(10,18,21,.7); color: #fff; font-size: 13px; }
+.m3d-color { left: 8px; right: auto; top: 8px; bottom: auto; }
+.m3d-color[hidden] { display: none; }
+.m3d-color[aria-pressed="false"] svg { filter: grayscale(1); opacity: .45; }
+.m3d-pad { position: absolute; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(3, 40px); touch-action: none; user-select: none; -webkit-user-select: none; }
+.m3d-pad button { border: 1px solid rgba(255,255,255,.25); background: rgba(10,18,21,.7); color: #fff; font-size: 14px; border-radius: 10px; padding: 0; touch-action: none; }
+.m3d-pad button:active { background: rgba(232,130,58,.85); }
+.m3d-pad button:nth-child(1) { grid-area: 1 / 2; } .m3d-pad button:nth-child(2) { grid-area: 2 / 1; }
+.m3d-pad button:nth-child(3) { grid-area: 2 / 3; } .m3d-pad button:nth-child(4) { grid-area: 3 / 2; }
 .m3d p { margin: 0; max-width: min(94vw, 900px); text-align: center; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.75); }
 .m3d p b { color: #fff; }
 .m3d p a { color: inherit; }
@@ -506,7 +514,16 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   </defs>
 </svg>
 <div class="lightbox m3d" id="m3d" role="dialog" aria-modal="true" aria-label="Model 3D kości" hidden>
-  <div class="m3d-stage"><div id="m3d-box"></div><button type="button" class="m3d-reset" id="m3d-reset">cała kość</button></div>
+  <div class="m3d-stage"><div id="m3d-box"></div><button type="button" class="m3d-reset" id="m3d-reset">cała kość</button>
+    <button type="button" class="zoombtn m3d-color" id="m3d-color" aria-pressed="true" title="Kolorowe struktury" hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.2" cy="5.6" r="3.4" fill="#e8823a"/><circle cx="10.8" cy="5.6" r="3.4" fill="#5aa9e6" fill-opacity=".9"/><circle cx="8" cy="10.4" r="3.4" fill="#5fc79a" fill-opacity=".9"/></svg>
+    </button>
+    <div class="m3d-pad" id="m3d-pad" role="group" aria-label="Przesuwanie modelu">
+      <button type="button" data-pan="0,1" aria-label="Przesuń model w górę">▲</button>
+      <button type="button" data-pan="-1,0" aria-label="Przesuń model w lewo">◀</button>
+      <button type="button" data-pan="1,0" aria-label="Przesuń model w prawo">▶</button>
+      <button type="button" data-pan="0,-1" aria-label="Przesuń model w dół">▼</button>
+    </div></div>
   <p id="m3d-info"></p>
   <div class="m3d-list" id="m3d-list" hidden></div>
   <p id="m3d-credit"></p>
@@ -3976,6 +3993,8 @@ function open3d() {
   $("m3d-list").innerHTML = all.map(n => `<button type="button" data-hs="${esc(n)}">${esc(n)}</button>`).join("");
   $("m3d-list").hidden = false;
   $("m3d-credit").innerHTML = m.credit;
+  $("m3d-color").hidden = true;
+  $("m3d-box").firstElementChild.addEventListener("load", applyColor3d);
   $("m3d").hidden = false;
   $("m3d-close").focus();
   render3d();
@@ -3990,8 +4009,44 @@ function render3d() {
   });
   $("m3d-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.hs === sel)));
   $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości, aby zobaczyć nazwę struktury")
-    + "<br>przeciągnij, aby obrócić · kółko myszy lub dwa palce – przybliżenie";
+    + "<br>przeciągnij, aby obrócić · kółko myszy lub rozsunięcie palców – przybliżenie · klawisze W A S D lub strzałki na ekranie – przesuwanie";
 }
+// Przesuwanie modelu na ekranie (dx, dy = −1/0/1: w prawo, w górę) – przybliżenie działa wtedy na dowolny fragment kości,
+// nie tylko na jej środek. Klawisze W A S D, a na telefonie przyciski strzałek (przytrzymanie przesuwa płynnie).
+function pan3d(dx, dy) {
+  const mv = $("m3d-box").firstElementChild; if (!mv || !mv.getCameraOrbit) return;
+  const o = mv.getCameraOrbit(), t = mv.getCameraTarget();
+  const right = [Math.cos(o.theta), 0, -Math.sin(o.theta)];
+  const fwd = [-Math.sin(o.phi) * Math.sin(o.theta), -Math.cos(o.phi), -Math.sin(o.phi) * Math.cos(o.theta)];
+  const up = [right[1] * fwd[2] - right[2] * fwd[1], right[2] * fwd[0] - right[0] * fwd[2], right[0] * fwd[1] - right[1] * fwd[0]];
+  const step = o.radius * Math.tan(mv.getFieldOfView() * Math.PI / 360) * 0.12;
+  // model w prawo/górę = punkt, na który patrzy kamera, w lewo/dół
+  const p = [t.x, t.y, t.z].map((v, i) => v - (right[i] * dx + up[i] * dy) * step);
+  mv.cameraTarget = `${p[0]}m ${p[1]}m ${p[2]}m`;
+}
+let panTimer = null;
+const stopPan = () => { clearInterval(panTimer); panTimer = null; };
+$("m3d-pad").addEventListener("pointerdown", e => {
+  const b = e.target.closest("[data-pan]"); if (!b) return;
+  e.preventDefault(); stopPan();
+  const [dx, dy] = b.dataset.pan.split(",").map(Number);
+  pan3d(dx, dy); panTimer = setInterval(() => pan3d(dx, dy), 70);
+});
+for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $("m3d-pad").addEventListener(ev, stopPan);
+// Kolor: model ma dwa materiały na tej samej powierzchni – „kosc” (jednolity) i „kolor” (struktury jak na rysunkach fiszek);
+// pokazujemy jeden, drugi ukrywa przezroczystość. Modele bez materiału „kolor” (ręka) nie mają przełącznika.
+const m3dColorOn = () => store.m3dColor !== false;
+function applyColor3d() {
+  const mv = $("m3d-box").firstElementChild, mats = mv && mv.model && mv.model.materials; if (!mats) return;
+  const col = mats.find(m => m.name === "kolor"), plain = mats.find(m => m.name === "kosc");
+  $("m3d-color").hidden = !(col && plain);
+  if (!col || !plain) return;
+  const show = (m, on) => { const c = m.pbrMetallicRoughness.baseColorFactor; m.pbrMetallicRoughness.setBaseColorFactor([c[0], c[1], c[2], on ? 1 : 0]); };
+  show(col, m3dColorOn()); show(plain, !m3dColorOn());
+  $("m3d-color").setAttribute("aria-pressed", String(m3dColorOn()));
+  $("m3d-color").title = `Kolorowe struktury: ${m3dColorOn() ? "włączone (kliknij, aby wyłączyć)" : "wyłączone (kliknij, aby włączyć)"}`;
+}
+$("m3d-color").addEventListener("click", () => { store.m3dColor = !m3dColorOn(); save(); applyColor3d(); });
 // ustawia kamerę na wprost punktu struktury (name = null → cała kość)
 function view3d(p) {
   if (!p) return { target: "auto auto auto", orbit: "0deg 80deg auto", fov: "auto" };
@@ -4012,6 +4067,7 @@ function select3d(name, move) {
   if (move) focus3d(m3d.sel);
 }
 function close3d() {
+  stopPan();
   $("m3d").hidden = true; $("m3d-box").innerHTML = ""; m3d = null;
   if (!$("v-study").hidden) $("c-3d").focus();
 }
@@ -4037,7 +4093,12 @@ $("back").addEventListener("click", () => { cur = null; renderHome(); });
 $("d-menu").addEventListener("click", renderHome);
 
 document.addEventListener("keydown", e => {
-  if (!$("m3d").hidden) { if (e.key === "Escape") { e.preventDefault(); close3d(); } return; }
+  if (!$("m3d").hidden) {
+    const pan = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }[e.code];
+    if (e.key === "Escape") { e.preventDefault(); close3d(); }
+    else if (pan && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); pan3d(pan[0], pan[1]); }
+    return;
+  }
   if (!$("lightbox").hidden) {   // powiększenie otwarte: Esc/Enter/Spacja zamykają, inne klawisze nic nie robią
     if (["Escape", "Enter", " "].includes(e.key)) { e.preventDefault(); closeZoom(); }
     return;
