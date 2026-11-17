@@ -398,7 +398,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .hs { position: relative; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; transition: opacity .2s; }
 .hs::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: #5fd0b8; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9), 0 1px 4px rgba(0,0,0,.6); }
 .hs:not([data-visible]) { opacity: .12; pointer-events: none; }
-.hs.on::before, .hs.asked::before { inset: 5px; background: #e8823a; box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(232,130,58,.35), 0 1px 5px rgba(0,0,0,.6); }
+.hs.on::before { inset: 5px; background: #e8823a; box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(232,130,58,.35), 0 1px 5px rgba(0,0,0,.6); }
 .hs.on { z-index: 2; }
 .hs-label { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; padding: 4px 9px; border-radius: 7px; background: rgba(10,18,21,.92); color: #fff; font-size: 13px; font-weight: 600; pointer-events: none; }
 .hs-label:empty { display: none; }
@@ -3858,17 +3858,16 @@ const MODELS_3D = [
 ];
 const MODEL_VIEWER_JS = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js";
 const model3dOf = card => { const img = card && card.x && card.x.img; const m = img && MODELS_3D.find(([pre]) => img.startsWith(pre)); return m ? m[1] : null; };
-let mvLoading = null, m3d = null;   // m3d: { m, names: czy wolno pokazać nazwy, asked: struktura z bieżącej fiszki, sel: wybrana }
+let mvLoading = null, m3d = null;   // m3d: { m: model, sel: wybrana struktura }
 function open3d() {
   const m = cur && model3dOf(cur.card); if (!m) return;
-  const asked = m.pts[cur.card.p] ? cur.card.p : null;
-  // przed odsłonięciem odpowiedzi widać tylko wskazany punkt, bez nazw – żeby model nie podpowiadał
-  m3d = { m, names: cur.phase !== "ask", asked, sel: asked };
-  const all = Object.keys(m.pts), shown = m3d.names ? all : all.filter(n => n === asked), v0 = view3d(asked && m.pts[asked]);
+  // wszystkie struktury są zaznaczone zawsze, niezależnie od bieżącej fiszki; nazwa pokazuje się po kliknięciu punktu
+  m3d = { m, sel: null };
+  const all = Object.keys(m.pts), v0 = view3d(null);
   $("m3d-box").innerHTML = `<model-viewer src="${m.src}" alt="${esc(m.name)} – model 3D" camera-controls touch-action="none" interaction-prompt="none" shadow-intensity="0.6" exposure="0.62" environment-image="neutral" camera-orbit="${v0.orbit}" camera-target="${v0.target}" field-of-view="${v0.fov}" min-camera-orbit="auto 0deg 0.07m" max-camera-orbit="auto 180deg auto" min-field-of-view="8deg">${
-    shown.map(n => { const p = m.pts[n]; return `<button type="button" class="hs" slot="hotspot-${all.indexOf(n)}" data-position="${p[0]}m ${p[1]}m ${p[2]}m" data-normal="${p[3]} ${p[4]} ${p[5]}" data-visibility-attribute="visible" data-hs="${esc(n)}"${m3d.names ? ` aria-label="${esc(n)}"` : ' aria-label="Wskazana struktura"'}><span class="hs-label"></span></button>`; }).join("")}</model-viewer>`;
-  $("m3d-list").innerHTML = m3d.names ? all.map(n => `<button type="button" data-hs="${esc(n)}">${esc(n)}</button>`).join("") : "";
-  $("m3d-list").hidden = !m3d.names;
+    all.map((n, i) => { const p = m.pts[n]; return `<button type="button" class="hs" slot="hotspot-${i}" data-position="${p[0]}m ${p[1]}m ${p[2]}m" data-normal="${p[3]} ${p[4]} ${p[5]}" data-visibility-attribute="visible" data-hs="${esc(n)}" aria-label="${esc(n)}"><span class="hs-label"></span></button>`; }).join("")}</model-viewer>`;
+  $("m3d-list").innerHTML = all.map(n => `<button type="button" data-hs="${esc(n)}">${esc(n)}</button>`).join("");
+  $("m3d-list").hidden = false;
   $("m3d-credit").innerHTML = m.credit;
   $("m3d").hidden = false;
   $("m3d-close").focus();
@@ -3876,16 +3875,14 @@ function open3d() {
   mvLoading = mvLoading || import(MODEL_VIEWER_JS).catch(() => { mvLoading = null; if (!$("m3d").hidden) $("m3d-info").textContent = "Nie udało się wczytać podglądu 3D – sprawdź połączenie z internetem."; });
 }
 function render3d() {
-  const { m, names, asked, sel } = m3d;
+  const { m, sel } = m3d;
   $("m3d-box").querySelectorAll(".hs").forEach(b => {
     const on = b.dataset.hs === sel;
-    b.classList.toggle("on", on); b.classList.toggle("asked", b.dataset.hs === asked);
-    b.firstElementChild.textContent = names && on ? b.dataset.hs : "";
+    b.classList.toggle("on", on);
+    b.firstElementChild.textContent = on ? b.dataset.hs : "";
   });
   $("m3d-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.hs === sel)));
-  $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (!names
-    ? (asked ? "pomarańczowy punkt to wskazana struktura – nazwy pojawią się po odsłonięciu odpowiedzi" : "nazwy struktur pojawią się po odsłonięciu odpowiedzi")
-    : sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości albo nazwę z listy")
+  $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości, aby zobaczyć nazwę struktury")
     + "<br>przeciągnij, aby obrócić · kółko myszy lub dwa palce – przybliżenie";
 }
 // ustawia kamerę na wprost punktu struktury (name = null → cała kość)
@@ -3900,10 +3897,12 @@ function focus3d(name) {
   const v = view3d(name && m3d.m.pts[name]);
   mv.cameraTarget = v.target; mv.cameraOrbit = v.orbit; mv.fieldOfView = v.fov;
 }
-function select3d(name) {
-  if (!m3d || !m3d.names) return;
+// move: obróć kamerę na wprost struktury (wybór z listy); kliknięcie punktu na kości kamery nie rusza
+function select3d(name, move) {
+  if (!m3d) return;
   m3d.sel = m3d.sel === name ? null : name;
-  render3d(); focus3d(m3d.sel);
+  render3d();
+  if (move) focus3d(m3d.sel);
 }
 function close3d() {
   $("m3d").hidden = true; $("m3d-box").innerHTML = ""; m3d = null;
@@ -3911,9 +3910,9 @@ function close3d() {
 }
 $("m3d").addEventListener("click", e => {
   const b = e.target.closest("[data-hs]");
-  if (b) select3d(b.dataset.hs); else if (e.target === $("m3d")) close3d();
+  if (b) select3d(b.dataset.hs, !b.classList.contains("hs")); else if (e.target === $("m3d")) close3d();
 });
-$("m3d-reset").addEventListener("click", () => { if (m3d && m3d.names) m3d.sel = null; if (m3d) render3d(); focus3d(null); });
+$("m3d-reset").addEventListener("click", () => { if (!m3d) return; m3d.sel = null; render3d(); focus3d(null); });
 $("c-3d").addEventListener("click", open3d);
 $("m3d-close").addEventListener("click", close3d);
 
