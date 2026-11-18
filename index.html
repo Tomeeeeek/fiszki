@@ -463,11 +463,12 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 kbd { font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; }
 .hint { font-size: 13px; color: var(--muted); text-align: center; }
 /* ---------- zgłoszenia do administratora ---------- */
-.fbbtn { position: fixed; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 15; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--muted); display: grid; place-items: center; padding: 0; box-shadow: var(--shadow); opacity: .85; }
-.fbbtn:hover, .fbbtn:focus-visible { opacity: 1; color: var(--accent); border-color: var(--accent); }
-.fbbtn svg { width: 19px; height: 19px; }
+.fbbtn { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 15; display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px 0 15px; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 15px; font-weight: 600; box-shadow: 0 6px 20px rgba(0, 0, 0, .35); }
+.fbbtn:hover, .fbbtn:focus-visible { filter: brightness(1.08); transform: translateY(-1px); }
+.fbbtn svg { width: 20px; height: 20px; flex: none; }
+@media (max-width: 520px) { .fbbtn .fb-long { display: none; } }
 .fbbtn[hidden] { display: none; }
-#app { padding-bottom: 56px; }   /* miejsce na przycisk zgłoszeń przy końcu strony */
+#app { padding-bottom: 72px; }   /* miejsce na przycisk zgłoszeń przy końcu strony */
 .fb-kinds { display: flex; width: 100%; }
 .fb-kinds button { flex: 1; padding-inline: 6px; }
 .fb-text { font: inherit; font-size: 16px; line-height: 1.45; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; min-height: 130px; resize: vertical; }
@@ -623,7 +624,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
 
   <!-- ZGŁOSZENIE DO ADMINISTRATORA: stały przycisk + okienko z kartą -->
   <button type="button" class="fbbtn" id="fb-open" aria-haspopup="dialog" title="Zgłoś problem, skargę lub pomysł" aria-label="Zgłoś problem, skargę lub pomysł" hidden>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.4l-4.7 3.8A1 1 0 0 1 3 21V5a2 2 0 0 1 1-2Zm1 2v13.9l3.3-2.7a1 1 0 0 1 .6-.2H20V5H5Zm6 2h2v5h-2V7Zm0 6h2v2h-2v-2Z"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.4l-4.7 3.8A1 1 0 0 1 3 21V5a2 2 0 0 1 1-2Zm1 2v13.9l3.3-2.7a1 1 0 0 1 .6-.2H20V5H5Zm6 2h2v5h-2V7Zm0 6h2v2h-2v-2Z"/></svg><span>Zgłoś<span class="fb-long"> problem lub pomysł</span></span>
   </button>
   <div class="modal" id="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title" hidden>
     <form class="panel modal-box" id="fb-form" novalidate>
@@ -3089,7 +3090,7 @@ function renderFb() {
   $("a-fbn").textContent = nNew || "";
   if (fbErr) { $("a-fb").innerHTML = `<p class="empty">${esc(fbErr)}</p>`; return; }
   if (!fbList) { $("a-fb").innerHTML = `<p class="empty">Wczytywanie…</p>`; return; }
-  if (!fbList.length) { $("a-fb").innerHTML = `<p class="empty">Brak zgłoszeń. Użytkownicy wysyłają je przyciskiem w lewym dolnym rogu strony.</p>`; return; }
+  if (!fbList.length) { $("a-fb").innerHTML = `<p class="empty">Brak zgłoszeń. Użytkownicy wysyłają je przyciskiem „Zgłoś” w prawym dolnym rogu strony.</p>`; return; }
   $("a-fb").innerHTML = `<ul class="fblist">${fbList.map(z => {
     const ui = adminList.findIndex(u => z.publiczne_id && u.publiczne_id === z.publiczne_id);
     const who = ui >= 0 ? `<button type="button" class="ulink" data-user="${ui}">${esc(z.autor)}</button>` : `<b>${esc(z.autor)}</b>`;
@@ -3135,7 +3136,7 @@ $("a-fb").addEventListener("click", async e => {
   redraw();
 });
 
-// Stały przycisk w lewym dolnym rogu: karta do administratora (problem / skarga / pomysł)
+// Stały przycisk w prawym dolnym rogu: karta do administratora (problem / skarga / pomysł)
 let fbKind = "problem", fbPlace = "";
 const FB_VIEW = { sections: "lista dziedzin", parts: "lista działów", groups: "lista grup", home: "wybór porcji", study: "nauka",
   done: "koniec porcji", list: "lista fiszek", me: "statystyki", find: "wyszukiwarka użytkowników", admin: "panel administratora", user: "postęp użytkownika" };
