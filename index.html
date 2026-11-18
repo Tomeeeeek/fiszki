@@ -320,7 +320,7 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .fr-tabs button { flex: 1; padding: 6px 8px; }
 .fr-n:empty { display: none; }
 .fr-n { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--grid); font-family: var(--f-mono); font-size: 11px; line-height: 18px; }
-.fr-tabs button[aria-pressed="true"] .fr-n { background: rgba(255, 255, 255, .3); }
+.fr-tabs button[aria-pressed="true"] .fr-n, .atabs button[aria-pressed="true"] .fr-n { background: rgba(255, 255, 255, .3); color: inherit; }
 .fr-n.alert { background: var(--bad); color: #fff; }
 .flist { list-style: none; margin: 0; padding: 0; }
 .frow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
@@ -462,6 +462,32 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .btn.yes:hover { border-color: var(--ok); }
 kbd { font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; }
 .hint { font-size: 13px; color: var(--muted); text-align: center; }
+/* ---------- zgłoszenia do administratora ---------- */
+.fbbtn { position: fixed; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 15; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--muted); display: grid; place-items: center; padding: 0; box-shadow: var(--shadow); opacity: .85; }
+.fbbtn:hover, .fbbtn:focus-visible { opacity: 1; color: var(--accent); border-color: var(--accent); }
+.fbbtn svg { width: 19px; height: 19px; }
+.fbbtn[hidden] { display: none; }
+#app { padding-bottom: 56px; }   /* miejsce na przycisk zgłoszeń przy końcu strony */
+.fb-kinds { display: flex; width: 100%; }
+.fb-kinds button { flex: 1; padding-inline: 6px; }
+.fb-text { font: inherit; font-size: 16px; line-height: 1.45; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; min-height: 130px; resize: vertical; }
+.fb-ctx { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.fb-ctx input { margin-top: 3px; flex: none; }
+.fb-ctx[hidden] { display: none; }
+.fb-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.atabs { align-self: center; }
+.fblist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.fbcard { border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.fbcard.k-problem { border-left-color: var(--bad); }
+.fbcard.k-skarga { border-left-color: var(--mid); }
+.fbcard.k-pomysl { border-left-color: var(--ok); }
+.fbcard.st-zrobione { opacity: .6; }
+.fbhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--muted); }
+.fbhead b { color: var(--ink); font-size: 14.5px; }
+.fbtext { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+.fbplace { margin: 0; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.chip.newchip { background: var(--accent); color: var(--accent-ink); }
+.fbfoot { display: flex; flex-wrap: wrap; gap: 6px; }
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px; box-shadow: var(--shadow); animation: rise .2s ease; z-index: 20; }
 
 /* ---------- koniec tury ---------- */
@@ -595,6 +621,32 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     </form>
   </section>
 
+  <!-- ZGŁOSZENIE DO ADMINISTRATORA: stały przycisk + okienko z kartą -->
+  <button type="button" class="fbbtn" id="fb-open" aria-haspopup="dialog" title="Zgłoś problem, skargę lub pomysł" aria-label="Zgłoś problem, skargę lub pomysł" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.4l-4.7 3.8A1 1 0 0 1 3 21V5a2 2 0 0 1 1-2Zm1 2v13.9l3.3-2.7a1 1 0 0 1 .6-.2H20V5H5Zm6 2h2v5h-2V7Zm0 6h2v2h-2v-2Z"/></svg>
+  </button>
+  <div class="modal" id="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title" hidden>
+    <form class="panel modal-box" id="fb-form" novalidate>
+      <h2 id="fb-title">Napisz do administratora</h2>
+      <p class="acc-intro">Coś nie działa, fiszka jest błędna albo masz pomysł na nową funkcję? Wypełnij kartę – trafi prosto do administratora strony.</p>
+      <div class="seg fb-kinds" id="fb-kinds" role="radiogroup" aria-label="Rodzaj zgłoszenia">
+        <button type="button" role="radio" data-kind="problem" aria-pressed="true" aria-checked="true">Problem</button>
+        <button type="button" role="radio" data-kind="skarga" aria-pressed="false" aria-checked="false">Skarga</button>
+        <button type="button" role="radio" data-kind="pomysl" aria-pressed="false" aria-checked="false">Pomysł</button>
+      </div>
+      <div class="field">
+        <label class="eyebrow" for="fb-text" id="fb-label">Opisz problem</label>
+        <textarea id="fb-text" class="fb-text" maxlength="4000"></textarea>
+      </div>
+      <label class="fb-ctx" id="fb-ctx-row" hidden><input type="checkbox" id="fb-ctx" checked><span id="fb-ctx-text"></span></label>
+      <p class="formerr" id="fb-err" role="alert" hidden></p>
+      <div class="fb-actions">
+        <button type="button" class="btn" id="fb-cancel">Anuluj</button>
+        <button type="submit" class="btn primary" id="fb-send">Wyślij</button>
+      </div>
+    </form>
+  </div>
+
   <!-- OKIENKO: dodanie e-maila do konta sprzed zmian -->
   <div class="modal" id="acc-modal" role="dialog" aria-modal="true" aria-labelledby="acc-title" hidden>
     <form class="panel modal-box" id="acc-form" novalidate>
@@ -632,8 +684,13 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <div class="title">Panel administratora<small id="a-sub"></small></div>
       <button type="button" class="back" id="a-refresh">Odśwież</button>
     </div>
+    <div class="seg atabs" id="a-tabs" role="tablist" aria-label="Panel administratora">
+      <button type="button" role="tab" data-atab="users" aria-pressed="true">Użytkownicy</button>
+      <button type="button" role="tab" data-atab="fb" aria-pressed="false">Zgłoszenia <span class="fr-n" id="a-fbn"></span></button>
+    </div>
     <div class="panel ascroll" id="a-panel">
       <div id="a-body"></div>
+      <div id="a-fb" hidden></div>
     </div>
     <p class="note" id="a-legend"><span class="dot on"></span>na stronie teraz &nbsp; <span class="dot"></span>nieaktywny ponad 2 min</p>
   </section>
@@ -2423,6 +2480,7 @@ function show(v) {
   $("topbar").hidden = v === "login" || !user;
   if ($("topbar").hidden) closeNotifs();
   $("statsbtn").setAttribute("aria-pressed", String(v === "me"));
+  $("fb-open").hidden = v === "login" || !user;
   $("adminswitch").hidden = v === "login" || !user;   // zakładka „Użytkownicy” jest dla wszystkich
   $("adminswitch").querySelectorAll("button").forEach(b =>
     b.setAttribute("aria-pressed", String((b.dataset.to === "admin") === ["admin", "user", "find"].includes(v))));
@@ -2979,6 +3037,8 @@ function renderAdmin(list) {
   $("a-legend").hidden = !list.length;
   const wasHidden = $("v-admin").hidden, y = $("a-panel").scrollTop;
   show("admin");
+  renderFb();   // nazwiska autorów prowadzą do ich kont – potrzebna aktualna lista
+  applyATab();
   if (wasHidden) window.scrollTo(0, 0);
   fitAdminList();
   $("a-panel").scrollTop = wasHidden ? 0 : y;   // odświeżanie nie gubi miejsca na liście
@@ -2997,7 +3057,10 @@ const adminRpc = (fn, args) => rpc(fn, Object.assign({ p_token: user.token }, ar
 async function loadAdmin() {
   if (!user) return showLogin();
   $("a-refresh").disabled = true;
-  try { renderAdmin(await adminRpc("lista_uzytkownikow", {})); }
+  try {
+    const [list] = await Promise.all([adminRpc("lista_uzytkownikow", {}), loadFb()]);
+    renderAdmin(list);
+  }
   catch (err) {
     if (err.code === "KN401") sessionExpired();
     else if (err.code === "42501") { user.admin = false; saveUser(); openFind(); }
@@ -3006,11 +3069,137 @@ async function loadAdmin() {
 }
 $("a-refresh").addEventListener("click", loadAdmin);
 let viewedUser = null;
+
+// ---------- zgłoszenia (supabase_8_zgloszenia.sql) ----------
+let aTab = "users", fbList = null, fbErr = null, fbAct = null;   // fbAct: id karty z czekającym „Usuń?”
+const FB_KIND = { problem: "Problem", skarga: "Skarga", pomysl: "Pomysł" };
+const FB_STATUS = { nowe: "nowe", przeczytane: "przeczytane", zrobione: "zrobione" };
+async function loadFb() {
+  try { fbList = await adminRpc("admin_zgloszenia", {}); fbErr = null; }
+  catch (err) {
+    if (err.code === "KN401" || err.code === "42501") throw err;
+    fbErr = /admin_zgloszenia|PGRST202|schema cache/.test((err.code || "") + err.message)
+      ? "Zgłoszenia nie są jeszcze włączone w bazie – uruchom plik supabase_8_zgloszenia.sql w Supabase (SQL Editor)."
+      : "Nie udało się pobrać zgłoszeń. Sprawdź internet i kliknij „Odśwież”.";
+  }
+  renderFb();
+}
+function renderFb() {
+  const nNew = (fbList || []).filter(z => z.status === "nowe").length;
+  $("a-fbn").textContent = nNew || "";
+  if (fbErr) { $("a-fb").innerHTML = `<p class="empty">${esc(fbErr)}</p>`; return; }
+  if (!fbList) { $("a-fb").innerHTML = `<p class="empty">Wczytywanie…</p>`; return; }
+  if (!fbList.length) { $("a-fb").innerHTML = `<p class="empty">Brak zgłoszeń. Użytkownicy wysyłają je przyciskiem w lewym dolnym rogu strony.</p>`; return; }
+  $("a-fb").innerHTML = `<ul class="fblist">${fbList.map(z => {
+    const ui = adminList.findIndex(u => z.publiczne_id && u.publiczne_id === z.publiczne_id);
+    const who = ui >= 0 ? `<button type="button" class="ulink" data-user="${ui}">${esc(z.autor)}</button>` : `<b>${esc(z.autor)}</b>`;
+    const btn = (act, label, cls) => `<button type="button" class="sbtn${cls ? " " + cls : ""}" data-fb="${act}" data-id="${z.id}">${label}</button>`;
+    const foot = fbAct === z.id ? `<span class="note" style="align-self:center">Usunąć tę kartę na stałe?</span>${btn("do-del", "Usuń", "warn")}${btn("cancel", "Anuluj")}`
+      : (z.status === "nowe" ? btn("przeczytane", "Przeczytane") : "")
+        + (z.status !== "zrobione" ? btn("zrobione", "✓ Zrobione") : btn("nowe", "Przywróć"))
+        + btn("del", "Usuń");
+    return `<li class="fbcard k-${z.rodzaj} st-${z.status}">
+      <div class="fbhead"><span class="chip">${FB_KIND[z.rodzaj] || esc(z.rodzaj)}</span>${z.status === "nowe" ? `<span class="chip newchip">nowe</span>` : `<span class="chip${z.status === "zrobione" ? " done" : ""}">${FB_STATUS[z.status] || ""}</span>`}${who}<span>${fmtDate(z.utworzono)} · ${ago(z.utworzono)}${z.urzadzenie ? " · " + esc(z.urzadzenie) : ""}</span></div>
+      <p class="fbtext">${esc(z.tresc)}</p>
+      ${z.miejsce ? `<p class="fbplace">${esc(z.miejsce)}</p>` : ""}
+      <div class="fbfoot">${foot}</div>
+    </li>`;
+  }).join("")}</ul>`;
+}
+function applyATab() {
+  const fb = aTab === "fb";
+  $("a-tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.atab === "fb") === fb)));
+  $("a-body").hidden = fb; $("a-fb").hidden = !fb;
+  $("a-legend").hidden = fb || !adminList.length;
+  fitAdminList();
+}
+$("a-tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-atab]"); if (!b || b.dataset.atab === aTab) return;
+  aTab = b.dataset.atab; fbAct = null; renderFb(); applyATab(); $("a-panel").scrollTop = 0;
+});
+$("a-fb").addEventListener("click", async e => {
+  const u = e.target.closest("[data-user]"); if (u) return renderUser(+u.dataset.user);
+  const b = e.target.closest("[data-fb]"); if (!b || b.disabled) return;
+  const act = b.dataset.fb, id = +b.dataset.id, z = (fbList || []).find(x => x.id === id); if (!z) return;
+  const y = $("a-panel").scrollTop, redraw = () => { renderFb(); $("a-panel").scrollTop = y; };
+  if (act === "del" || act === "cancel") { fbAct = act === "del" ? id : null; return redraw(); }
+  b.disabled = true;
+  try {
+    if (act === "do-del") { await adminRpc("admin_usun_zgloszenie", { p_id: id }); fbList = fbList.filter(x => x.id !== id); fbAct = null; }
+    else { await adminRpc("admin_zgloszenie_status", { p_id: id, p_status: act }); z.status = act; }
+  } catch (err) {
+    b.disabled = false;
+    if (err.code === "KN401") return sessionExpired();
+    return toast("Nie udało się: " + err.message);
+  }
+  redraw();
+});
+
+// Stały przycisk w lewym dolnym rogu: karta do administratora (problem / skarga / pomysł)
+let fbKind = "problem", fbPlace = "";
+const FB_VIEW = { sections: "lista dziedzin", parts: "lista działów", groups: "lista grup", home: "wybór porcji", study: "nauka",
+  done: "koniec porcji", list: "lista fiszek", me: "statystyki", find: "wyszukiwarka użytkowników", admin: "panel administratora", user: "postęp użytkownika" };
+function setFbKind(k) {
+  fbKind = k;
+  $("fb-kinds").querySelectorAll("button").forEach(b => { const on = b.dataset.kind === k; b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-checked", String(on)); });
+  $("fb-label").textContent = { problem: "Opisz problem", skarga: "Treść skargi", pomysl: "Opisz pomysł" }[k];
+  $("fb-text").placeholder = { problem: "Co się stało? Gdzie (która dziedzina, porcja, fiszka)? Co powinno się wydarzyć?",
+    skarga: "Co Ci się nie podoba?", pomysl: "Co warto dodać albo zmienić na stronie?" }[k];
+}
+function openFb() {
+  if (!user) return;
+  const view = Object.keys(FB_VIEW).find(v => !$("v-" + v).hidden);
+  fbPlace = "Widok: " + (FB_VIEW[view] || view || "–");
+  let card = "";
+  if (view === "study" && cur && cur.card) {
+    const r = ROUNDS[cur.ri], c = cur.card;
+    card = `fiszka „${c.l}” – „${c.p}”` + (c.x && c.x.img ? ` (rysunek ${c.x.img.split("/").pop()})` : "") + (r ? `, porcja „${r.name}” (${G.name})` : "");
+  }
+  $("fb-ctx-row").hidden = !card;
+  $("fb-ctx-text").textContent = "Dołącz informację o bieżącej fiszce: " + card;
+  $("fb-ctx").dataset.card = card;
+  $("fb-err").hidden = true;
+  setFbKind(fbKind);
+  $("fb-modal").hidden = false;
+  $("fb-open").setAttribute("aria-expanded", "true");
+  $("fb-text").focus();
+}
+function closeFb() {
+  if ($("fb-modal").hidden) return;
+  $("fb-modal").hidden = true;
+  $("fb-open").setAttribute("aria-expanded", "false");
+  $("fb-open").focus();
+}
+$("fb-open").addEventListener("click", openFb);
+$("fb-cancel").addEventListener("click", closeFb);
+$("fb-modal").addEventListener("click", e => { if (e.target === $("fb-modal")) closeFb(); });
+$("fb-kinds").addEventListener("click", e => { const b = e.target.closest("[data-kind]"); if (b) setFbKind(b.dataset.kind); });
+$("fb-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const text = $("fb-text").value.trim(), err = m => { $("fb-err").textContent = m; $("fb-err").hidden = false; };
+  if (text.length < 3) { $("fb-text").focus(); return err("Napisz, o co chodzi."); }
+  const card = !$("fb-ctx-row").hidden && $("fb-ctx").checked ? $("fb-ctx").dataset.card : "";
+  $("fb-send").disabled = true;
+  try {
+    await rpc("wyslij_zgloszenie", { p_token: user.token, p_rodzaj: fbKind, p_tresc: text,
+      p_miejsce: (card ? card[0].toUpperCase() + card.slice(1) + " · " : "") + fbPlace, p_urzadzenie: device() });
+  } catch (x) {
+    if (x.code === "KN401") { closeFb(); return sessionExpired(); }
+    return err(/wyslij_zgloszenie|PGRST202|schema cache/.test((x.code || "") + x.message)
+      ? "Wysyłanie zgłoszeń jeszcze nie działa – spróbuj później."
+      : x.code && x.code.startsWith("KN") ? x.message : "Nie udało się wysłać. Sprawdź internet i spróbuj ponownie.");
+  } finally { $("fb-send").disabled = false; }
+  $("fb-text").value = ""; fbKind = "problem";
+  closeFb();
+  toast("Dziękujemy! Zgłoszenie wysłane");
+  if (user.admin && !$("v-admin").hidden) loadFb();
+});
+
 setInterval(async () => {   // panel odświeża się sam co 30 s, bez zmiany widoku
   const onList = !$("v-admin").hidden, onUser = !$("v-user").hidden;
   if (!user || !user.admin || (!onList && !onUser) || udMode || document.visibilityState !== "visible") return;
   try {
-    const list = await adminRpc("lista_uzytkownikow", {});
+    const [list] = await Promise.all([adminRpc("lista_uzytkownikow", {}), onList && !fbAct ? loadFb() : null]);
     if (onList && !$("v-admin").hidden) renderAdmin(list);
     else if (onUser && !$("v-user").hidden) {
       adminList = list;
@@ -4231,6 +4420,7 @@ $("back").addEventListener("click", () => { cur = null; renderHome(); });
 $("d-menu").addEventListener("click", renderHome);
 
 document.addEventListener("keydown", e => {
+  if (!$("fb-modal").hidden) { if (e.key === "Escape") { e.preventDefault(); closeFb(); } return; }
   if (!$("m3d").hidden) {
     const pan = { KeyW: [0, 1], KeyS: [0, -1], KeyA: [-1, 0], KeyD: [1, 0] }[e.code];
     if (e.key === "Escape") { e.preventDefault(); close3d(); }
