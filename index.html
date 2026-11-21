@@ -468,6 +468,17 @@ kbd { font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 1p
 .fbbtn svg { width: 20px; height: 20px; flex: none; }
 @media (max-width: 520px) { .fbbtn .fb-long { display: none; } }
 .fbbtn[hidden] { display: none; }
+/* język strony: kula ziemska w lewym dolnym rogu, lista języków nad nią */
+.langbtn { position: fixed; left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 15; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); display: grid; place-items: center; padding: 0; box-shadow: var(--shadow); }
+.langbtn svg { width: 22px; height: 22px; }
+.langbtn:hover, .langbtn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.langmenu { position: fixed; left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(66px + env(safe-area-inset-bottom, 0px)); z-index: 16; min-width: 170px; padding: 6px; gap: 2px; box-shadow: 0 16px 48px rgba(0, 0, 0, .28); }
+.langmenu[hidden] { display: none; }
+.langmenu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.langmenu button b { font-family: var(--f-mono); font-size: 12px; color: var(--muted); width: 20px; }
+.langmenu button:hover { background: var(--grid); }
+.langmenu button[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.langmenu button[aria-checked="true"] b { color: var(--accent); }
 #app { padding-bottom: 72px; }   /* miejsce na przycisk zgłoszeń przy końcu strony */
 .fb-kinds { display: flex; width: 100%; }
 .fb-kinds button { flex: 1; padding-inline: 6px; }
@@ -554,7 +565,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <button type="button" data-pan="0,-1" aria-label="Pokaż niższą część kości">▼</button>
     </div></div>
   <p id="m3d-info"></p>
-  <div class="m3d-list" id="m3d-list" hidden></div>
+  <div class="m3d-list" id="m3d-list" translate="no" hidden></div>
   <p id="m3d-credit"></p>
   <button type="button" class="lb-close" id="m3d-close" aria-label="Zamknij model 3D">✕</button>
 </div>
@@ -626,6 +637,10 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   <button type="button" class="fbbtn" id="fb-open" aria-haspopup="dialog" title="Zgłoś problem, skargę lub pomysł" aria-label="Zgłoś problem, skargę lub pomysł" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.4l-4.7 3.8A1 1 0 0 1 3 21V5a2 2 0 0 1 1-2Zm1 2v13.9l3.3-2.7a1 1 0 0 1 .6-.2H20V5H5Zm6 2h2v5h-2V7Zm0 6h2v2h-2v-2Z"/></svg><span>Zgłoś<span class="fb-long"> problem lub pomysł</span></span>
   </button>
+  <button type="button" class="langbtn" id="lang-open" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-menu" title="Język / Language" aria-label="Język / Language" translate="no">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9.2"/><ellipse cx="12" cy="12" rx="4" ry="9.2"/><path d="M3.2 9h17.6M3.2 15h17.6"/></g></svg>
+  </button>
+  <div class="panel langmenu" id="lang-menu" role="menu" aria-label="Język / Language" translate="no" hidden></div>
   <div class="modal" id="fb-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title" hidden>
     <form class="panel modal-box" id="fb-form" novalidate>
       <h2 id="fb-title">Napisz do administratora</h2>
@@ -750,7 +765,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <p>Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu (schemat SuperMemo) albo po wybranej przez Ciebie liczbie dobrych odpowiedzi.</p>
     </header>
     <div class="userbar">
-      <span>Zalogowany: <b id="u-name"></b></span>
+      <span>Zalogowany: <b id="u-name" translate="no"></b></span>
       <button type="button" class="textbtn" id="u-admin" hidden>Panel administratora</button>
       <button type="button" class="textbtn" id="u-logout">Wyloguj</button>
     </div>
@@ -841,7 +856,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <span class="eyebrow" id="c-lang"></span>
         <span class="badge-new" id="c-new" hidden>NOWE</span>
       </div>
-      <div class="prompt" id="c-prompt"></div>
+      <div class="prompt" id="c-prompt" translate="no"></div>
       <div class="cimg" id="c-img" hidden>
         <img id="c-img-src" alt="Rysunek kości z pogrubioną linią wskazującą strukturę">
         <svg id="c-img-hl" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -857,7 +872,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       </div>
       <div class="answer" id="c-answer" hidden>
         <span class="label" id="c-anslabel"></span>
-        <div class="text" id="c-anstext"></div>
+        <div class="text" id="c-anstext" translate="no"></div>
         <span class="verdict" id="c-verdict" hidden></span>
       </div>
     </article>
@@ -905,6 +920,334 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
   </section>
 </div>
 
+<script>
+// ---------- język strony (przycisk z kulą ziemską w lewym dolnym rogu) ----------
+// Strona jest pisana po polsku. Po wybraniu angielskiego teksty interfejsu są podmieniane na bieżąco
+// (MutationObserver): najpierw cały tekst ze słownika, potem reguły z liczbami, na końcu pojedyncze frazy.
+// Treść fiszek (łacina, polskie odpowiedzi, nazwy struktur) zostaje bez zmian – elementy z translate="no" są pomijane.
+const LANG_KEY = "fiszki-jezyk";
+const LANGS = [["pl", "Polski"], ["en", "English"]];
+let LANG = "pl";
+try { const l = localStorage.getItem(LANG_KEY); if (LANGS.some(x => x[0] === l)) LANG = l; } catch (e) {}
+const LOC = LANG === "en" ? "en-GB" : "pl-PL";
+const EN = {
+  // ogólne, logowanie
+  "Fiszki do nauki": "Flashcards for study", "Fiszki": "Flashcards", "do nauki": "for study",
+  "Fiszki z różnych dziedzin – nauka metodą powtórek rozłożonych w czasie.": "Flashcards from various subjects – learning with spaced repetition.",
+  "Nauka metodą powtórek": "Learning with spaced repetition",
+  "WERSJA TESTOWA · zmiany nie są widoczne na stronie głównej": "TEST VERSION · changes are not visible on the main site",
+  "Zaloguj się albo załóż konto, żeby zacząć naukę.": "Sign in or create an account to start learning.",
+  "Logowanie lub nowe konto": "Sign in or new account", "Zaloguj się": "Sign in", "Załóż konto": "Create account",
+  "Imię i nazwisko": "Full name", "– widzą je inni użytkownicy": "– visible to other users",
+  "np. Anna Kowalska": "e.g. Anna Kowalska", "Adres e-mail": "Email address", "np. anna@example.com": "e.g. anna@example.com",
+  "np. Kowalska": "e.g. Kowalska", "Hasło": "Password", "Powtórz hasło": "Repeat password",
+  "Hasło (min. 6 znaków)": "Password (min. 6 characters)", "Nowe hasło (min. 6 znaków)": "New password (min. 6 characters)",
+  "Ustaw hasło i wejdź": "Set password and enter",
+  "Logowałeś(-aś) się wcześniej imieniem i nazwiskiem?": "Did you previously sign in with your full name?", "Przenieś konto": "Move your account",
+  "Imię i nazwisko widzą inni użytkownicy (mogą Cię znaleźć w wyszukiwarce i zaprosić do znajomych). Adres e-mail widzi tylko administrator strony. Postęp nauki zostaje w tej przeglądarce.":
+    "Other users can see your full name (they can find you in search and invite you as a friend). Only the site administrator can see your email address. Learning progress stays in this browser.",
+  "Konto zakładasz tylko raz. Logujesz się adresem e-mail, a imię i nazwisko widzą znajomi.": "You create an account only once. You sign in with your email address, and your friends see your full name.",
+  "Wpisz pełne imię i nazwisko, np. Anna Kowalska.": "Enter your full name, e.g. Anna Kowalska.",
+  "Wpisz poprawny adres e-mail.": "Enter a valid email address.", "Hasło musi mieć co najmniej 6 znaków.": "The password must have at least 6 characters.",
+  "Hasła się różnią – wpisz je jeszcze raz.": "The passwords don't match – type them again.", "Wpisz hasło.": "Enter your password.",
+  "Administrator skasował hasło do tego konta. Ustaw nowe – będziesz go używać przy każdym logowaniu.": "The administrator has reset this account's password. Set a new one – you'll use it every time you sign in.",
+  "Nie ma konta z tym adresem e-mail. Jeśli logowałeś(-aś) się wcześniej imieniem i nazwiskiem, kliknij „Przenieś konto” poniżej.": "There's no account with this email address. If you previously signed in with your full name, click “Move your account” below.",
+  "Nieprawidłowe hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła.": "Wrong password. If you don't remember it, ask the administrator to reset it.",
+  "Ten adres e-mail jest już używany – zaloguj się.": "This email address is already in use – sign in.",
+  "To konto ma już hasło – zaloguj się.": "This account already has a password – sign in.",
+  "Nie udało się połączyć z bazą. Sprawdź internet i spróbuj ponownie.": "Couldn't connect to the database. Check your internet connection and try again.",
+  "Brak połączenia z bazą": "No database connection", "Zaloguj się ponownie.": "Please sign in again.",
+  // konto sprzed zmian
+  "Wprowadziliśmy konta": "We've introduced accounts", "Imię i nazwisko (jak dotąd)": "Full name (as before)", "Obecne hasło": "Current password",
+  "– jeśli już je ustawiłeś(-aś)": "– if you have already set one", "Zapisz i wejdź": "Save and enter", "Cześć,": "Hi,",
+  "Na stronie są teraz konta. Od teraz logujesz się": "The site now has accounts. From now on you sign in with your", "adresem e-mail i hasłem": "email address and password",
+  ", a imię i nazwisko zostaje jako nazwa widoczna dla znajomych. Twój postęp i znajomi zostają bez zmian.": ", and your full name stays as the name your friends see. Your progress and friends stay unchanged.",
+  "Wpisz imię i nazwisko, którymi logowałeś(-aś) się do tej pory.": "Enter the full name you have been signing in with.",
+  "Zapisano – od teraz logujesz się e-mailem": "Saved – from now on you sign in with your email",
+  "Ten adres e-mail jest już używany przez inne konto.": "This email address is already used by another account.",
+  "To konto ma już hasło – wpisz je w polu „Obecne hasło”.": "This account already has a password – enter it in the “Current password” field.",
+  "Nieprawidłowe obecne hasło. Jeśli go nie pamiętasz, poproś administratora o reset hasła.": "Wrong current password. If you don't remember it, ask the administrator to reset it.",
+  "To konto ma już adres e-mail – zaloguj się nim.": "This account already has an email address – sign in with it.",
+  "Nie ma konta o takim imieniu i nazwisku. Sprawdź pisownię albo załóż nowe konto.": "There's no account with that name. Check the spelling or create a new account.",
+  // komunikaty bazy (raise exception)
+  "Brak uprawnień administratora": "No administrator rights", "Hasło jest za krótkie": "The password is too short", "Konto ma już e-mail": "The account already has an email",
+  "Konto nie ma hasła": "The account has no password", "Konto nie ma jeszcze hasła": "The account has no password yet",
+  "Konto o tym imieniu i nazwisku już istnieje": "An account with this name already exists", "Nie ma konta z tym adresem e-mail": "There's no account with this email address",
+  "Nie ma takiego konta": "No such account", "Nie ma takiego użytkownika": "No such user", "Nie można usunąć konta administratora": "The administrator account can't be deleted",
+  "Nieprawidłowe dane postępu": "Invalid progress data", "Nieprawidłowe hasło": "Wrong password", "Nieprawidłowe imię i nazwisko": "Invalid name",
+  "Nieprawidłowe konta": "Invalid accounts", "Nieprawidłowy adres e-mail": "Invalid email address", "Nieznany rodzaj zgłoszenia": "Unknown report type",
+  "Nieznany status": "Unknown status", "Nieznany użytkownik": "Unknown user", "Opisz zgłoszenie": "Describe your report", "Podaj obecne hasło": "Enter your current password",
+  "Sesja wygasła – zaloguj się ponownie": "Session expired – please sign in again", "Ten adres e-mail jest już używany": "This email address is already in use",
+  "To konto ma już e-mail": "This account already has an email", "To konto ma już hasło": "This account already has a password",
+  "To nie jest Twój znajomy": "This is not your friend", "Wpisz pełne imię i nazwisko": "Enter your full name",
+  "Za dużo zgłoszeń jednego dnia – spróbuj jutro": "Too many reports in one day – try tomorrow", "Zgłoszenie jest za długie": "The report is too long",
+  // pasek górny, powiadomienia
+  "Powiadomienia": "Notifications", "Zamknij": "Close", "Przełącz widok": "Switch view", "Użytkownicy": "Users", "Statystyki": "Statistics",
+  "Brak powiadomień. Pojawią się tu zaproszenia do znajomych, zdobyte osiągnięcia i nowe materiały.": "No notifications. Friend invitations, unlocked achievements and new material will appear here.",
+  "zaprasza Cię do znajomych": "invites you to be friends", "Nowe materiały:": "New material:", "nowa grupa": "new group",
+  "Zdobyte osiągnięcie:": "Achievement unlocked:",
+  // zgłoszenia
+  "Zgłoś problem, skargę lub pomysł": "Report a problem, complaint or idea", "Zgłoś": "Report", "problem lub pomysł": "a problem or idea",
+  "Napisz do administratora": "Write to the administrator",
+  "Coś nie działa, fiszka jest błędna albo masz pomysł na nową funkcję? Wypełnij kartę – trafi prosto do administratora strony.":
+    "Something isn't working, a card is wrong, or you have an idea for a new feature? Fill in the form – it goes straight to the site administrator.",
+  "Rodzaj zgłoszenia": "Type of report", "Problem": "Problem", "Skarga": "Complaint", "Pomysł": "Idea",
+  "Opisz problem": "Describe the problem", "Treść skargi": "Your complaint", "Opisz pomysł": "Describe your idea",
+  "Co się stało? Gdzie (która dziedzina, porcja, fiszka)? Co powinno się wydarzyć?": "What happened? Where (which subject, set, card)? What should have happened?",
+  "Co Ci się nie podoba?": "What don't you like?", "Co warto dodać albo zmienić na stronie?": "What should be added or changed on the site?",
+  "Dołącz informację o bieżącej fiszce:": "Attach information about the current card:", "Anuluj": "Cancel", "Wyślij": "Send",
+  "Napisz, o co chodzi.": "Write what it's about.", "Wysyłanie zgłoszeń jeszcze nie działa – spróbuj później.": "Sending reports doesn't work yet – try later.",
+  "Nie udało się wysłać. Sprawdź internet i spróbuj ponownie.": "Couldn't send. Check your internet connection and try again.",
+  "Dziękujemy! Zgłoszenie wysłane": "Thank you! Report sent", "Zgłoszenia": "Reports",
+  "Zgłoszenia nie są jeszcze włączone w bazie – uruchom plik supabase_8_zgloszenia.sql w Supabase (SQL Editor).": "Reports aren't enabled in the database yet – run supabase_8_zgloszenia.sql in Supabase (SQL Editor).",
+  "Nie udało się pobrać zgłoszeń. Sprawdź internet i kliknij „Odśwież”.": "Couldn't load the reports. Check your internet connection and click “Refresh”.",
+  "Brak zgłoszeń. Użytkownicy wysyłają je przyciskiem „Zgłoś” w prawym dolnym rogu strony.": "No reports. Users send them with the “Report” button in the bottom-right corner of the page.",
+  "Usunąć tę kartę na stałe?": "Delete this report permanently?", "Usuń": "Delete", "Przeczytane": "Mark as read", "✓ Zrobione": "✓ Done", "Przywróć": "Restore",
+  "przeczytane": "read", "zrobione": "done", "Wczytywanie…": "Loading…", "telefon": "phone", "komputer": "computer",
+  // panel administratora
+  "← Fiszki": "← Flashcards", "Panel administratora": "Admin panel", "Odśwież": "Refresh", "na stronie teraz": "on the site now",
+  "nieaktywny ponad 2 min": "inactive for over 2 min", "odświeżane co 30 s": "refreshed every 30 s", "teraz": "now",
+  "bez e-maila": "no email", "bez hasła": "no password", "aktywny": "active", "ostatnio aktywny": "last active", "przed chwilą": "just now", "wczoraj": "yesterday",
+  "Nikt się jeszcze nie zalogował.": "Nobody has signed in yet.",
+  "Nie udało się pobrać listy. Sprawdź internet i kliknij „Odśwież”.": "Couldn't load the list. Check your internet connection and click “Refresh”.",
+  "Brak danych o postępie. Pojawią się, gdy ta osoba odpowie na pierwszą fiszkę po ostatniej aktualizacji strony.": "No progress data yet. It will appear once this person answers their first card after the latest site update.",
+  "Brak danych o postępie. Pojawią się, gdy": "No progress data yet. It will appear once", "odpowie na pierwszą fiszkę.": "answers their first card.",
+  "Dane z przeglądarki użytkownika, zapisane": "Data from the user's browser, saved", "Dane zapisane": "Data saved",
+  "Kalendarz pojawi się, gdy ta osoba znowu wejdzie na stronę.": "The calendar will appear when this person visits the site again.",
+  "Konto": "Account", "E-mail:": "Email:", "Bez e-maila – poda go przy następnym wejściu na stronę.": "No email – they'll provide it on their next visit.",
+  "hasło ustawione": "password set", "bez hasła – ustawi je przy następnym logowaniu": "no password – they'll set it at the next sign-in",
+  "Resetuj hasło": "Reset password", "Usuń konto na stałe": "Delete account permanently", "Połącz konta": "Merge accounts",
+  "Połącz z innym kontem…": "Merge with another account…", "Usuń konto": "Delete account",
+  "Hasło zostanie skasowane, a": "The password will be reset and",
+  "zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu e-mailem ustawi nowe hasło.": "will be signed out on all devices. At the next sign-in with email they will set a new password.",
+  "zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu ustawi nowe hasło.": "will be signed out on all devices. At the next sign-in they will set a new password.",
+  ", jego postęp w bazie i znajomości zostaną usunięte na stałe.": ", their progress in the database and friendships will be permanently deleted.",
+  "Wybierz konto, które": "Choose the account that", "zostaje": "stays", ". Konto": ". Account",
+  "zostanie usunięte, a jego znajomi, wizyty i zalogowane urządzenia przejdą na wybrane konto. Zostanie lepszy z dwóch postępów.":
+    "will be deleted, and its friends, visits and signed-in devices will move to the chosen account. The better of the two progress records is kept.",
+  "Nie udało się:": "Failed:", "Hasło skasowane": "Password reset", "Konto usunięte": "Account deleted", "Konta połączone": "Accounts merged",
+  "administrator": "admin",
+  // wyszukiwarka, znajomi
+  "znajdź osobę i zaproś ją do znajomych": "find a person and invite them as a friend", "Szukaj po imieniu lub nazwisku": "Search by first or last name",
+  "Wpisz co najmniej 2 litery.": "Type at least 2 letters.", "✓ znajomi": "✓ friends", "zaproszenie wysłane": "invitation sent",
+  "Przyjmij zaproszenie": "Accept invitation", "Dodaj do znajomych": "Add friend", "Nie znaleziono nikogo o takim imieniu lub nazwisku.": "No one found with that name.",
+  "Znajomi": "Friends", "Prośby": "Requests", "Znajomi będą dostępni po aktualizacji bazy danych.": "Friends will be available after the database update.",
+  "Na pewno usunąć?": "Really delete?", "Nie masz jeszcze znajomych.": "You don't have any friends yet.", "Znajdź użytkowników": "Find users",
+  "Zaproszenia do Ciebie": "Invitations to you", "Przyjmij": "Accept", "Odrzuć": "Decline", "Wysłane przez Ciebie": "Sent by you",
+  "Brak próśb o dołączenie do znajomych.": "No friend requests.", "Ta osoba nie jest już Twoim znajomym": "This person is no longer your friend",
+  "Wysłano zaproszenie do znajomych": "Friend invitation sent", "Masz nowego znajomego": "You have a new friend",
+  // statystyki, osiągnięcia, kalendarz
+  "← Wróć": "← Back", "← Lista": "← List", "← Moje statystyki": "← My statistics", "Twoje statystyki": "Your statistics", "Statystyki znajomego": "Friend's statistics",
+  "Osiągnięcia": "Achievements", "Kalendarz nauki": "Study calendar", "postęp zapisany na Twoim koncie": "progress saved to your account",
+  "Nie masz jeszcze odpowiedzi. Wybierz porcję i odpowiedz na kilka fiszek, a statystyki pojawią się tutaj.": "You don't have any answers yet. Choose a set and answer a few cards, and your statistics will appear here.",
+  "Brak odpowiedzi.": "No answers.", "Opanowane fiszki": "Mastered cards", "Porcje ukończone": "Sets completed", "bez powtórek całości": "excluding full reviews",
+  "Odpowiedzi": "Answers", "łącznie we wszystkich porcjach": "in all sets combined", "Skuteczność": "Accuracy", "odpowiedzi „pamiętałem”": "“remembered” answers",
+  "Czas nauki": "Study time", "dzisiaj": "today", "aktywnie na stronie": "actively on the site", "dobrze": "correct", "średnio": "partly", "źle": "wrong",
+  "✓ ukończona": "✓ completed", "ukończona": "completed", "w trakcie": "in progress", "nie zaczęta": "not started", "opanowane": "mastered", "brak odpowiedzi": "no answers",
+  "Najtrudniejsze fiszki": "Hardest cards", "Najtrudniejsze słówka": "Hardest words", "Najtrudniejsze rozpoznania": "Hardest diagnoses", "Najtrudniejsze pozycje": "Hardest positions",
+  "„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.": "“Didn't remember” counts as 1 mistake, “partly” as half.",
+  "Pierwsze Kroki": "First Steps", "Magister": "Master", "Wieczny Płomień": "Eternal Flame", "Niezłomny": "Unbreakable",
+  "Opanuj pierwszą porcję": "Master your first set", "Opanuj 100 słówek": "Master 100 words", "Ukończ wszystkie porcje jednej grupy": "Complete all sets in one group",
+  "opanowana porcja": "set mastered", "opanowanych porcji": "sets mastered", "opanowanych fiszek w porcji": "cards mastered in set", "opanowanych fiszek": "cards mastered",
+  "ukończona grupa": "group completed", "ukończonych porcji w grupie": "sets completed in group", "ukończonych grup": "groups completed", "dni pod rząd": "days in a row",
+  "Zdobyte ✓": "Unlocked ✓", "zdobyte": "unlocked",
+  "Poprzedni miesiąc": "Previous month", "Następny miesiąc": "Next month", "dzień zaliczony": "day completed", "Brak serii": "No streak",
+  "Brak serii – odpowiedz dziś na fiszkę, żeby ją zacząć": "No streak – answer a card today to start one",
+  "– odpowiedz dziś na fiszkę, żeby jej nie stracić": "– answer a card today to keep it", "(dziś jeszcze bez nauki)": "(no study today yet)",
+  // dziedziny, działy, grupy, porcje
+  "Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu (schemat SuperMemo) albo po wybranej przez Ciebie liczbie dobrych odpowiedzi.":
+    "Cards you know come back less and less often. Those you don't remember reappear shortly. A card is mastered after four successful reviews in a row (SuperMemo scheme) or after the number of correct answers you choose.",
+  "Zalogowany:": "Signed in:", "Wyloguj": "Sign out", "Wybierz dziedzinę": "Choose a subject",
+  "Postęp zapisuje się na Twoim koncie – możesz uczyć się na kilku urządzeniach.": "Progress is saved to your account – you can study on several devices.",
+  "← Dziedziny": "← Subjects", "Dziedzina": "Subject", "Wybierz dział": "Choose a section", "Wybierz grupę": "Choose a group", "← Grupy": "← Groups", "Grupa": "Group",
+  "wkrótce": "soon", "✓ wszystkie porcje": "✓ all sets", "zacznij od nowa": "start over", "schemat SuperMemo": "SuperMemo scheme",
+  "Kierunek pytań": "Question direction", "na zmianę": "alternating", "losowa kolejność": "random order", "Zaliczenie": "Passing", "Tryb nauki": "Learning mode",
+  "własna liczba": "custom number", "Mniej dobrych odpowiedzi": "Fewer correct answers", "Więcej dobrych odpowiedzi": "More correct answers",
+  "dobra odpowiedź": "correct answer", "dobre odpowiedzi": "correct answers", "dobrych odpowiedzi": "correct answers",
+  "Nowe fiszki": "New cards", "Wprowadzanie nowych fiszek": "Introducing new cards", "stopniowo": "gradually", "wszystkie od razu": "all at once",
+  "Powtórki w coraz dłuższych odstępach, do zaliczenia co najmniej 4 dobre odpowiedzi; pomyłka cofa na początek.": "Reviews at growing intervals, at least 4 correct answers to pass; a mistake sends the card back to the start.",
+  "Wszystkie fiszki porcji od razu pojawiają się na zmianę.": "All cards of the set appear in turn right away.",
+  "Dotyczy porcji zaczynanych od nowa – zaczęte kończysz w dotychczasowym trybie.": "Applies to sets started from scratch – sets already started continue in their previous mode.",
+  "Pokaż listę wszystkich fiszek": "Show the list of all cards", "Pokaż listę wszystkich słówek": "Show the list of all words",
+  "Pokaż listę wszystkich rozpoznań": "Show the list of all diagnoses", "Pokaż listę wszystkich pozycji": "Show the list of all positions",
+  "łacina": "Latin", "polski": "Polish", "po łacinie": "in Latin", "po polsku": "in Polish", "wskazana struktura": "indicated structure", "nazwa": "name",
+  "nazwę struktury": "the structure name", "nazwa struktury": "structure name", "pozycja na rysunku": "position in the picture",
+  "nazwę pozycji": "the position name", "nazwa pozycji": "position name",
+  "fiszka": "card", "fiszki": "cards", "fiszek": "cards", "słówko": "word", "słówka": "words", "słówek": "words",
+  "rozpoznanie": "diagnosis", "rozpoznania": "diagnoses", "rozpoznań": "diagnoses", "pozycja": "position", "pozycje": "positions", "pozycji": "positions",
+  // nauka
+  "← Menu": "← Menu", "NOWE": "NEW", "nowe": "new", "widok": "view", "Wpisz": "Type", "(opcjonalnie)…": "(optional)…",
+  "Rysunek kości z pogrubioną linią wskazującą strukturę": "Bone picture with a bold line pointing to the structure",
+  "Obejrzyj kość jako model 3D": "View the bone as a 3D model", "Kolorowe struktury": "Colored structures",
+  "Kolorowe struktury: włączone (kliknij, aby wyłączyć)": "Colored structures: on (click to turn off)",
+  "Kolorowe struktury: wyłączone (kliknij, aby włączyć)": "Colored structures: off (click to turn on)",
+  "Powiększ rysunek": "Enlarge picture", "Wpisz odpowiedź (opcjonalnie)…": "Type your answer (optional)…",
+  "Sprawdź": "Check", "Pokaż odpowiedź": "Show answer", "Spacja": "Space", "✗ Nie pamiętałem": "✗ Didn't remember", "~ Średnio": "~ Partly",
+  "✓ Pamiętałem": "✓ Remembered", "Jednak nie wiedziałem": "Actually, I didn't know", "Dalej": "Next", "Dalej:": "Next:",
+  "Nie musisz nic wpisywać. Możesz od razu pokazać odpowiedź i ocenić się sam.": "You don't have to type anything. You can show the answer right away and grade yourself.",
+  "✓ Dobrze!": "✓ Correct!", "✓ Dobrze! Drobną literówkę pominięto:": "✓ Correct! A small typo was ignored:", "Twoja odpowiedź:": "Your answer:",
+  "do powtórki": "to review", "pudełko": "box", "Tura ukończona": "Round complete", "odpowiedzi": "answers", "pomyłek": "mistakes", "Wszystkie fiszki": "All cards",
+  // powiększenie i model 3D
+  "Model 3D kości": "3D bone model", "cała kość": "whole bone", "Przesuwanie widoku": "Pan the view",
+  "Pokaż wyższą część kości": "Show the upper part of the bone", "Pokaż lewą część kości": "Show the left part of the bone",
+  "Pokaż prawą część kości": "Show the right part of the bone", "Pokaż niższą część kości": "Show the lower part of the bone",
+  "Zamknij model 3D": "Close the 3D model", "Powiększony rysunek": "Enlarged picture", "Powiększony rysunek kości": "Enlarged picture of the bone",
+  "Zamknij powiększenie": "Close enlarged view", "wybrano:": "selected:", "kliknij punkt na kości, aby zobaczyć nazwę struktury": "click a point on the bone to see the structure name",
+  "przeciągnij, aby obrócić · kółko myszy lub rozsunięcie palców – przybliżenie · klawisze W A S D lub strzałki na ekranie – przesuwanie":
+    "drag to rotate · mouse wheel or pinch – zoom · W A S D keys or on-screen arrows – pan",
+  "Nie udało się wczytać podglądu 3D – sprawdź połączenie z internetem.": "Couldn't load the 3D preview – check your internet connection.",
+  "(uproszczony, odbicie lustrzane)": "(simplified, mirrored)", "(model rysowany, nie skan; przeskalowany)": "(drawn model, not a scan; rescaled)", "licencja": "license",
+  // widoki na rysunkach
+  "z przodu": "from the front", "od przodu": "from the front", "z boku": "from the side", "z tyłu": "from behind", "od tyłu": "from behind",
+  "od góry": "from above", "od dołu": "from below", "od strony dłoniowej": "from the palmar side", "od strony grzbietowej": "from the dorsal side",
+  "od strony przyśrodkowej": "from the medial side", "od strony bocznej": "from the lateral side", "przekrój strzałkowy": "sagittal section",
+  "przyśrodkowy": "medial", "boczny": "lateral", "od zewnątrz": "from the outside", "od wewnątrz": "from the inside", "(od wewnątrz)": "(from the inside)",
+  "(rzepka odwrócona)": "(patella flipped)", "od przodu i dołu": "from the front and below", "od przodu i z boku": "from the front and side",
+  "staw poprzeczny stępu": "transverse tarsal joint", "części": "parts", "z trzech stron": "from three sides", "z przekrojem": "with a section",
+  "warstwa powierzchowna": "superficial layer", "warstwa głęboka": "deep layer", "warstwa najgłębsza": "deepest layer",
+  // dziedziny, działy, grupy i porcje (nazwy i opisy)
+  "Łacina medyczna": "Medical Latin", "Określenia łacińskie z tłumaczeniem na polski": "Latin terms with Polish translation",
+  "Słówka": "Words", "Pojedyncze określenia łacińskie": "Single Latin terms", "Rozpoznania": "Diagnoses", "Pełne rozpoznania po łacinie": "Full diagnoses in Latin",
+  "Określenia medyczne różne": "Miscellaneous medical terms", "Określenia w ortopedii": "Terms in orthopedics", "Określenia stosowane w neurologii": "Terms used in neurology",
+  "Określenia stosowane w innych dziedzinach medycznych": "Terms used in other medical fields", "Rozpoznania w ortopedii": "Diagnoses in orthopedics",
+  "Rozpoznania w neurologii": "Diagnoses in neurology", "Rozpoznania w innych dziedzinach medycznych": "Diagnoses in other medical fields",
+  "Anatomia prawidłowa": "Normal anatomy", "Struktury kości, stawów, więzadeł i mięśni na rysunkach": "Structures of bones, joints, ligaments and muscles in pictures",
+  "Układ kostny": "Skeletal system", "Kości kończyn, czaszki i kręgosłupa": "Bones of the limbs, skull and spine", "Stawy i więzadła": "Joints and ligaments",
+  "Więzadła i torebki stawowe": "Ligaments and joint capsules", "Układ mięśniowy": "Muscular system", "Mięśnie kończyn": "Limb muscles",
+  "Kształcenie ruchowe": "Movement education", "Nazewnictwo pozycji i ćwiczeń gimnastycznych na rysunkach": "Names of gymnastic positions and exercises in pictures",
+  "Pozycje i ćwiczenia gimnastyczne": "Gymnastic positions and exercises", "nazewnictwo gimnastyczne na rysunkach": "gymnastics terminology in pictures",
+  "Chwyty": "Grips", "rodzaje chwytów": "types of grips", "Ustawienia przy ławeczce": "Bench positions",
+  "Kończyna górna": "Upper limb", "Kończyna dolna": "Lower limb", "Czaszka": "Skull", "Kręgosłup": "Spine", "Powtórka całości": "Full review", "Powtórka": "Review",
+  "kości kończyny górnej": "bones of the upper limb", "kości kończyny dolnej": "bones of the lower limb", "czaszka i kości czaszki": "the skull and skull bones",
+  "kręgi, kość krzyżowa i guziczna": "vertebrae, sacrum and coccyx", "Część wolna kończyny górnej": "Free part of the upper limb",
+  "Część wolna kończyny dolnej": "Free part of the lower limb", "Obręcz kończyny dolnej (miednica)": "Pelvic girdle (pelvis)", "Kości czaszki": "Skull bones",
+  "Obręcz barkowa": "Shoulder girdle", "Obojczyk": "Clavicle", "Łopatka": "Scapula", "Kość ramienna": "Humerus", "Kość łokciowa": "Ulna", "Kość promieniowa": "Radius",
+  "Kości ręki": "Bones of the hand", "nadgarstek, śródręcze, paliczki": "carpus, metacarpus, phalanges", "Kość biodrowa": "Ilium", "Kość kulszowa": "Ischium",
+  "Kość łonowa": "Pubis", "Kość udowa": "Femur", "Rzepka": "Patella", "Kość piszczelowa": "Tibia", "Kość strzałkowa": "Fibula", "Kość skokowa": "Talus",
+  "Kość piętowa": "Calcaneus", "Kości stopy": "Bones of the foot", "stęp, śródstopie, paliczki": "tarsus, metatarsus, phalanges",
+  "Czaszka jako całość": "Skull as a whole", "od przodu, z boku, w przekroju i od dołu": "from the front, side, in section and from below",
+  "Kość czołowa": "Frontal bone", "Kość ciemieniowa": "Parietal bone", "Kość potyliczna": "Occipital bone", "Kość skroniowa": "Temporal bone",
+  "Kość klinowa": "Sphenoid bone", "Kość sitowa": "Ethmoid bone", "Kość jarzmowa": "Zygomatic bone", "Szczęka": "Maxilla", "Żuchwa": "Mandible",
+  "Kręgi szyjne": "Cervical vertebrae", "typowy kręg szyjny": "typical cervical vertebra", "Atlas i obrotnik": "Atlas and axis",
+  "kręg szczytowy (C1) i obrotowy (C2)": "atlas (C1) and axis (C2)", "Kręgi piersiowe": "Thoracic vertebrae", "kręg piersiowy od góry i z boku": "thoracic vertebra from above and from the side",
+  "Kręgi lędźwiowe": "Lumbar vertebrae", "kręg lędźwiowy od góry i z boku": "lumbar vertebra from above and from the side", "Kość krzyżowa i guziczna": "Sacrum and coccyx",
+  "wszystkie kości razem": "all bones together", "wszystkie więzadła razem": "all ligaments together", "wszystkie mięśnie razem": "all muscles together",
+  "wszystkie porcje razem": "all sets together", "stawy i więzadła kończyny górnej": "joints and ligaments of the upper limb",
+  "stawy i więzadła kończyny dolnej": "joints and ligaments of the lower limb", "Stawy obręczy barkowej": "Shoulder girdle joints",
+  "staw mostkowo-obojczykowy, barkowo-obojczykowy i ramienny": "sternoclavicular, acromioclavicular and shoulder joints", "Staw łokciowy": "Elbow joint",
+  "torebka, więzadła i ścięgna stawu łokciowego": "capsule, ligaments and tendons of the elbow joint", "Staw promieniowo-nadgarstkowy": "Wrist joint",
+  "torebki i więzadła nadgarstka": "capsules and ligaments of the wrist", "Stawy ręki": "Hand joints", "więzadła nadgarstka, śródręcza i palców": "ligaments of the wrist, metacarpus and fingers",
+  "Miednica i staw biodrowy": "Pelvis and hip joint", "więzadła miednicy i stawu biodrowego": "ligaments of the pelvis and hip joint", "Staw kolanowy": "Knee joint",
+  "więzadła, łąkotki i kaletki stawu kolanowego": "ligaments, menisci and bursae of the knee joint", "Stawy stopy": "Foot joints",
+  "stawy i więzadła stępu, śródstopia i palców": "joints and ligaments of the tarsus, metatarsus and toes", "mięśnie kończyny górnej": "muscles of the upper limb",
+  "mięśnie obręczy barkowej": "shoulder girdle muscles", "Ramię i przedramię": "Arm and forearm", "mięśnie ramienia i przedramienia": "arm and forearm muscles",
+  "Dłoń": "Hand", "mięśnie ręki": "hand muscles",
+};
+// tylko jako cały tekst elementu (krótkie albo wieloznaczne słowa – nie podmieniamy ich wewnątrz zdań)
+const EN_EXACT = {
+  "Pn": "Mo", "Wt": "Tu", "Śr": "We", "Cz": "Th", "Pt": "Fr", "So": "Sa", "Nd": "Su", "dziś": "today", "Nie": "No", "Menu": "Menu",
+  "ćwiczenie kroczne": "stepping exercise", "ćwiczenie tułowia": "trunk exercise", "chwyt": "grip", "klęk": "kneeling", "przysiad": "squat",
+  "pozycja wyjściowa w siadzie": "starting position: sitting", "pozycja wyjściowa w staniu": "starting position: standing",
+  "pozycja wyjściowa w przysiadzie": "starting position: squatting", "pozycja wyjściowa w podporze": "starting position: support",
+  "pozycja wyjściowa w leżeniu": "starting position: lying", "pozycja wyjściowa w klęku": "starting position: kneeling",
+  "położenie ramion": "arm position", "położenie ramion w leżeniu tyłem": "arm position lying on the back", "ustawienie przy ławeczce": "position at the bench",
+  "pozycja równoważna": "balance position", "pozycja izolowana": "isolated position",
+};
+const T = s => LANG === "en" && s ? (EN_EXACT[s] || EN[s] || s) : s;   // dokładne tłumaczenie pojedynczej wartości (w kodzie)
+const EN_NUM = [   // liczba + odmieniony rzeczownik → liczba pojedyncza / mnoga
+  [["nowa porcja", "nowe porcje", "nowych porcji"], "new set", "new sets"],
+  [["dobrej odpowiedzi", "dobrych odpowiedziach", "dobra odpowiedź", "dobre odpowiedzi", "dobrych odpowiedzi"], "correct answer", "correct answers"],
+  [["fiszka", "fiszki", "fiszek"], "card", "cards"], [["słówko", "słówka", "słówek"], "word", "words"],
+  [["rozpoznanie", "rozpoznania", "rozpoznań"], "diagnosis", "diagnoses"], [["pozycja", "pozycje", "pozycji"], "position", "positions"],
+  [["grupa", "grupy", "grup"], "group", "groups"], [["porcja", "porcje", "porcji", "porcjach"], "set", "sets"],
+  [["osoba", "osoby", "osób"], "person", "people"], [["aktywna", "aktywne", "aktywnych"], "active", "active"],
+  [["wejście", "wejścia", "wejść"], "visit", "visits"], [["odpowiedź", "odpowiedzi"], "answer", "answers"],
+  [["błąd", "błędy", "błędów"], "mistake", "mistakes"], [["dzień", "dni"], "day", "days"], [["nowe", "nowych"], "new", "new"],
+];
+const EN_RX = [
+  [/(\d+) min temu/g, "$1 min ago"], [/(\d+) godz\. temu/g, "$1 h ago"], [/(\d+) dni temu/g, "$1 days ago"],
+  [/^Porcja (\d+)$/, "Set $1"], [/(\d+)\/(\d+) porcji ukończone/g, "$1/$2 sets completed"],
+  [/Ucz się (\d+) dni pod rząd/g, "Study $1 days in a row"], [/^Seria: /, "Streak: "], [/ pod rząd/g, " in a row"],
+  [/ nauki w tym miesiącu/, " of study this month"], [/ nauki in a row \(obecna seria\)/, " of study in a row (current streak)"], [/^dzień(?= of study)/, "day"], [/^dni(?= of study)/, "days"],
+  [/postęp (\d+) z (\d+)/, "progress $1 of $2"], [/^(\d+) z (\d+)$/, "$1 of $2"],
+  [/zaliczenie po (\d+)/g, "pass after $1"], [/ w (\d+) (?=porcj)/, " in $1 "],
+  [/^Pozycja jest zaliczona po (\d+) /, "An item is passed after $1 "], [/; pomyłka cofa licznik do zera\./, "; a mistake resets the counter to zero."],
+  [/Nowe fiszki dochodzą stopniowo \(najwyżej (\d+) naraz w nauce\)\./, "New cards are added gradually (at most $1 at a time)."],
+  [/ · od (?=\d)/, " · since "], [/^dzisiaj (?=\d|<)/, "today "], [/ – model 3D$/, " – 3D model"],
+];
+const escRx = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const L = "\\p{L}\\p{N}";
+const EN_NUM_RX = EN_NUM.map(([forms, one, many]) => [new RegExp(`(\\d+(?:,\\d+)?)\\s(${forms.map(escRx).join("|")})(?![${L}])`, "gu"),
+  (m, n) => (n === "1" ? "1 " + one : n.replace(",", ".") + " " + many)]);
+const EN_KEYS = Object.keys(EN).filter(k => k.length >= 3).sort((a, b) => b.length - a.length);
+const EN_LC = {};
+for (const k of Object.keys(EN)) { const lk = k.toLowerCase(); if (!(lk in EN_LC) || k === lk) EN_LC[lk] = EN[k]; }
+const phraseRx = keys => new RegExp(`(?<![${L}])(?:${keys.map(escRx).join("|")})(?![${L}])`, "giu");
+const EN_PHRASE = phraseRx(EN_KEYS), EN_SENT = phraseRx(EN_KEYS.filter(k => k.length >= 30));   // całe zdania – przed regułami z liczbami
+function trText(s) {
+  const t = s.trim();
+  if (!t || !/\p{L}/u.test(t)) return s;
+  let out = EN_EXACT[t] || EN[t];
+  if (out === undefined) {
+    const phrase = m => {
+      const r = EN[m] || EN_LC[m.toLowerCase()];
+      if (r === undefined) return m;
+      return m[0] !== m[0].toLowerCase() && r[0] === r[0].toLowerCase() ? r[0].toUpperCase() + r.slice(1) : r;
+    };
+    out = t.replace(EN_SENT, phrase);
+    for (const [rx, f] of EN_RX) out = out.replace(rx, f);
+    for (const [rx, f] of EN_NUM_RX) out = out.replace(rx, f);
+    out = out.replace(EN_PHRASE, phrase);
+  }
+  return out === t ? s : s.replace(t, () => out);
+}
+const I18N_SKIP = "script,style,textarea,[translate=no]";
+const I18N_ATTRS = ["title", "aria-label", "placeholder", "alt"];
+function trAttrs(el) {
+  if (el.closest("[translate=no]")) return;
+  for (const a of I18N_ATTRS) { const v = el.getAttribute(a); if (v) { const t = trText(v); if (t !== v) el.setAttribute(a, t); } }
+}
+function trTextNode(n) {
+  const p = n.parentElement; if (!p || p.closest(I18N_SKIP)) return;
+  const v = trText(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v;
+}
+function trTree(root) {
+  if (root.nodeType === 3) return trTextNode(root);
+  if (root.nodeType !== 1) return;
+  trAttrs(root);
+  root.querySelectorAll("[title],[aria-label],[placeholder],[alt]").forEach(trAttrs);
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) trTextNode(n);
+}
+if (LANG === "en") {
+  document.documentElement.lang = "en";
+  document.title = trText(document.title);
+  const md = document.querySelector('meta[name="description"]'); if (md) md.content = trText(md.content);
+  trTree(document.body);
+  new MutationObserver(list => {
+    for (const m of list) {
+      if (m.type === "childList") m.addedNodes.forEach(trTree);
+      else if (m.type === "characterData") trTextNode(m.target);
+      else trAttrs(m.target);
+    }
+  }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS });
+}
+// przycisk z kulą ziemską i lista języków
+(function () {
+  const btn = document.getElementById("lang-open"), menu = document.getElementById("lang-menu");
+  menu.innerHTML = LANGS.map(([c, n]) => `<button type="button" role="menuitemradio" data-lang="${c}" aria-checked="${c === LANG}" lang="${c}"><b>${c.toUpperCase()}</b>${n}</button>`).join("");
+  const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", e => { e.stopPropagation(); menu.hidden = !menu.hidden; btn.setAttribute("aria-expanded", String(!menu.hidden)); if (!menu.hidden) menu.querySelector('[aria-checked="true"]').focus(); });
+  menu.addEventListener("click", e => {
+    const b = e.target.closest("[data-lang]"); if (!b) return;
+    if (b.dataset.lang === LANG) return close();
+    try { localStorage.setItem(LANG_KEY, b.dataset.lang); } catch (x) {}
+    location.reload();
+  });
+  document.addEventListener("click", e => { if (!menu.hidden && !e.target.closest("#lang-menu")) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) { close(); btn.focus(); } }, true);
+})();
+</script>
 <script>
 // ---------- środowisko ----------
 // Wersja robocza: gałąź develop, publikowana pod tomeeeeek.github.io/fiszki/develop/
@@ -2545,6 +2888,7 @@ function show(v) {
     b.setAttribute("aria-pressed", String((b.dataset.to === "admin") === ["admin", "user", "find"].includes(v))));
 }
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const nm = n => `<span translate="no">${esc(n)}</span>`;   // imię i nazwisko (bez tłumaczenia)
 
 // Tryb nauki porcji (wybierany przed rozpoczęciem):
 //  "sm"     – schemat SuperMemo: pudełka z rosnącymi odstępami (GAPS), zaliczenie po MASTER dobrych odpowiedziach;
@@ -2913,7 +3257,7 @@ let accMode = null;
 function openAccModal(mode, name) {
   accMode = mode;
   const old = mode === "old";
-  $("acc-intro").innerHTML = (old ? "" : `Cześć, <b>${esc(user.name)}</b>! `)
+  $("acc-intro").innerHTML = (old ? "" : `Cześć, <b>${nm(user.name)}</b>! `)
     + "Na stronie są teraz konta. Od teraz logujesz się <b>adresem e-mail i hasłem</b>, a imię i nazwisko zostaje jako nazwa widoczna dla znajomych. Twój postęp i znajomi zostają bez zmian.";
   $("acc-name-row").hidden = !old; $("acc-old-row").hidden = !old;
   $("acc-name").value = name || ""; $("acc-old").value = "";
@@ -2974,7 +3318,7 @@ function ago(t) {
   const d = Math.floor(s / 86400);
   return d === 1 ? "wczoraj" : d + " dni temu";
 }
-const fmtDate = t => new Date(t).toLocaleString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtDate = t => new Date(t).toLocaleString(LOC, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 let adminList = [];
 const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "–";
 function summarize(pg) {
@@ -3015,7 +3359,7 @@ function progressHTML(pg, sm) {
     </div>`;
   }).join("")}</div>`).join("");
   const hard = pg.hard && pg.hard.length ? `<div class="panel"><h3>Najtrudniejsze fiszki</h3><table class="tbl">${pg.hard.map(h =>
-    `<tr><td>${esc(h.l)}</td><td>${esc(h.p)}</td><td style="text-align:right;white-space:nowrap" class="c">${h.n % 1 ? h.n.toFixed(1).replace(".", ",") : h.n} ${plural(Math.ceil(h.n), "błąd", "błędy", "błędów")}</td></tr>`).join("")}</table>
+    `<tr><td translate="no">${esc(h.l)}</td><td translate="no">${esc(h.p)}</td><td style="text-align:right;white-space:nowrap" class="c">${h.n % 1 ? h.n.toFixed(1).replace(".", ",") : h.n} ${plural(Math.ceil(h.n), "błąd", "błędy", "błędów")}</td></tr>`).join("")}</table>
     <p class="note">„Nie pamiętałem” liczy się jako 1 błąd, „średnio” jako pół.</p></div>` : "";
   return tiles + split + groups + hard;
 }
@@ -3025,16 +3369,16 @@ function manageHTML(u) {
   if (u.administrator) return "";
   const others = adminList.filter(x => x.publiczne_id !== u.publiczne_id)
     .sort((a, b) => a.imie_nazwisko.localeCompare(b.imie_nazwisko, "pl"));
-  const body = udMode === "reset" ? `<p>Hasło zostanie skasowane, a ${esc(u.imie_nazwisko)} zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu${u.email ? " e-mailem" : ""} ustawi nowe hasło.</p>
+  const body = udMode === "reset" ? `<p>Hasło zostanie skasowane, a ${nm(u.imie_nazwisko)} zostanie wylogowany(-a) na wszystkich urządzeniach. Przy następnym logowaniu${u.email ? " e-mailem" : ""} ustawi nowe hasło.</p>
       <div class="factions" style="justify-content:flex-start">${udBtn("do-reset", "Resetuj hasło", "warn")}${udBtn("cancel", "Anuluj")}</div>`
-    : udMode === "del" ? `<p>Konto <b>${esc(u.imie_nazwisko)}</b>, jego postęp w bazie i znajomości zostaną usunięte na stałe.</p>
+    : udMode === "del" ? `<p>Konto <b>${nm(u.imie_nazwisko)}</b>, jego postęp w bazie i znajomości zostaną usunięte na stałe.</p>
       <div class="factions" style="justify-content:flex-start">${udBtn("do-del", "Usuń konto na stałe", "warn")}${udBtn("cancel", "Anuluj")}</div>`
-    : udMode === "merge" ? `<p>Wybierz konto, które <b>zostaje</b>. Konto <b>${esc(u.imie_nazwisko)}</b> zostanie usunięte, a jego znajomi, wizyty i zalogowane urządzenia przejdą na wybrane konto. Zostanie lepszy z dwóch postępów.</p>
-      <select id="ud-merge" class="sel">${others.map(x => `<option value="${x.publiczne_id}">${esc(x.imie_nazwisko)}</option>`).join("")}</select>
+    : udMode === "merge" ? `<p>Wybierz konto, które <b>zostaje</b>. Konto <b>${nm(u.imie_nazwisko)}</b> zostanie usunięte, a jego znajomi, wizyty i zalogowane urządzenia przejdą na wybrane konto. Zostanie lepszy z dwóch postępów.</p>
+      <select id="ud-merge" class="sel" translate="no">${others.map(x => `<option value="${x.publiczne_id}">${esc(x.imie_nazwisko)}</option>`).join("")}</select>
       <div class="factions" style="justify-content:flex-start">${udBtn("do-merge", "Połącz konta", "warn")}${udBtn("cancel", "Anuluj")}</div>`
     : `<div class="factions" style="justify-content:flex-start">${u.ma_haslo ? udBtn("reset", "Resetuj hasło") : ""}${udBtn("merge", "Połącz z innym kontem…")}${udBtn("del", "Usuń konto", "warn")}</div>`;
   return `<div class="panel manage"><h3>Konto</h3>
-    <p class="note">${u.email ? "E-mail: <b>" + esc(u.email) + "</b>" : "Bez e-maila – poda go przy następnym wejściu na stronę."} · ${u.ma_haslo ? "hasło ustawione" : "bez hasła – ustawi je przy następnym logowaniu"}</p>${body}</div>`;
+    <p class="note">${u.email ? "E-mail: <b translate=\"no\">" + esc(u.email) + "</b>" : "Bez e-maila – poda go przy następnym wejściu na stronę."} · ${u.ma_haslo ? "hasło ustawione" : "bez hasła – ustawi je przy następnym logowaniu"}</p>${body}</div>`;
 }
 const udBtn = (act, label, cls) => `<button type="button" class="sbtn${cls ? " " + cls : ""}" data-ud="${act}">${label}</button>`;
 $("ud-body").addEventListener("click", async e => {
@@ -3087,8 +3431,8 @@ function renderAdmin(list) {
       return `<li class="urow" data-user="${i}">
         <span class="dot${on ? " on" : ""}"></span>
         <div class="umain">
-          <button type="button" class="ulink">${esc(u.imie_nazwisko)}</button>
-          <span class="umeta">${u.email === null ? `<span class="chip warnchip">bez e-maila</span> ` : u.ma_haslo === false ? `<span class="chip warnchip">bez hasła</span> ` : ""}${u.email ? esc(u.email) + " · " : ""}${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
+          <button type="button" class="ulink">${nm(u.imie_nazwisko)}</button>
+          <span class="umeta">${u.email === null ? `<span class="chip warnchip">bez e-maila</span> ` : u.ma_haslo === false ? `<span class="chip warnchip">bez hasła</span> ` : ""}${u.email ? nm(u.email) + " · " : ""}${on ? "na stronie teraz" : "aktywny " + ago(u.ostatnia_aktywnosc)} · ${u.liczba_wejsc} ${plural(u.liczba_wejsc, "wejście", "wejścia", "wejść")} · ${esc(u.urzadzenie || "–")} · od ${fmtDate(u.pierwsze_wejscie)}</span>
         </div>
         <div class="upct"><b>${sm ? pct(sm.mastered, sm.words) : "–"}</b><small>opanowane</small></div>
       </li>`;
@@ -3151,7 +3495,7 @@ function renderFb() {
   if (!fbList.length) { $("a-fb").innerHTML = `<p class="empty">Brak zgłoszeń. Użytkownicy wysyłają je przyciskiem „Zgłoś” w prawym dolnym rogu strony.</p>`; return; }
   $("a-fb").innerHTML = `<ul class="fblist">${fbList.map(z => {
     const ui = adminList.findIndex(u => z.publiczne_id && u.publiczne_id === z.publiczne_id);
-    const who = ui >= 0 ? `<button type="button" class="ulink" data-user="${ui}">${esc(z.autor)}</button>` : `<b>${esc(z.autor)}</b>`;
+    const who = ui >= 0 ? `<button type="button" class="ulink" data-user="${ui}">${nm(z.autor)}</button>` : `<b>${nm(z.autor)}</b>`;
     const btn = (act, label, cls) => `<button type="button" class="sbtn${cls ? " " + cls : ""}" data-fb="${act}" data-id="${z.id}">${label}</button>`;
     const foot = fbAct === z.id ? `<span class="note" style="align-self:center">Usunąć tę kartę na stałe?</span>${btn("do-del", "Usuń", "warn")}${btn("cancel", "Anuluj")}`
       : (z.status === "nowe" ? btn("przeczytane", "Przeczytane") : "")
@@ -3159,8 +3503,8 @@ function renderFb() {
         + btn("del", "Usuń");
     return `<li class="fbcard k-${z.rodzaj} st-${z.status}">
       <div class="fbhead"><span class="chip">${FB_KIND[z.rodzaj] || esc(z.rodzaj)}</span>${z.status === "nowe" ? `<span class="chip newchip">nowe</span>` : `<span class="chip${z.status === "zrobione" ? " done" : ""}">${FB_STATUS[z.status] || ""}</span>`}${who}<span>${fmtDate(z.utworzono)} · ${ago(z.utworzono)}${z.urzadzenie ? " · " + esc(z.urzadzenie) : ""}</span></div>
-      <p class="fbtext">${esc(z.tresc)}</p>
-      ${z.miejsce ? `<p class="fbplace">${esc(z.miejsce)}</p>` : ""}
+      <p class="fbtext" translate="no">${esc(z.tresc)}</p>
+      ${z.miejsce ? `<p class="fbplace" translate="no">${esc(z.miejsce)}</p>` : ""}
       <div class="fbfoot">${foot}</div>
     </li>`;
   }).join("")}</ul>`;
@@ -3215,7 +3559,7 @@ function openFb() {
     card = `fiszka „${c.l}” – „${c.p}”` + (c.x && c.x.img ? ` (rysunek ${c.x.img.split("/").pop()})` : "") + (r ? `, porcja „${r.name}” (${G.name})` : "");
   }
   $("fb-ctx-row").hidden = !card;
-  $("fb-ctx-text").textContent = "Dołącz informację o bieżącej fiszce: " + card;
+  $("fb-ctx-text").innerHTML = `Dołącz informację o bieżącej fiszce: <span translate="no">${esc(card)}</span>`;
   $("fb-ctx").dataset.card = card;
   $("fb-err").hidden = true;
   setFbKind(fbKind);
@@ -3352,7 +3696,7 @@ function achList(pg, sm, src = { days: store.days, ach: null, own: true }) {
 function achGridHTML(list, got, nGot) {
   return `<h3>Osiągnięcia <small>${nGot}/${list.length}</small></h3><div class="ach-grid">${list.map(x => {
     const when = typeof got[x.name] === "string" ? new Date(got[x.name]) : null;
-    const tip = x.ok ? `<b>Zdobyte ✓</b>${when ? "<br>" + when.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" }) : ""}`
+    const tip = x.ok ? `<b>Zdobyte ✓</b>${when ? "<br>" + when.toLocaleDateString(LOC, { day: "numeric", month: "long", year: "numeric" }) : ""}`
       : `<b>${x.p.cur}/${x.p.max}</b> ${esc(x.p.txt)}<span class="tbar"><span style="width:${x.p.cur / x.p.max * 100}%"></span></span>`;
     return `<div class="ach-item${x.ok ? "" : " locked"}" tabindex="0" aria-label="${esc(x.name)}: ${esc(x.desc)}${x.ok ? ", zdobyte" : `, postęp ${x.p.cur} z ${x.p.max}`}">
       <span class="medal" aria-hidden="true"><svg><use href="#medal-art"></use></svg><i>${esc(x.glyph)}</i><span class="spark s1"></span><span class="spark s2"></span></span>
@@ -3379,7 +3723,8 @@ function streak(list = store.days) {
   while (days.has(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
   return { n, today };
 }
-const MONTHS = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+const MONTHS = LANG === "en" ? ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  : ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 const FLAME = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f27a1a" d="M12 2c.6 3.2 2.6 5 4.3 6.9C18 10.8 19 12.9 19 15.2 19 19 15.9 22 12 22s-7-3-7-6.8c0-2.4 1.1-4.4 2.9-6 .2 1.6.9 2.8 2.1 3.6C9.7 8.6 10.6 5 12 2z"/><path fill="#ffc53d" d="M12 22c-2.2 0-3.9-1.6-3.9-3.7 0-1.9 1.3-3.1 2.6-4.3.3 1 .9 1.6 1.7 2 .2-1.6.9-2.9 2.1-3.9.6 1.6 1.4 2.4 1.4 4.6 0 2.9-1.6 5.3-3.9 5.3z"/></svg>`;
 let calMonth = null;   // pokazywany miesiąc (1. dzień); null = bieżący
 let calSrc = null;     // dni nauki pokazywanej osoby; null = moje (store.days)
@@ -3420,7 +3765,7 @@ $("me-cal").addEventListener("click", e => {
 });
 // ---------- moje statystyki (tylko dane z tej przeglądarki) ----------
 // przy imieniu administratora w statystykach
-const nameHTML = n => esc(n) + (isAdminName(n) ? ` <span class="chip prog admchip">administrator</span>` : "");
+const nameHTML = n => nm(n) + (isAdminName(n) ? ` <span class="chip prog admchip">administrator</span>` : "");
 let viewedFriend = null;   // null = moje statystyki; inaczej dane znajomego z bazy
 function renderMe(friend) {
   viewedFriend = friend || null;
@@ -3432,7 +3777,7 @@ function renderMe(friend) {
     $("me-title").textContent = "Statystyki znajomego";
     $("me-sub").innerHTML = `${nameHTML(friend.imie_nazwisko)} · ${isActive(friend) ? "na stronie teraz" : "aktywny " + ago(friend.ostatnia_aktywnosc)}`;
     if (!sm) {
-      $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${esc(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>`;
+      $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${nm(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>`;
       // osiągnięcia pokazujemy zawsze – bez danych wszystkie są jeszcze do zdobycia
       const empty = { groups: [], days: (pg && pg.days) || [], ach: (pg && pg.ach) || {} };
       $("me-ach").hidden = false;
@@ -3489,7 +3834,7 @@ async function loadFriends() {
 }
 function friendRow(f, actions) {
   const on = isActive(f);
-  return `<li class="frow"><span class="fname"><span class="dot${on ? " on" : ""}"></span>${esc(f.imie_nazwisko)}
+  return `<li class="frow"><span class="fname"><span class="dot${on ? " on" : ""}"></span>${nm(f.imie_nazwisko)}
     <span class="fmeta">${on ? "na stronie teraz" : "aktywny " + ago(f.ostatnia_aktywnosc)}</span></span>
     <span class="factions">${actions}</span></li>`;
 }
@@ -3610,7 +3955,7 @@ function renderNotifs(markRead) {
   const items = [
     ...pendingReq().map(f => ({ id: "req:" + f.publiczne_id, t: f.od_kiedy, html: `<li class="nitem${notifUnread.has("req:" + f.publiczne_id) ? " unread" : ""}">
       <span class="nicon">${ICONS.friend}</span>
-      <span class="ntext"><b>${esc(f.imie_nazwisko)}</b> zaprasza Cię do znajomych</span>
+      <span class="ntext"><b>${nm(f.imie_nazwisko)}</b> zaprasza Cię do znajomych</span>
       <span class="ntime">${f.od_kiedy ? ago(f.od_kiedy) : ""}</span>
       <span class="factions">${actBtn("accept", f.publiczne_id, "Przyjmij", "primary")}${actBtn("reject", f.publiczne_id, "Odrzuć")}</span></li>` })),
     ...(store.notifs || []).map(n => ({ id: n.id, t: n.t, html: `<li class="nitem${notifUnread.has(n.id) ? " unread" : ""}">
@@ -3666,7 +4011,7 @@ async function runSearch() {
       : u.relacja === "wyslane" ? `<span class="chip prog">zaproszenie wysłane</span>` + actBtn("cancel", pid, "Anuluj")
       : u.relacja === "otrzymane" ? actBtn("accept", pid, "Przyjmij zaproszenie", "primary")
       : actBtn("add", pid, "Dodaj do znajomych", "primary");
-    return `<li class="frow"><span class="fname">${esc(u.imie_nazwisko)}</span><span class="factions">${actions}</span></li>`;
+    return `<li class="frow"><span class="fname">${nm(u.imie_nazwisko)}</span><span class="factions">${actions}</span></li>`;
   }).join("")}</ul>` : `<p class="empty">Nie znaleziono nikogo o takim imieniu lub nazwisku.</p>`;
 }
 $("find-q").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 300); });
@@ -3962,7 +4307,7 @@ function nextCard() {
   Object.assign(cur, { card, dir, phase: "ask" });
   const lat = dir === "lp";
   const v = isImg ? viewOf(card) : null;
-  $("c-lang").textContent = isImg && v.view ? `${S.sides.a} · widok ${v.view}` : isImg && v.cat ? `${S.sides.a} · ${v.cat}` : lat ? S.sides.a : S.sides.b;
+  $("c-lang").textContent = isImg && v.view ? `${S.sides.a} · widok ${v.view}` : isImg && v.cat ? `${S.sides.a} · ${T(v.cat)}` : lat ? S.sides.a : S.sides.b;
   $("c-prompt").hidden = isImg;
   $("c-img").hidden = !isImg;
   if (isImg) {
@@ -4016,9 +4361,9 @@ function reveal(typed) {
   }
 }
 let toastTimer;
-function toast(msg) {
+function toast(msg, html) {   // html: gotowy HTML (np. treść fiszki w <span translate="no">)
   document.querySelectorAll(".toast").forEach(t => t.remove());
-  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  const t = document.createElement("div"); t.className = "toast"; t[html ? "innerHTML" : "textContent"] = msg;
   document.body.appendChild(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 1600);
 }
 // level: "yes" = pamiętałem (pudełko wyżej), "mid" = średnio (zostaje w tym samym
@@ -4034,7 +4379,7 @@ function grade(level) {
   if (level === "mid") card.half = (card.half || 0) + 1;
   const gap = level === "mid" ? Math.max(2, Math.ceil(gapOf(st, card.box) / 2)) : gapOf(st, card.box);
   if (card.box < needOf(st)) card.due = st.step + gap + (Math.random() < .5 ? 1 : 0);
-  else toast(`★ ${card.l} – opanowane!`);
+  else toast(`★ <span translate="no">${esc(card.l)}</span> – opanowane!`, true);
   const x = store.stats[ROUNDS[cur.ri].id] = store.stats[ROUNDS[cur.ri].id] || { yes: 0, mid: 0, no: 0, done: 0 };
   x[level]++;
   const miss = level === "no" ? 1 : level === "mid" ? 0.5 : 0;
@@ -4060,7 +4405,7 @@ function finishRound() {
   const hard = st.cards.filter(score).sort((a, b) => score(b) - score(a)).slice(0, 8);
   $("d-hard").hidden = !hard.length;
   $("d-hard").innerHTML = hard.length ? `<h3>Najtrudniejsze ${unitOf()[1]}</h3><table class="tbl">${hard.map(c =>
-    `<tr><td>${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td>${esc(c.p)}</td></tr>`).join("")}</table>` : "";
+    `<tr><td translate="no">${esc(c.l)}${c.err ? `<span class="err">✗${c.err}</span>` : ""}${c.half ? `<span class="err" style="color:var(--mid)">~${c.half}</span>` : ""}</td><td translate="no">${esc(c.p)}</td></tr>`).join("")}</table>` : "";
   let nx = cur.ri + 1;
   while (nx < ROUNDS.length && !ROUNDS[nx].words.length) nx++;   // pomiń puste porcje
   if (nx >= ROUNDS.length) nx = null;
@@ -4371,7 +4716,7 @@ function open3d() {
   m3d = { m, sel: null };
   const all = Object.keys(m.pts), v0 = view3d(null);
   $("m3d-box").innerHTML = `<model-viewer src="${m.src}" alt="${esc(m.name)} – model 3D" camera-controls touch-action="none" interaction-prompt="none" shadow-intensity="0.6" exposure="0.62" environment-image="neutral" camera-orbit="${v0.orbit}" camera-target="${v0.target}" field-of-view="${v0.fov}" min-camera-orbit="auto 0deg 0.07m" max-camera-orbit="auto 180deg auto" min-field-of-view="8deg">${
-    all.map((n, i) => { const p = m.pts[n]; return `<button type="button" class="hs" slot="hotspot-${i}" data-position="${p[0]}m ${p[1]}m ${p[2]}m" data-normal="${p[3]} ${p[4]} ${p[5]}" data-visibility-attribute="visible" data-hs="${esc(n)}" aria-label="${esc(n)}"><span class="hs-label"></span></button>`; }).join("")}</model-viewer>`;
+    all.map((n, i) => { const p = m.pts[n]; return `<button type="button" class="hs" slot="hotspot-${i}" data-position="${p[0]}m ${p[1]}m ${p[2]}m" data-normal="${p[3]} ${p[4]} ${p[5]}" data-visibility-attribute="visible" data-hs="${esc(n)}" aria-label="${esc(n)}" translate="no"><span class="hs-label" translate="no"></span></button>`; }).join("")}</model-viewer>`;
   $("m3d-list").innerHTML = all.map(n => `<button type="button" data-hs="${esc(n)}">${esc(n)}</button>`).join("");
   $("m3d-list").hidden = false;
   $("m3d-credit").innerHTML = m.credit;
@@ -4392,7 +4737,7 @@ function render3d() {
     b.firstElementChild.textContent = on ? b.dataset.hs : "";
   });
   $("m3d-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.hs === sel)));
-  $("m3d-info").innerHTML = `<b>${esc(m.name)}</b> · ` + (sel ? `wybrano: <b>${esc(sel)}</b>` : "kliknij punkt na kości, aby zobaczyć nazwę struktury")
+  $("m3d-info").innerHTML = `<b translate="no">${esc(m.name)}</b> · ` + (sel ? `wybrano: <b translate="no">${esc(sel)}</b>` : "kliknij punkt na kości, aby zobaczyć nazwę struktury")
     + "<br>przeciągnij, aby obrócić · kółko myszy lub rozsunięcie palców – przybliżenie · klawisze W A S D lub strzałki na ekranie – przesuwanie";
 }
 // Przesuwanie widoku (dx, dy = −1/0/1: w prawo, w górę) – jak kamerą w grze: W/▲ pokazuje wyższą część kości (kość zjeżdża
@@ -4495,8 +4840,9 @@ document.addEventListener("keydown", e => {
   if (cur.phase === "ask" && e.key === " " && !inInput) { e.preventDefault(); reveal(""); }
   else if (cur.phase === "grade") {
     const k = e.key.toLowerCase();
-    if (k === "t" || e.key === "ArrowRight") { e.preventDefault(); grade("yes"); }
-    else if (k === "s" || e.key === "ArrowDown") { e.preventDefault(); grade("mid"); }
+    // T/S/N po polsku; w wersji angielskiej także Y (yes) i M (medium)
+    if (k === "t" || k === "y" || e.key === "ArrowRight") { e.preventDefault(); grade("yes"); }
+    else if (k === "s" || k === "m" || e.key === "ArrowDown") { e.preventDefault(); grade("mid"); }
     else if (k === "n" || e.key === "ArrowLeft") { e.preventDefault(); grade("no"); }
   } else if (cur.phase === "next" && e.key === "Enter") { e.preventDefault(); grade("yes"); }
 });
@@ -4506,12 +4852,13 @@ $("showlist").addEventListener("click", () => {
   $("l-title").textContent = G.name;
   $("l-body").innerHTML = ROUNDS.filter(r => r.id !== G.allId).map(r =>
     `<h2>${r.name}<small>${r.range}</small></h2><table class="tbl">${r.words.map(([l, p]) =>
-      `<tr><td>${esc(l)}</td><td>${esc(p)}</td></tr>`).join("")}</table>`).join("");
+      `<tr><td translate="no">${esc(l)}</td><td translate="no">${esc(p)}</td></tr>`).join("")}</table>`).join("");
   show("list");
 });
 $("l-back").addEventListener("click", renderHome);
 
 $("testbanner").hidden = !IS_TEST;
+if (LANG === "en") { $("b-yes").querySelector("kbd").textContent = "Y"; $("b-mid").querySelector("kbd").textContent = "M"; }
 if (user && user.token) { lastPing = Date.now(); report(true); renderSections(); checkNewMaterials(); loadFriends(); updateBell(); }
 else { showLogin(); if (oldName) openAccModal("old", oldName); }
 </script>
