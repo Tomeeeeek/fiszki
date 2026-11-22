@@ -49,6 +49,10 @@ jobs:
         with:
           path: _site
 
+      # GitHub czasem nie widzi jeszcze świeżo wysłanej paczki – chwila przerwy przed publikacją.
+      - name: Poczekaj na paczkę
+        run: sleep 20
+
       - name: Opublikuj
         id: deployment
         uses: actions/deploy-pages@v4
