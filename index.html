@@ -852,7 +852,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <p id="h-sub"></p>
     </header>
 
-    <div class="settings">
+    <div class="settings" id="settings">
       <div class="seg" role="group" aria-label="Kierunek pytań" id="dir">
         <button type="button" data-dir="lp" id="dir-lp">łacina → polski</button>
         <button type="button" data-dir="pl" id="dir-pl">polski → łacina</button>
@@ -882,6 +882,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       </div>
     </div>
 
+    <div id="h-settings-slot"></div>
     <div class="rounds" id="rounds"></div>
     <button type="button" class="linkbtn" id="showlist">Pokaż listę wszystkich słówek</button>
   </section>
@@ -894,6 +895,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <h1 class="group">Twoje zestawy</h1>
       <p>Zestawy utworzone przez Ciebie z wybranych fiszek. Tutaj możesz połączyć fiszki z różnych grup i działów jednej dziedziny, a w grupie – utworzyć zestaw tylko z jej fiszek.</p>
     </header>
+    <div id="ws-settings-slot"></div>
     <div id="ws-body" style="display:flex; flex-direction:column; gap:22px"></div>
   </section>
 
@@ -4445,6 +4447,20 @@ $("groups").addEventListener("click", e => {
 $("h-back").addEventListener("click", renderGroups);
 
 // ---------- menu grupy ----------
+// Ustawienia nauki (kierunek, kolejność, zaliczenie, nowe fiszki) to jeden blok – przenoszony między menu grupy
+// a „Twoimi zestawami”. sides: nazwy stron karty do przycisków kierunku; null – bez wyboru kierunku (same rysunki).
+const renderDir = () => document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
+function placeSettings(slot, sides) {
+  $(slot).appendChild($("settings"));
+  if (sides) {
+    $("dir-lp").textContent = `${sides.a} → ${sides.b}`;
+    $("dir-pl").textContent = `${sides.b} → ${sides.a}`;
+  }
+  $("dir").hidden = !sides;
+  renderDir();
+  $("shuffle").checked = store.shuffle;
+  renderLearnMode();
+}
 function renderHome() {
   fromSets = false;
   ROUNDS = groupRounds(G);   // własne zestawy mogły się zmienić (kreator, inne urządzenie)
@@ -4453,13 +4469,8 @@ function renderHome() {
   const total = allRound(G).words.length;
   $("h-eyebrow").textContent = S.name;
   $("h-sub").textContent = `${G.range} · ${total} ${units(total)} w ${parts} ${parts === 1 ? "porcji" : "porcjach"}`;
-  $("dir-lp").textContent = `${S.sides.a} → ${S.sides.b}`;
-  $("dir-pl").textContent = `${S.sides.b} → ${S.sides.a}`;
   $("showlist").textContent = `Pokaż listę wszystkich ${unitOf()[2]}`;
-  document.querySelectorAll("#dir button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === store.dir));
-  $("shuffle").checked = store.shuffle;
-  renderLearnMode();
-  $("dir").hidden = !!S.images;   // fiszki obrazkowe mają jeden kierunek
+  placeSettings("h-settings-slot", S.images ? null : S.sides);   // fiszki obrazkowe mają jeden kierunek
   const nG = G.rounds.length;
   $("rounds").innerHTML = ROUNDS.slice(0, nG).map((r, i) =>
     (r.sub && r.sub !== (ROUNDS[i - 1] || {}).sub ? `<div class="subhead">${esc(r.sub)}</div>` : "") + roundHTML(r, i)).join("")
@@ -4494,7 +4505,7 @@ function renderHome() {
 }
 $("dir").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
-  store.dir = b.dataset.dir; save(); renderHome();
+  store.dir = b.dataset.dir; save(); renderDir();
 });
 $("shuffle").addEventListener("change", e => { store.shuffle = e.target.checked; save(); });
 $("rounds").addEventListener("click", e => {
@@ -4577,9 +4588,14 @@ function renderSets() {
   if (!user) return showLogin();
   const list = mySets();
   if (!list.length) {
+    $("ws-settings-slot").hidden = true;
     $("ws-body").innerHTML = `<div class="panel"><p class="empty">Nie masz jeszcze własnych zestawów. Utwórz pierwszy poniżej albo w dowolnej grupie – pod listą porcji.</p></div>` + NEWSET_HTML;
     return show("sets");
   }
+  // ustawienia nauki jak w menu grupy; kierunek – gdy jest zestaw z dziedziny bez rysunków (np. łacina)
+  const txt = SET_SECTIONS.find(sec => !sec.images && list.some(z => scopeOf(z).sec === sec));
+  $("ws-settings-slot").hidden = false;
+  placeSettings("ws-settings-slot", txt ? txt.sides : null);
   $("ws-body").innerHTML = SET_SECTIONS.filter(sec => list.some(z => scopeOf(z).sec === sec)).map(sec => `<div><span class="eyebrow">${esc(sec.name)}</span>
     <div class="rounds" style="margin-top:8px">` + list.filter(z => scopeOf(z).sec === sec).map(z => {
       const r = setRound(z), st = store.rounds[z.id], isDone = store.done.includes(z.id) && !st;
@@ -4594,8 +4610,8 @@ function renderSets() {
       return `<button type="button" class="round mine" data-set="${esc(z.id)}">
         <span class="num">★</span>
         <span class="name"><span translate="no">${esc(z.name)}</span>${st ? " · w trakcie" : ""}</span>
-        <span class="meta">${chip}${bar}<span class="reset" role="button" tabindex="0" data-edit="${esc(z.id)}">edytuj</span></span>
-        <span class="range">${esc(where)} · ${r.range}</span>
+        <span class="meta">${chip}${bar}${st ? `<span class="reset" role="button" tabindex="0" data-reset="${esc(z.id)}">zacznij od nowa</span>` : ""}<span class="reset" role="button" tabindex="0" data-edit="${esc(z.id)}">edytuj</span></span>
+        <span class="range">${esc(where)} · ${r.range}${st ? ` · ${st.mode === "custom" ? `zaliczenie po ${st.need}` : "SuperMemo"}${st.all ? " · wszystkie od razu" : ""}` : ""}</span>
       </button>`;
     }).join("") + `</div></div>`).join("") + NEWSET_HTML;
   show("sets");
@@ -4603,6 +4619,8 @@ function renderSets() {
 $("ws-body").addEventListener("click", e => {
   const ed = e.target.closest("[data-edit]");
   if (ed) { e.stopPropagation(); return openMake(ed.dataset.edit, "sets"); }
+  const rs = e.target.closest("[data-reset]");
+  if (rs) { e.stopPropagation(); delete store.rounds[rs.dataset.reset]; touchRound(rs.dataset.reset); save(); return renderSets(); }
   if (e.target.closest("[data-newset]")) return openMake(null, "sets");
   const b = e.target.closest("[data-set]"); if (!b) return;
   const z = (store.sets || {})[b.dataset.set]; if (!z || !scopeOf(z)) return;
@@ -4613,7 +4631,7 @@ $("ws-body").addEventListener("click", e => {
   startRound(ri);
 });
 $("ws-body").addEventListener("keydown", e => {
-  const r = e.target.closest("[data-edit]");
+  const r = e.target.closest("[data-edit], [data-reset]");
   if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); r.click(); }
 });
 $("ws-back").addEventListener("click", renderSections);
