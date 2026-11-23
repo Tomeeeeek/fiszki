@@ -192,6 +192,16 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .makebar .err { flex: 1 1 100%; color: var(--bad); font-size: 14px; }
 .makebar .err[hidden] { display: none; }
 .langbtn.off { display: none; }
+.mkgroup { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.mkgroup summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; cursor: pointer; font-weight: 600; list-style: none; }
+.mkgroup summary::-webkit-details-marker { display: none; }
+.mkgroup summary::before { content: "▸"; color: var(--accent); margin-right: -2px; transition: transform .15s; }
+.mkgroup[open] summary::before { transform: rotate(90deg); }
+.mkgroup summary > span:first-of-type { flex: 1; min-width: 0; }
+.mkgroup summary small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); font-family: var(--f-mono); letter-spacing: .04em; text-transform: uppercase; }
+.mkgroup summary .chip[hidden] { display: none; }
+.mkgroup .mkbody { display: flex; flex-direction: column; gap: 14px; padding: 0 14px 16px; }
+.mkgroup .mkbody .panel.picklist { box-shadow: none; }
 
 /* ---------- logowanie / użytkownik / admin ---------- */
 .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
@@ -882,7 +892,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
     <header class="top">
       <span class="eyebrow">Własne porcje</span>
       <h1 class="group">Twoje zestawy</h1>
-      <p>Zestawy utworzone przez Ciebie z wybranych fiszek. Nowy zestaw utworzysz w dowolnej grupie – pod listą porcji.</p>
+      <p>Zestawy utworzone przez Ciebie z wybranych fiszek. Tutaj możesz połączyć fiszki z różnych grup i działów jednej dziedziny, a w grupie – utworzyć zestaw tylko z jej fiszek.</p>
     </header>
     <div id="ws-body" style="display:flex; flex-direction:column; gap:22px"></div>
   </section>
@@ -895,6 +905,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <h1 class="group" id="m-title"></h1>
       <p id="m-sub"></p>
     </header>
+    <div class="learnmode" id="m-scope" hidden></div>
     <div class="panel">
       <label class="field"><span class="eyebrow">Nazwa zestawu</span>
         <input id="m-name" type="text" maxlength="50" placeholder="np. Do kolokwium" autocomplete="off" spellcheck="false"></label>
@@ -1124,8 +1135,11 @@ const EN = {
   // własne zestawy
   "Twoje zestawy": "Your decks", "Własne porcje": "Custom sets", "Własne zestawy": "Custom decks", "brak zestawów": "no decks yet",
   "własne porcje z wybranych fiszek": "your own sets of chosen cards", "utwórz własną porcję w dowolnej grupie": "create your own set in any group",
-  "Zestawy utworzone przez Ciebie z wybranych fiszek. Nowy zestaw utworzysz w dowolnej grupie – pod listą porcji.": "Decks you made from chosen cards. You can create a new deck in any group – below the list of sets.",
-  "Nie masz jeszcze własnych zestawów. Wejdź w dowolną grupę i wybierz „Utwórz własny zestaw” pod listą porcji.": "You don't have any decks yet. Open any group and choose “Create your own deck” below the list of sets.",
+  "Zestawy utworzone przez Ciebie z wybranych fiszek. Tutaj możesz połączyć fiszki z różnych grup i działów jednej dziedziny, a w grupie – utworzyć zestaw tylko z jej fiszek.": "Decks you made from chosen cards. Here you can combine cards from different groups and sections of one subject; inside a group you can make a deck from that group only.",
+  "Nie masz jeszcze własnych zestawów. Utwórz pierwszy poniżej albo w dowolnej grupie – pod listą porcji.": "You don't have any decks yet. Create your first one below or in any group – below the list of sets.",
+  "Utwórz nowy zestaw": "Create a new deck", "wybierz fiszki z dowolnych grup i działów": "choose cards from any groups and sections",
+  "Wybierz rysunki z dowolnych grup i działów. Do zestawu trafią wszystkie fiszki z zaznaczonych rysunków.": "Choose drawings from any groups and sections. All cards from the selected drawings will go into the deck.",
+  "W tej dziedzinie masz już zestaw o tej nazwie.": "You already have a deck with this name in this subject.",
   "Utwórz własny zestaw": "Create your own deck", "wybierz rysunki – zestaw obejmie wszystkie fiszki z nich": "choose drawings – the deck will include all their cards",
   "Nowy zestaw": "New deck", "Edytuj zestaw": "Edit deck", "Nazwa zestawu": "Deck name", "np. Do kolokwium": "e.g. For the test",
   "Zapisz zestaw": "Save deck", "Usuń zestaw": "Delete deck", "Na pewno? Kliknij ponownie": "Sure? Click again", "← Anuluj": "← Cancel",
@@ -1257,7 +1271,8 @@ const EN_RX = [
   [/ nauki w tym miesiącu/, " of study this month"], [/ nauki in a row \(obecna seria\)/, " of study in a row (current streak)"], [/^dzień(?= of study)/, "day"], [/^dni(?= of study)/, "days"],
   [/postęp (\d+) z (\d+)/, "progress $1 of $2"], [/^(\d+) z (\d+)$/, "$1 of $2"],
   [/zaliczenie po (\d+)/g, "pass after $1"], [/^Utworzono zestaw /, "Created deck "],
-  [/^Zaznacz (\S+), które mają trafić do zestawu\.$/, "Select the $1 to put in the deck."], [/^wybierz (\S+) z tej grupy$/, "choose $1 from this group"], [/ w (\d+) (?=porcj)/, " in $1 "],
+  [/^Zaznacz (\S+), które mają trafić do zestawu\.$/, "Select the $1 to put in the deck."],
+  [/^Zaznacz (\S+) z dowolnych grup i działów, które mają trafić do zestawu\.$/, "Select the $1 from any groups and sections to put in the deck."], [/^wybrano (\d+)$/, "$1 selected"], [/^wybierz (\S+) z tej grupy$/, "choose $1 from this group"], [/ w (\d+) (?=porcj)/, " in $1 "],
   [/^Pozycja jest zaliczona po (\d+) /, "An item is passed after $1 "], [/; pomyłka cofa licznik do zera\./, "; a mistake resets the counter to zero."],
   [/Nowe fiszki dochodzą stopniowo \(najwyżej (\d+) naraz w nauce\)\./, "New cards are added gradually (at most $1 at a time)."],
   [/ · od (?=\d)/, " · since "], [/ · widok /, " · "], [/^dzisiaj (?=\d|<)/, "today "], [/ – model 3D$/, " – 3D model"],
@@ -4496,16 +4511,22 @@ $("rounds").addEventListener("keydown", e => {
 });
 
 // ---------- własne zestawy ----------
-// Użytkownik składa własną porcję z fiszek jednej grupy. W dziedzinach z rysunkami wybiera rysunki –
+// Użytkownik składa własną porcję z istniejących fiszek. W dziedzinach z rysunkami wybiera rysunki –
 // zestaw obejmuje wszystkie fiszki z tych rysunków; w pozostałych wybiera pojedyncze fiszki.
-// store.sets: id → { id, g: dziedzina/grupa (gid), name, keys: [ścieżka rysunku (x.img) albo w[0] fiszki], t: czas zmiany }
-// (usunięty: { id, del: true, t }). Zestaw jest zapisywany na koncie (SYNC_KEYS), postęp nauki – jak każdej porcji
-// w store.rounds pod id zestawu. Fiszki zestawu bierzemy zawsze z aktualnej wersji grupy (kolejność jak w grupie).
+// Zakres zestawu:
+//  • utworzony w grupie – fiszki tylko z tej grupy: { g: dziedzina/grupa (gid), keys: [rysunek (x.img) albo w[0]] },
+//  • utworzony w „Twoich zestawach” – fiszki z dowolnych grup i działów jednej dziedziny:
+//    { s: id dziedziny, keys: ["gid|rysunek" albo "gid|w[0]"] }.
+// store.sets: id → { id, name, g | s, keys, c: utworzenie, t: czas zmiany } (usunięty: { id, del: true, t }).
+// Zestaw jest zapisywany na koncie (SYNC_KEYS), postęp nauki – jak każdej porcji w store.rounds pod id zestawu.
+// Fiszki zestawu bierzemy zawsze z aktualnej wersji grup (kolejność jak w grupach).
 let fromSets = false;   // nauka zaczęta z widoku „Twoje zestawy”
 const allRound = g => g.rounds.find(r => r.id === g.allId) || g.rounds[g.rounds.length - 1];
 // id grup nie są unikalne między dziedzinami (np. „kr” – kręgosłup i kształcenie ruchowe), więc zestaw pamięta „dziedzina/grupa”
 const gid = g => g.section.id + "/" + g.id;
 const groupById = id => ALL_GROUPS.find(g => gid(g) === id);
+const SET_SECTIONS = SECTIONS.filter(sec => !sec.soon && sec.groups.some(g => g.rounds.some(r => r.words.length)));
+const sectionById = id => SET_SECTIONS.find(sec => sec.id === id);
 const byImages = g => !!g.section.images;
 // rysunki fiszki (kilka, gdy ta sama struktura jest na kilku rysunkach) z opisem rysunku
 function cardViews(w) {
@@ -4515,34 +4536,52 @@ function cardViews(w) {
   return x.alts.map((v, i) => ({ img: v.img, thumb: v.imgc || v.img, desc: (x.from && x.from[i]) || w[0] }));
 }
 const setKeys = (w, g) => byImages(g) ? cardViews(w).map(v => v.img) : [w[0]];
-function mySets(g) {
-  return Object.values(store.sets || {}).filter(z => !z.del && groupById(z.g) && (!g || z.g === gid(g)))
-    .sort((a, b) => (a.c || a.t) - (b.c || b.t));
+// zakres: { sec, groups, g } – g tylko przy zestawie jednej grupy
+const groupScope = g => ({ sec: g.section, groups: [g], g });
+const sectionScope = sec => ({ sec, groups: sec.groups.filter(g => g.rounds.some(r => r.words.length)), g: null });
+function scopeOf(z) {
+  if (z.g) { const g = groupById(z.g); return g ? groupScope(g) : null; }
+  const sec = sectionById(z.s); return sec ? sectionScope(sec) : null;
 }
+const qk = (sc, g, k) => sc.g ? k : gid(g) + "|" + k;   // klucz w zestawie
+const scUnit = sc => sc.g && sc.g.unit ? sc.g : sc.sec;   // skąd jednostka („fiszka”, „słówko”, „pozycja”)
+function mySets(g) {
+  return Object.values(store.sets || {}).filter(z => !z.del && scopeOf(z) && (!g || z.g === gid(g)))
+    .sort((a, b) => SET_SECTIONS.indexOf(scopeOf(a).sec) - SET_SECTIONS.indexOf(scopeOf(b).sec) || (a.c || a.t) - (b.c || b.t));
+}
+const sectionSets = sec => mySets().filter(z => z.s === sec.id);
 function setRound(z) {
-  const g = groupById(z.g), keys = new Set(z.keys || []);
-  const words = allRound(g).words.filter(w => setKeys(w, g).some(k => keys.has(k)));
-  const nImg = byImages(g) ? (z.keys || []).length : 0;
-  return { id: z.id, name: z.name, custom: true, words,
-    range: `${words.length} ${units(words.length, g.unit ? g : g.section)}` + (nImg ? ` · ${nImg} ${plural(nImg, "rysunek", "rysunki", "rysunków")}` : "") };
+  const sc = scopeOf(z), keys = new Set(z.keys || []), words = [], seen = new Set(), from = new Set();
+  for (const g of sc.groups) for (const w of allRound(g).words)
+    if (!seen.has(w[0]) && setKeys(w, g).some(k => keys.has(qk(sc, g, k)))) { seen.add(w[0]); words.push(w); from.add(g); }
+  const nImg = sc.sec.images ? keys.size : 0;
+  return { id: z.id, name: z.name, custom: true, words, groups: [...from],
+    range: `${words.length} ${units(words.length, scUnit(sc))}` + (nImg ? ` · ${nImg} ${plural(nImg, "rysunek", "rysunki", "rysunków")}` : "") };
 }
 const groupRounds = g => [...g.rounds, ...mySets(g).map(setRound)];
 const partOf = g => (g.section.parts || []).find(pt => pt.groups.includes(g)) || null;
+const groupLabel = g => (partOf(g) ? partOf(g).name + " › " : "") + g.name;
 function enterGroup(g) {   // ustaw bieżącą dziedzinę, dział i grupę (np. przy wejściu z „Twoich zestawów”)
   S = g.section; P = partOf(g); G = g; ROUNDS = groupRounds(g);
 }
+function enterSection(sec) {   // nauka zestawu z kilku grup: „grupa” to zestawy tej dziedziny
+  S = sec; P = null; G = { id: "zestawy", name: "Twoje zestawy", range: "", section: sec, allId: null, rounds: [] };
+  ROUNDS = sectionSets(sec).map(setRound);
+}
 
 // --- widok „Twoje zestawy” (kafelek na stronie głównej) ---
+const NEWSET_HTML = `<div class="rounds"><button type="button" class="round newset" data-newset="1"><span class="num">+</span>
+  <span class="name">Utwórz nowy zestaw</span><span class="meta"></span>
+  <span class="range">wybierz fiszki z dowolnych grup i działów</span></button></div>`;
 function renderSets() {
   if (!user) return showLogin();
   const list = mySets();
   if (!list.length) {
-    $("ws-body").innerHTML = `<div class="panel"><p class="empty">Nie masz jeszcze własnych zestawów. Wejdź w dowolną grupę i wybierz „Utwórz własny zestaw” pod listą porcji.</p></div>`;
+    $("ws-body").innerHTML = `<div class="panel"><p class="empty">Nie masz jeszcze własnych zestawów. Utwórz pierwszy poniżej albo w dowolnej grupie – pod listą porcji.</p></div>` + NEWSET_HTML;
     return show("sets");
   }
-  const groups = [...new Set(list.map(z => z.g))].map(groupById);
-  $("ws-body").innerHTML = groups.map(g => `<div><span class="eyebrow">${esc(g.section.name)}${partOf(g) ? ` › ${esc(partOf(g).name)}` : ""}</span>
-    <div class="rounds" style="margin-top:8px">` + list.filter(z => z.g === gid(g)).map(z => {
+  $("ws-body").innerHTML = SET_SECTIONS.filter(sec => list.some(z => scopeOf(z).sec === sec)).map(sec => `<div><span class="eyebrow">${esc(sec.name)}</span>
+    <div class="rounds" style="margin-top:8px">` + list.filter(z => scopeOf(z).sec === sec).map(z => {
       const r = setRound(z), st = store.rounds[z.id], isDone = store.done.includes(z.id) && !st;
       let chip, bar = "";
       if (st) {
@@ -4550,21 +4589,24 @@ function renderSets() {
         chip = `<span class="chip prog">${c[MASTER]}/${total} opanowane</span>`;
         bar = `<span class="minibar">${c.map((n, b) => `<span style="width:${n / total * 100}%;background:${BOXCOL[b]}"></span>`).join("")}</span>`;
       } else chip = isDone ? `<span class="chip done">✓ ukończona</span>` : `<span class="chip">${r.words.length ? r.range.split(" · ")[0] : "pusty"}</span>`;
+      const where = z.g ? groupLabel(groupById(z.g)) : r.groups.length === 1 ? groupLabel(r.groups[0])
+        : `${r.groups.length} ${plural(r.groups.length, "grupa", "grupy", "grup")}`;
       return `<button type="button" class="round mine" data-set="${esc(z.id)}">
         <span class="num">★</span>
         <span class="name"><span translate="no">${esc(z.name)}</span>${st ? " · w trakcie" : ""}</span>
         <span class="meta">${chip}${bar}<span class="reset" role="button" tabindex="0" data-edit="${esc(z.id)}">edytuj</span></span>
-        <span class="range">${esc(g.name)} · ${r.range}</span>
+        <span class="range">${esc(where)} · ${r.range}</span>
       </button>`;
-    }).join("") + `</div></div>`).join("");
+    }).join("") + `</div></div>`).join("") + NEWSET_HTML;
   show("sets");
 }
 $("ws-body").addEventListener("click", e => {
   const ed = e.target.closest("[data-edit]");
   if (ed) { e.stopPropagation(); return openMake(ed.dataset.edit, "sets"); }
+  if (e.target.closest("[data-newset]")) return openMake(null, "sets");
   const b = e.target.closest("[data-set]"); if (!b) return;
-  const z = (store.sets || {})[b.dataset.set]; if (!z) return;
-  enterGroup(groupById(z.g));
+  const z = (store.sets || {})[b.dataset.set]; if (!z || !scopeOf(z)) return;
+  z.g ? enterGroup(groupById(z.g)) : enterSection(scopeOf(z).sec);
   const ri = ROUNDS.findIndex(r => r.id === z.id);
   if (ri < 0 || !ROUNDS[ri].words.length) return openMake(z.id, "sets");
   fromSets = true;
@@ -4577,71 +4619,112 @@ $("ws-body").addEventListener("keydown", e => {
 $("ws-back").addEventListener("click", renderSections);
 
 // --- kreator zestawu ---
-let mk = null;   // { id (null – nowy), g, keys: Set, from: "home" | "sets", delArm }
+let mk = null;   // { id (null – nowy), sc: zakres, keys: Set, from: "home" | "sets", open: Set otwartych grup, delArm }
 function openMake(id, from) {
   const z = id && (store.sets || {})[id];
-  const g = z ? groupById(z.g) : G;
-  if (z) enterGroup(g);
-  mk = { id: z ? z.id : null, g, keys: new Set(z ? z.keys : []), from, delArm: false };
+  const sc = z ? scopeOf(z) : from === "home" ? groupScope(G) : sectionScope(sectionById(S && S.id) || SET_SECTIONS[0]);
+  if (z && z.g) enterGroup(sc.g);
+  mk = { id: z ? z.id : null, sc, keys: new Set(z ? z.keys : []), from, open: new Set(), delArm: false };
   $("m-eyebrow").textContent = z ? "Edytuj zestaw" : "Nowy zestaw";
-  $("m-title").textContent = g.name;
-  $("m-sub").textContent = byImages(g)
-    ? "Wybierz rysunki. Do zestawu trafią wszystkie fiszki z zaznaczonych rysunków."
-    : `Zaznacz ${unitOf(g.unit ? g : g.section)[1]}, które mają trafić do zestawu.`;
-  $("m-back").textContent = from === "sets" ? "← Twoje zestawy" : "← " + g.name;
+  $("m-back").textContent = from === "sets" ? "← Twoje zestawy" : "← " + sc.g.name;
   $("m-name").value = z ? z.name : "";
   $("m-del").hidden = !z; $("m-del").textContent = "Usuń zestaw";
   $("m-err").hidden = true;
-  renderPick();
+  renderMakeScope();
   show("make");
   window.scrollTo(0, 0);
   if (!z && matchMedia("(hover: hover)").matches) $("m-name").focus();
 }
+function renderMakeScope() {
+  const sc = mk.sc, u = unitOf(scUnit(sc))[1];
+  $("m-title").textContent = sc.g ? sc.g.name : sc.sec.name;
+  $("m-sub").textContent = sc.sec.images
+    ? `Wybierz rysunki${sc.g ? "" : " z dowolnych grup i działów"}. Do zestawu trafią wszystkie fiszki z zaznaczonych rysunków.`
+    : `Zaznacz ${u}${sc.g ? "" : " z dowolnych grup i działów"}, które mają trafić do zestawu.`;
+  // nowy zestaw z „Twoich zestawów”: najpierw wybór dziedziny
+  $("m-scope").hidden = !!(sc.g || mk.id || SET_SECTIONS.length < 2);
+  $("m-scope").innerHTML = `<span class="lm-label">Dziedzina</span><div class="seg" role="group" aria-label="Dziedzina">` +
+    SET_SECTIONS.map(sec => `<button type="button" data-sec="${esc(sec.id)}" aria-pressed="${sec === sc.sec}">${esc(sec.name)}</button>`).join("") + `</div>`;
+  // grupy z już zaznaczonymi fiszkami są rozwinięte
+  if (!sc.g) sc.groups.forEach((g, gi) => { if ([...mk.keys].some(k => k.startsWith(gid(g) + "|"))) mk.open.add(gi); });
+  renderPick();
+}
 // porcje grupy (bez powtórki całości) z ich rysunkami / fiszkami; każdy rysunek tylko raz (w pierwszej porcji)
-function pickSections(g) {
+function pickSections(g, sc) {
   const seen = new Set();
   return g.rounds.filter(r => r.id !== g.allId && r.words.length).map(r => {
     const items = [];
     for (const w of r.words) {
-      if (!byImages(g)) { if (!seen.has(w[0])) { seen.add(w[0]); items.push({ key: w[0], w }); } continue; }
+      if (!byImages(g)) { const k = qk(sc, g, w[0]); if (!seen.has(k)) { seen.add(k); items.push({ key: k, w }); } continue; }
       for (const v of cardViews(w)) {
-        let it = items.find(i => i.key === v.img);
-        if (!it && seen.has(v.img)) continue;
-        if (!it) { seen.add(v.img); it = { key: v.img, thumb: v.thumb, desc: v.desc, n: 0 }; items.push(it); }
+        const k = qk(sc, g, v.img);
+        let it = items.find(i => i.key === k);
+        if (!it && seen.has(k)) continue;
+        if (!it) { seen.add(k); it = { key: k, thumb: v.thumb, desc: v.desc, n: 0 }; items.push(it); }
         it.n++;
       }
     }
     return { r, items };
   }).filter(s => s.items.length);
 }
-function renderPick() {
-  const g = mk.g, img = byImages(g);
-  $("m-pick").innerHTML = pickSections(g).map(({ r, items }, si) => {
+function pickHTML(g, gi) {
+  const sc = mk.sc;
+  return pickSections(g, sc).map(({ r, items }, si) => {
     const all = items.every(i => mk.keys.has(i.key));
     const head = `<div class="mkhead"><b>${esc(r.name)}<small>${esc(r.range)}</small></b>
-      <button type="button" class="reset" data-all="${si}">${all ? "odznacz porcję" : "zaznacz całą porcję"}</button></div>`;
-    if (img) return head + `<div class="pickgrid">${items.map(i => {
+      <button type="button" class="reset" data-all="${gi}:${si}">${all ? "odznacz porcję" : "zaznacz całą porcję"}</button></div>`;
+    if (byImages(g)) return head + `<div class="pickgrid">${items.map(i => {
       const d = i.desc.lastIndexOf(" – "), desc = d < 0 ? i.desc : i.desc.slice(0, d);
       return `<button type="button" class="pick" data-key="${esc(i.key)}" aria-pressed="${mk.keys.has(i.key)}">
         <img src="${esc(i.thumb)}" alt="" loading="lazy">
-        <span class="cap"><b>${i.n} ${units(i.n, g.unit ? g : g.section)}</b><span translate="no">${esc(LANG === "en" ? CARD_OPIS_EN[desc] || desc : desc)}</span></span></button>`;
+        <span class="cap"><b>${i.n} ${units(i.n, scUnit(sc))}</b><span translate="no">${esc(LANG === "en" ? CARD_OPIS_EN[desc] || desc : desc)}</span></span></button>`;
     }).join("")}</div>`;
     return head + `<div class="panel picklist">${items.map(i => `<label><input type="checkbox" data-key="${esc(i.key)}"${mk.keys.has(i.key) ? " checked" : ""}>
       <span translate="no">${esc(i.w[0])}<br><small>${esc(i.w[1])}</small></span></label>`).join("")}</div>`;
   }).join("");
+}
+function renderPick() {
+  const sc = mk.sc;
+  // zestaw jednej grupy: od razu porcje; zestaw z dziedziny: rozwijane grupy (rysunki wczytują się dopiero po rozwinięciu)
+  $("m-pick").innerHTML = sc.g ? pickHTML(sc.g, 0) : sc.groups.map((g, gi) => `<details class="mkgroup" data-gi="${gi}"${mk.open.has(gi) ? " open" : ""}>
+    <summary><span>${partOf(g) ? `<small>${esc(partOf(g).name)}</small>` : ""}${esc(g.name)}</span><span class="chip" data-gcount="${gi}"></span></summary>
+    <div class="mkbody">${mk.open.has(gi) ? pickHTML(g, gi) : ""}</div></details>`).join("");
   updateMakeCount();
 }
-function makeWords() { return setRound({ id: "", name: "", g: gid(mk.g), keys: [...mk.keys] }); }
-function updateMakeCount() {
-  const r = makeWords(), g = mk.g, n = r.words.length;
-  $("m-count").innerHTML = byImages(g)
-    ? `Wybrano: <b>${mk.keys.size} ${plural(mk.keys.size, "rysunek", "rysunki", "rysunków")}</b> · <b>${n} ${units(n, g.unit ? g : g.section)}</b>`
-    : `Wybrano: <b>${n} ${units(n, g.unit ? g : g.section)}</b>`;
+function makeWords() {
+  return setRound(Object.assign({ id: "", name: "", keys: [...mk.keys] }, mk.sc.g ? { g: gid(mk.sc.g) } : { s: mk.sc.sec.id }));
 }
+function updateMakeCount() {
+  const sc = mk.sc, n = makeWords().words.length, img = sc.sec.images;
+  $("m-count").innerHTML = img
+    ? `Wybrano: <b>${mk.keys.size} ${plural(mk.keys.size, "rysunek", "rysunki", "rysunków")}</b> · <b>${n} ${units(n, scUnit(sc))}</b>`
+    : `Wybrano: <b>${n} ${units(n, scUnit(sc))}</b>`;
+  if (!sc.g) sc.groups.forEach((g, gi) => {
+    const k = [...mk.keys].filter(x => x.startsWith(gid(g) + "|")).length, el = $("m-pick").querySelector(`[data-gcount="${gi}"]`);
+    if (!el) return;
+    el.textContent = k ? `wybrano ${k}` : "";
+    el.className = k ? "chip prog" : "chip";
+    el.hidden = !k;
+  });
+}
+$("m-scope").addEventListener("click", e => {
+  const b = e.target.closest("[data-sec]"); if (!b || b.dataset.sec === mk.sc.sec.id) return;
+  mk.sc = sectionScope(sectionById(b.dataset.sec)); mk.keys.clear(); mk.open.clear();
+  $("m-err").hidden = true;
+  renderMakeScope();
+});
+$("m-pick").addEventListener("toggle", e => {
+  const d = e.target.closest && e.target.closest("details[data-gi]"); if (!d) return;
+  const gi = +d.dataset.gi;
+  if (d.open) { mk.open.add(gi); const body = d.querySelector(".mkbody"); if (!body.innerHTML) body.innerHTML = pickHTML(mk.sc.groups[gi], gi); }
+  else mk.open.delete(gi);
+}, true);
 $("m-pick").addEventListener("click", e => {
   const a = e.target.closest("[data-all]");
   if (a) {
-    const { items } = pickSections(mk.g)[+a.dataset.all];
+    const [gi, si] = a.dataset.all.split(":").map(Number);
+    const g = mk.sc.g || mk.sc.groups[gi];
+    const { items } = pickSections(g, mk.sc)[si];
     const all = items.every(i => mk.keys.has(i.key));
     items.forEach(i => all ? mk.keys.delete(i.key) : mk.keys.add(i.key));
     const y = window.scrollY; renderPick(); window.scrollTo(0, y);
@@ -4665,18 +4748,21 @@ function closeMake() {
 }
 $("m-back").addEventListener("click", closeMake);
 $("m-save").addEventListener("click", () => {
-  const name = $("m-name").value.trim().replace(/\s+/g, " ");
+  const name = $("m-name").value.trim().replace(/\s+/g, " "), sc = mk.sc;
   const err = m => { $("m-err").textContent = m; $("m-err").hidden = false; };
   if (!name) { $("m-name").focus(); return err("Nadaj zestawowi nazwę."); }
-  if (!makeWords().words.length) return err(byImages(mk.g) ? "Wybierz co najmniej jeden rysunek." : "Zaznacz co najmniej jedną fiszkę.");
-  const taken = mySets(mk.g).some(z => z.id !== mk.id && z.name.toLowerCase() === name.toLowerCase());
-  if (taken) { $("m-name").focus(); return err("W tej grupie masz już zestaw o tej nazwie."); }
+  if (!makeWords().words.length) return err(sc.sec.images ? "Wybierz co najmniej jeden rysunek." : "Zaznacz co najmniej jedną fiszkę.");
+  const same = sc.g ? mySets(sc.g) : sectionSets(sc.sec);
+  if (same.some(z => z.id !== mk.id && z.name.toLowerCase() === name.toLowerCase())) {
+    $("m-name").focus(); return err(sc.g ? "W tej grupie masz już zestaw o tej nazwie." : "W tej dziedzinie masz już zestaw o tej nazwie.");
+  }
   store.sets = store.sets || {};
   const old = mk.id && store.sets[mk.id];
   const id = mk.id || "ws-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  // klucze w kolejności z grupy (porządek niezależny od kolejności klikania)
-  const order = pickSections(mk.g).flatMap(s => s.items.map(i => i.key));
-  store.sets[id] = { id, g: gid(mk.g), name, keys: order.filter(k => mk.keys.has(k)), c: (old && old.c) || Date.now(), t: Date.now() };
+  // klucze w kolejności z grup (porządek niezależny od kolejności klikania)
+  const order = sc.groups.flatMap(g => pickSections(g, sc).flatMap(p => p.items.map(i => i.key)));
+  store.sets[id] = Object.assign({ id, name, keys: order.filter(k => mk.keys.has(k)), c: (old && old.c) || Date.now(), t: Date.now() },
+    sc.g ? { g: gid(sc.g) } : { s: sc.sec.id });
   // zestaw w trakcie nauki: dopasuj zapisany postęp do nowego składu (usunięte fiszki znikają, nowe dochodzą)
   if (store.rounds[id]) { migrateCards(store.rounds[id], setRound(store.sets[id])); touchRound(id); }
   save();
