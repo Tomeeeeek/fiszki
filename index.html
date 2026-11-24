@@ -3056,7 +3056,7 @@ const RUCH_POZYCJE = [
     ["chwyt – rys. 113", "Chwyt odwrotny", {"img": "ruch/113.webp", "cat": "chwyt"}],
   ] },
 ];
-const RUCH = [{ id: "kr", name: "Pozycje i ćwiczenia gimnastyczne", range: "nazewnictwo gimnastyczne na rysunkach", rounds: RUCH_POZYCJE, allId: "kr-all" }];
+const RUCH = [{ id: "kr", name: "Pozycje i ćwiczenia gimnastyczne", range: "nazewnictwo gimnastyczne na rysunkach", rounds: RUCH_POZYCJE, allId: "ruch-all" }];   // dawniej „kr-all” – to samo co kręgosłup (patrz fixRuchAll)
 for (const g of RUCH) g.rounds.push({ id: g.allId, name: "Powtórka całości", range: "wszystkie porcje razem", words: g.rounds.flatMap(r => r.words) });
 
 // Dziedziny (sekcje strony). Każda dziedzina ma własne grupy fiszek.
@@ -3123,6 +3123,22 @@ const BOXNAME = ["do powtórki", "pudełko 1", "pudełko 2", "pudełko 3", "opan
 let store = { dir: "lp", shuffle: true, rounds: {}, done: [], stats: {}, hard: {} };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = Object.assign(store, s); } catch (e) {}
 store.stats = store.stats || {}; store.hard = store.hard || {};
+// „Powtórka całości” kształcenia ruchowego miała to samo id co powtórka kręgosłupa („kr-all”), więc obie dzieliły
+// jeden zapis nauki. Teraz ma „ruch-all”: zapis „kr-all” z fiszkami kształcenia ruchowego przechodzi pod nowe id.
+// Statystyki i „ukończone” zostają pod „kr-all” (nie da się ich rozdzielić, a przeniesione dublowałyby się przy łączeniu z kontem).
+// Wywoływane przy starcie i po każdym wczytaniu stanu z konta (applyState) – inne urządzenie mogło zapisać stary układ.
+const RUCH_L = new Set(RUCH.flatMap(g => g.rounds.flatMap(r => r.words.map(w => w[0]))));
+function fixRuchAll() {
+  const st = store.rounds && store.rounds["kr-all"];
+  if (!st || !st.cards || !st.cards.length || st.cards.filter(c => RUCH_L.has(c.l)).length * 2 <= st.cards.length) return false;
+  store.rt = store.rt || {};
+  // nowszy zapis wygrywa (np. urządzenie z nieodświeżoną stroną uczyło się dalej pod starym id)
+  if (!store.rounds["ruch-all"] || (store.rt["kr-all"] || 0) > (store.rt["ruch-all"] || 0)) store.rounds["ruch-all"] = st;
+  delete store.rounds["kr-all"];
+  store.rt["kr-all"] = store.rt["ruch-all"] = Date.now();
+  return true;
+}
+if (fixRuchAll()) try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
 // trudne pozycje zapisane pod dawnymi opisami (przed połączeniem widoków) → nowy opis
 for (const g of ALL_GROUPS) for (const r of g.rounds) for (const [l, , x] of r.words) for (const f of (x && x.from) || [])
   if (store.hard[f]) { store.hard[l] = (store.hard[l] || 0) + store.hard[f]; delete store.hard[f]; }
@@ -3410,6 +3426,7 @@ function applyState(s) {
   for (const k of SYNC_KEYS) store[k] = s[k];
   // porcja otwarta właśnie teraz zostaje w tej samej postaci (nauka trwa na tym obiekcie)
   if (cur && cur.st) { const id = ROUNDS[cur.ri] && ROUNDS[cur.ri].id; if (id) store.rounds[id] = cur.st; }
+  fixRuchAll();
   save(true);
 }
 function refreshViews() {   // po wczytaniu stanu z bazy – odśwież widok, jeśli to lista (nie w trakcie odpowiadania)
