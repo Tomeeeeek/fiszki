@@ -500,6 +500,9 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .answer { border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: rise .25s ease; }
 .answer .label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .answer .text { font-size: 22px; font-weight: 500; overflow-wrap: anywhere; }
+.mextra { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+.mextra .mx { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 1 220px; max-width: 340px; }
+.mextra .mx > div { font-size: 14px; line-height: 1.45; color: var(--ink); text-align: center; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); width: 100%; }
 .answer .text.lat { font-family: var(--f-display); font-style: italic; font-size: 30px; font-weight: 400; }
 .verdict { align-self: center; font-size: 14px; padding: 4px 12px; border-radius: 999px; }
 .verdict.ok { background: var(--ok-soft); color: var(--ok); }
@@ -971,6 +974,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
         <span class="label" id="c-anslabel"></span>
         <div class="text" id="c-anstext" translate="no"></div>
         <span class="verdict" id="c-verdict" hidden></span>
+        <div class="mextra" id="c-extra" hidden></div>
       </div>
     </article>
 
@@ -1167,6 +1171,7 @@ const EN = {
   "Wybierz rysunki. Do zestawu trafią wszystkie fiszki z zaznaczonych rysunków.": "Choose drawings. All cards from the selected drawings will go into the deck.",
   "Nadaj zestawowi nazwę.": "Give the deck a name.", "Wybierz co najmniej jeden rysunek.": "Choose at least one drawing.",
   "Zaznacz co najmniej jedną fiszkę.": "Select at least one card.", "W tej grupie masz już zestaw o tej nazwie.": "You already have a deck with this name in this group.",
+  "Unerwienie": "Innervation", "Unaczynienie": "Blood supply",
   "Zapisano zmiany w zestawie": "Deck changes saved", "Usunięto zestaw": "Deck deleted",
   "znajomi widzą moje zestawy w moim profilu": "friends can see my decks on my profile", "Zestawy": "Decks", "ukryty": "hidden",
   "Znajomi widzą Twoje zestawy": "Your friends can see your decks", "Twoje zestawy są ukryte przed znajomymi": "Your decks are hidden from friends",
@@ -2729,6 +2734,54 @@ const MI_KONCZYNA_GORNA = [
     ["ręka (dłoń, warstwa najgłębsza) – mięśnie międzykostne dłoniowe", "Mięśnie międzykostne dłoniowe", {"img": "anatomia/real/miesnie-dlon-miedzykostne.webp", "imgc": "anatomia/real/miesnie-dlon-miedzykostne-kolor.webp", "view": "od strony dłoniowej, warstwa najgłębsza", "hl": [[8.42, 43.65, 45.14, 44.34], [45.14, 44.34, 80.12, 45.12], [45.14, 44.34, 47.75, 46.19], [65.02, 44.73, 66.62, 46.19]], "tips": [[80.12, 45.12], [47.75, 46.19], [66.62, 46.19]]}],
   ] },
 ];
+// Unerwienie i unaczynienie mięśni kończyny górnej – odsłaniane osobno pod odpowiedzią (nie są częścią fiszki).
+// Klucz: nazwa mięśnia (w[1]); wartość: [unerwienie, unaczynienie] – listy wierszy.
+const PRZEDR_TYL = [["Nerw promieniowy (gałąź głęboka)"], ["Tętnica łokciowa → tętnica międzykostna wspólna → tętnica międzykostna tylna"]];
+const MI_KG_INFO = {
+  "Mięsień naramienny": [["Nerw pachowy"], ["Tętnica tylna okalająca ramię", "Gałąź naramienna tętnicy piersiowo-barkowej"]],
+  "Mięsień obły mniejszy": [["Nerw pachowy"], ["Tętnica okalająca łopatkę"]],
+  "Mięsień nadgrzebieniowy": [["Nerw nadłopatkowy"], ["Tętnica nadłopatkowa", "Tętnica okalająca łopatkę"]],
+  "Mięsień podgrzebieniowy": [["Nerw nadłopatkowy"], ["Tętnica nadłopatkowa", "Tętnica okalająca łopatkę"]],
+  "Mięsień obły większy": [["Nerw piersiowo-grzbietowy", "Nerwy podłopatkowe"], ["Tętnica podłopatkowa"]],
+  "Mięsień podłopatkowy": [["Nerwy podłopatkowe"], ["Tętnica podłopatkowa"]],
+  "Mięsień kruczo-ramienny": [["Nerw mięśniowo-skórny", "Gałązki od pęczka bocznego splotu ramiennego"], ["Tętnica pachowa → tętnica okalająca ramię przednia i tylna"]],
+  "Mięsień dwugłowy ramienia": [["Nerw mięśniowo-skórny"], ["Tętnica pachowa → gałązki mięśniowe", "Tętnica ramienna → gałązki mięśniowe"]],
+  "Mięsień ramienny": [["Nerw mięśniowo-skórny", "Nerw promieniowy (część mięśnia przylegająca do mięśnia ramienno-promieniowego)"],
+    ["Tętnica ramienna → tętnica poboczna łokciowa górna i dolna", "Tętnica ramienna → gałązki mięśniowe", "Tętnica promieniowa → tętnica wsteczna promieniowa"]],
+  "Mięsień nawrotny obły": [["Nerw pośrodkowy"], ["Tętnica ramienna", "Tętnica promieniowa", "Tętnica łokciowa"]],
+  "Mięsień zginacz promieniowy nadgarstka": [["Nerw pośrodkowy"], ["Tętnica promieniowa"]],
+  "Mięsień dłoniowy długi": [["Nerw pośrodkowy"], ["Tętnica łokciowa"]],
+  "Mięsień zginacz łokciowy nadgarstka": [["Nerw łokciowy"], ["Tętnica ramienna → tętnice poboczne", "Tętnica łokciowa"]],
+  "Mięsień zginacz powierzchowny palców": [["Nerw pośrodkowy"], ["Tętnica promieniowa", "Tętnica łokciowa"]],
+  "Mięsień zginacz głęboki palców": [["Nerw pośrodkowy → nerw międzykostny przedni", "Nerw łokciowy"], ["Tętnica łokciowa → tętnica międzykostna przednia"]],
+  "Mięsień zginacz długi kciuka": [["Nerw pośrodkowy → nerw międzykostny przedni"], ["Tętnica promieniowa", "Tętnica łokciowa → tętnica międzykostna przednia"]],
+  "Mięsień nawrotny czworoboczny": [["Nerw pośrodkowy → nerw międzykostny przedni"], ["Tętnica łokciowa → tętnica międzykostna przednia"]],
+  "Mięsień łokciowy": [["Nerw promieniowy"], ["Tętnica łokciowa → tętnica międzykostna wspólna → tętnica międzykostna tylna → tętnica międzykostna wsteczna"]],
+  "Mięsień prostownik palców": PRZEDR_TYL,
+  "Mięsień prostownik palca małego": PRZEDR_TYL,
+  "Mięsień prostownik łokciowy nadgarstka": PRZEDR_TYL,
+  "Mięsień odwodziciel długi kciuka": PRZEDR_TYL,
+  "Mięsień prostownik długi kciuka": PRZEDR_TYL,
+  "Mięsień prostownik krótki kciuka": PRZEDR_TYL,
+  "Mięsień prostownik wskaziciela": PRZEDR_TYL,
+  "Mięsień odwodziciel krótki kciuka": [["Nerw pośrodkowy"], ["Gałąź dłoniowa powierzchowna tętnicy promieniowej"]],
+  "Mięsień przeciwstawiacz kciuka": [["Nerw pośrodkowy"], ["Gałąź dłoniowa powierzchowna tętnicy promieniowej", "Tętnica dłoniowa I kości śródręcza"]],
+  "Mięsień zginacz krótki kciuka": [["Głowa powierzchowna: nerw pośrodkowy", "Głowa głęboka: gałąź głęboka nerwu łokciowego"], ["Gałąź dłoniowa powierzchowna tętnicy promieniowej"]],
+  "Mięsień przywodziciel kciuka": [["Gałąź głęboka nerwu łokciowego"], ["Łuk dłoniowy głęboki"]],
+  "Mięsień dłoniowy krótki": [["Nerw łokciowy (gałąź powierzchowna)"], ["Tętnica łokciowa"]],
+  "Mięsień odwodziciel palca małego": [["Nerw łokciowy (gałąź głęboka)"], ["Gałąź dłoniowa głęboka tętnicy łokciowej"]],
+  "Mięsień zginacz krótki palca małego": [["Nerw łokciowy (gałąź głęboka)"], ["Gałąź dłoniowa głęboka tętnicy łokciowej"]],
+  "Mięsień przeciwstawiacz palca małego": [["Nerw łokciowy (gałąź głęboka)"], ["Gałąź dłoniowa głęboka tętnicy łokciowej"]],
+  "Mięśnie glistowate": [["I–II: nerw pośrodkowy", "III–IV: gałąź głęboka nerwu łokciowego"], ["Łuk dłoniowy powierzchowny"]],
+  "Mięśnie międzykostne dłoniowe": [["Gałąź głęboka nerwu łokciowego"], ["Łuk dłoniowy głęboki"]],
+  "Mięśnie międzykostne grzbietowe": [["Gałąź głęboka nerwu łokciowego"], ["Łuk dłoniowy głęboki"]],
+};
+// fiszka → [unerwienie, unaczynienie] (zbiór fiszek budowany przy pierwszym użyciu – po scaleniu rysunków)
+let MI_KG_L = null;
+const muscleInfo = card => {
+  MI_KG_L = MI_KG_L || new Set(MI_KONCZYNA_GORNA.flatMap(r => r.words.map(w => w[0])));
+  return card && MI_KG_L.has(card.l) ? MI_KG_INFO[card.p] || null : null;
+};
 const MI_KONCZYNA_DOLNA = [
   { id: "mi-kd-biodro", name: "Biodro", range: "mięśnie biodra", words: [
     ["biodro (tył) – mięsień pośladkowy średni", "Mięsień pośladkowy średni", {"img": "anatomia/real/miesnie-biodro-tyl.webp", "imgc": "anatomia/real/miesnie-biodro-tyl-kolor.webp", "view": "od tyłu", "hl": [[0.0, 16.09, 16.3, 19.15]]}],
@@ -5078,6 +5131,7 @@ function reveal(typed) {
   $("c-anstext").textContent = ans;
   $("c-anstext").className = "text" + (dir === "pl" && S.sides.italicA ? " lat" : "");
   $("c-answer").hidden = false;
+  renderExtra(card);
   $("f-input").disabled = true;
   const v = $("c-verdict");
   const result = typed ? checkAnswer(typed, ans, dir) : "bad";
@@ -5094,6 +5148,20 @@ function reveal(typed) {
     document.activeElement && document.activeElement.blur();
   }
 }
+// unerwienie / unaczynienie mięśnia: dwa przyciski pod odpowiedzią, każdy odsłania swoją część
+function renderExtra(card) {
+  const info = muscleInfo(card), box = $("c-extra");
+  box.hidden = !info;
+  box.innerHTML = info ? [["Unerwienie", info[0]], ["Unaczynienie", info[1]]].map(([t, lines], i) =>
+    `<div class="mx"><button type="button" class="sbtn" data-mx="${i}" aria-expanded="false">${t} <kbd>${i ? "A" : "U"}</kbd></button></div>`).join("") : "";
+}
+function showExtra(i) {
+  const info = muscleInfo(cur.card), b = document.querySelector(`#c-extra [data-mx="${i}"]`);
+  if (!info || !b || b.getAttribute("aria-expanded") === "true") return;
+  b.setAttribute("aria-expanded", "true");
+  b.insertAdjacentHTML("afterend", `<div translate="no">${info[i].map(esc).join("<br>")}</div>`);
+}
+$("c-extra").addEventListener("click", e => { const b = e.target.closest("[data-mx]"); if (b) { showExtra(+b.dataset.mx); b.blur(); } });
 let toastTimer;
 function toast(msg, html) {   // html: gotowy HTML (np. treść fiszki w <span translate="no">)
   document.querySelectorAll(".toast").forEach(t => t.remove());
@@ -5573,6 +5641,7 @@ document.addEventListener("keydown", e => {
   if (!cur || $("v-study").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   const inInput = e.target === $("f-input");
   if (cur.phase === "ask" && e.key === " " && !inInput) { e.preventDefault(); reveal(""); }
+  else if (cur.phase !== "ask" && !$("c-extra").hidden && ["u", "a"].includes(e.key.toLowerCase())) { e.preventDefault(); showExtra(e.key.toLowerCase() === "u" ? 0 : 1); }
   else if (cur.phase === "grade") {
     const k = e.key.toLowerCase();
     // T/S/N po polsku; w wersji angielskiej także Y (yes) i M (medium)
