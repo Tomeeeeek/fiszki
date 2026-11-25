@@ -180,6 +180,22 @@ header.top h1.group { font-size: clamp(34px, 7.5vw, 48px); }
 .pick[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .pick[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 7px; right: 7px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
 .picklist { padding: 6px 0; gap: 0; }
+.frsets { gap: 0; padding: 6px 0; }
+.frsets h3 { padding: 10px 18px 4px; }
+.frsets .note { padding: 0 18px 8px; }
+.frset { border-top: 1px solid var(--line); }
+.frset summary { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 11px 18px; cursor: pointer; list-style: none; }
+.frset summary::-webkit-details-marker { display: none; }
+.frset summary::before { content: "▸"; color: var(--muted); }
+.frset[open] summary::before { content: "▾"; }
+.frset summary b { font-weight: 600; }
+.frset summary small { color: var(--muted); font-size: 13px; }
+.frset .fsbody { display: flex; flex-direction: column; gap: 12px; padding: 4px 18px 16px; }
+.frset .pickgrid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+.frset .pick { cursor: default; }
+.frset .pick img { height: 110px; }
+.frset ul { margin: 0; padding-left: 18px; font-size: 14px; columns: 2 220px; }
+.frset .fsact { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .picklist label { display: flex; gap: 12px; align-items: baseline; padding: 9px 18px; border-top: 1px solid var(--line); cursor: pointer; }
 .picklist label:first-child { border-top: 0; }
 .picklist label span { flex: 1; min-width: 0; }
@@ -895,6 +911,7 @@ footer { font-size: 12.5px; color: var(--muted); text-align: center; }
       <h1 class="group">Twoje zestawy</h1>
       <p>Zestawy utworzone przez Ciebie z wybranych fiszek. Tutaj możesz połączyć fiszki z różnych grup i działów jednej dziedziny, a w grupie – utworzyć zestaw tylko z jej fiszek.</p>
     </header>
+    <label class="check" style="align-self:flex-start"><input type="checkbox" id="ws-share"> znajomi widzą moje zestawy w moim profilu</label>
     <div id="ws-settings-slot"></div>
     <div id="ws-body" style="display:flex; flex-direction:column; gap:22px"></div>
   </section>
@@ -1151,6 +1168,11 @@ const EN = {
   "Nadaj zestawowi nazwę.": "Give the deck a name.", "Wybierz co najmniej jeden rysunek.": "Choose at least one drawing.",
   "Zaznacz co najmniej jedną fiszkę.": "Select at least one card.", "W tej grupie masz już zestaw o tej nazwie.": "You already have a deck with this name in this group.",
   "Zapisano zmiany w zestawie": "Deck changes saved", "Usunięto zestaw": "Deck deleted",
+  "znajomi widzą moje zestawy w moim profilu": "friends can see my decks on my profile", "Zestawy": "Decks", "ukryty": "hidden",
+  "Znajomi widzą Twoje zestawy": "Your friends can see your decks", "Twoje zestawy są ukryte przed znajomymi": "Your decks are hidden from friends",
+  "Udostępnione zestawy": "Shared decks", "Dodaj do moich zestawów": "Add to my decks", "✓ w Twoich zestawach": "✓ in your decks",
+  "Rozwiń zestaw, żeby zobaczyć jego fiszki. Możesz dodać kopię do swoich zestawów i uczyć się z niej z własnym postępem.":
+    "Expand a deck to see its cards. You can add a copy to your decks and study it with your own progress.",
   // dziedziny, działy, grupy, porcje
   "Fiszki, które znasz, wracają coraz rzadziej. Te, których nie pamiętasz, pojawiają się po chwili ponownie. Fiszka jest opanowana po czterech udanych powtórkach z rzędu (schemat SuperMemo) albo po wybranej przez Ciebie liczbie dobrych odpowiedzi.":
     "Cards you know come back less and less often. Those you don't remember reappear shortly. A card is mastered after four successful reviews in a row (SuperMemo scheme) or after the number of correct answers you choose.",
@@ -1272,7 +1294,7 @@ const EN_RX = [
   [/Ucz się (\d+) dni pod rząd/g, "Study $1 days in a row"], [/^Seria: /, "Streak: "], [/ pod rząd/g, " in a row"],
   [/ nauki w tym miesiącu/, " of study this month"], [/ nauki in a row \(obecna seria\)/, " of study in a row (current streak)"], [/^dzień(?= of study)/, "day"], [/^dni(?= of study)/, "days"],
   [/postęp (\d+) z (\d+)/, "progress $1 of $2"], [/^(\d+) z (\d+)$/, "$1 of $2"],
-  [/zaliczenie po (\d+)/g, "pass after $1"], [/^Utworzono zestaw /, "Created deck "],
+  [/zaliczenie po (\d+)/g, "pass after $1"], [/^Utworzono zestaw /, "Created deck "], [/^Dodano zestaw (.*) do Twoich zestawów$/, "Added deck $1 to your decks"], [/^Zestaw (\d+)$/, "Deck $1"],
   [/^Zaznacz (\S+), które mają trafić do zestawu\.$/, "Select the $1 to put in the deck."],
   [/^Zaznacz (\S+) z dowolnych grup i działów, które mają trafić do zestawu\.$/, "Select the $1 from any groups and sections to put in the deck."], [/^wybrano (\d+)$/, "$1 selected"], [/^wybierz (\S+) z tej grupy$/, "choose $1 from this group"], [/ w (\d+) (?=porcj)/, " in $1 "],
   [/^Pozycja jest zaliczona po (\d+) /, "An item is passed after $1 "], [/; pomyłka cofa licznik do zera\./, "; a mistake resets the counter to zero."],
@@ -3326,14 +3348,16 @@ function buildProgress() {
         status: st ? "w trakcie" : done ? "ukończona" : "nowa",
         yes: x.yes || 0, mid: x.mid || 0, no: x.no || 0, done: x.done || 0 };
     }) })).concat(mySets().length ? [{ id: "zestawy", name: "Twoje zestawy", section: "Własne zestawy",
-      rounds: mySets().map(z => { const r = setRound(z), st = store.rounds[z.id], x = store.stats[z.id] || {}, done = store.done.includes(z.id);
-        return { id: z.id, name: z.name, range: r.range, all: true, total: r.words.length,
+      rounds: mySets().map((z, i) => { const r = setRound(z), st = store.rounds[z.id], x = store.stats[z.id] || {}, done = store.done.includes(z.id);
+        return { id: z.id, name: shareSets() ? z.name : "Zestaw " + (i + 1), range: shareSets() ? r.range : "ukryty", all: true, total: r.words.length,
           mastered: st ? counts(st).c[MASTER] : done ? r.words.length : 0, status: st ? "w trakcie" : done ? "ukończona" : "nowa",
           yes: x.yes || 0, mid: x.mid || 0, no: x.no || 0, done: x.done || 0 }; }) }] : []),
     hard: Object.entries(store.hard).sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([l, n]) => ({ l, p: WORD_PL.get(l) || "", n })),
     days: (store.days || []).slice().sort().slice(-400),   // kalendarz i seria – widzą je znajomi
     ach: store.ach || {},
+    // własne zestawy do podglądu i skopiowania przez znajomych (gdy użytkownik je udostępnia)
+    ...(shareSets() && mySets().length ? { zestawy: mySets().map(z => Object.assign({ id: z.id, name: z.name, keys: z.keys }, z.g ? { g: z.g } : { s: z.s })) } : {}),
     ...(SHOW_TIME ? { czas: activeTime().total } : {}),
   };
 }
@@ -3372,7 +3396,7 @@ const timeTileHTML = t => `<span class="k">Czas nauki</span><b>${fmtTime(t.total
 // Ustawienia (kierunek, losowanie, tryb, kolory) zostają na urządzeniu. store.sv – wersja stanu z bazy,
 // na której bazuje przeglądarka (baza odrzuca zapis na starszej wersji → łączymy i zapisujemy ponownie).
 // store.owner – czyj to stan; inne konto na tym samym urządzeniu zaczyna od swojego stanu z bazy.
-const SYNC_KEYS = ["rounds", "done", "stats", "hard", "days", "ach", "rt", "tm", "sets"];
+const SYNC_KEYS = ["rounds", "done", "stats", "hard", "days", "ach", "rt", "tm", "sets", "share"];
 const touchRound = id => { store.rt = store.rt || {}; store.rt[id] = Date.now(); };
 const ownerOf = u => ((u && (u.email || u.name)) || "").toLowerCase();
 function syncPayload() {
@@ -3413,6 +3437,8 @@ function mergeState(a, b) {   // a – przeglądarka, b – baza
     // czas nauki: urządzenie → dzień → sekundy; każde urządzenie liczy swój, łączymy większą wartością
     tm: maxObj(a.tm, b.tm, (p, q) => maxObj(p, q, Math.max)),
     // własne zestawy: id → zestaw; wygrywa nowsza zmiana (t), usunięte zostają jako { del: true }
+    // udostępnianie zestawów znajomym: { on, t } – wygrywa nowsza zmiana
+    ...(a.share || b.share ? { share: ((a.share && a.share.t) || 0) >= ((b.share && b.share.t) || 0) ? a.share : b.share } : {}),
     ...(() => { const sets = maxObj(a.sets, b.sets, (p, q) => ((p && p.t) || 0) >= ((q && q.t) || 0) ? p : q);
       return Object.keys(sets).length ? { sets } : {}; })(),
   };
@@ -3691,12 +3717,12 @@ function progressHTML(pg, sm) {
     <div class="split"><span style="width:${sm.yes / ans * 100}%;background:var(--ok)"></span><span style="width:${sm.mid / ans * 100}%;background:var(--mid)"></span><span style="width:${sm.no / ans * 100}%;background:var(--bad)"></span></div>
     <div class="legend"><span><i style="background:var(--ok)"></i>dobrze ${sm.yes} (${pct(sm.yes, ans)})</span><span><i style="background:var(--mid)"></i>średnio ${sm.mid} (${pct(sm.mid, ans)})</span><span><i style="background:var(--bad)"></i>źle ${sm.no} (${pct(sm.no, ans)})</span></div>
   </div>` : "";
-  const groups = pg.groups.map(g => `<div class="panel">${g.section ? `<span class="eyebrow">${esc(g.section)}</span>` : ""}<h3>${esc(g.name)}</h3>${g.rounds.map(r => {
+  const groups = pg.groups.map(g => `<div class="panel">${g.section ? `<span class="eyebrow">${esc(g.section)}</span>` : ""}<h3>${esc(g.id === "zestawy" && !pg.own ? "Zestawy" : g.name)}</h3>${g.rounds.map(r => {
     const a = (r.yes || 0) + (r.mid || 0) + (r.no || 0);
     const chip = r.status === "ukończona" ? `<span class="chip done">✓ ukończona${r.done > 1 ? ` ×${r.done}` : ""}</span>`
       : r.status === "w trakcie" ? `<span class="chip prog">w trakcie</span>` : `<span class="chip">nie zaczęta</span>`;
     return `<div class="prow">
-      <span class="pn">${esc(r.name)}<small>${esc(r.range)}</small></span>${chip}
+      <span class="pn">${g.id === "zestawy" ? `<span translate="no">${esc(r.name)}</span>` : esc(r.name)}<small>${esc(r.range)}</small></span>${chip}
       <span class="pbar"><span style="width:${r.total ? r.mastered / r.total * 100 : 0}%"></span></span>
       <span class="pstat">${r.mastered}/${r.total} opanowane · ${a ? `${a} ${plural(a, "odpowiedź", "odpowiedzi", "odpowiedzi")} · ${pct(r.yes || 0, a)} dobrze` : "brak odpowiedzi"}</span>
     </div>`;
@@ -4121,7 +4147,7 @@ function renderMe(friend) {
     $("me-title").textContent = "Statystyki znajomego";
     $("me-sub").innerHTML = `${nameHTML(friend.imie_nazwisko)} · ${isActive(friend) ? "na stronie teraz" : "aktywny " + ago(friend.ostatnia_aktywnosc)}`;
     if (!sm) {
-      $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${nm(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>`;
+      $("me-body").innerHTML = `<div class="panel"><p class="empty">Brak danych o postępie. Pojawią się, gdy ${nm(friend.imie_nazwisko)} odpowie na pierwszą fiszkę.</p></div>` + friendSetsHTML(friend);
       // osiągnięcia pokazujemy zawsze – bez danych wszystkie są jeszcze do zdobycia
       const empty = { groups: [], days: (pg && pg.days) || [], ach: (pg && pg.ach) || {} };
       $("me-ach").hidden = false;
@@ -4129,7 +4155,7 @@ function renderMe(friend) {
       calSrc = empty.days;
     } else {
       const ans = sm.yes + sm.mid + sm.no;
-      $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Brak odpowiedzi.</p></div>`) + progressHTML(pg, sm)
+      $("me-body").innerHTML = (ans || sm.mastered ? "" : `<div class="panel"><p class="empty">Brak odpowiedzi.</p></div>`) + friendSetsHTML(friend) + progressHTML(pg, sm)
         + `<p class="note" style="text-align:center">Dane zapisane ${ago(friend.postep_aktualizacja || pg.t)}.${pg.days ? "" : " Kalendarz pojawi się, gdy ta osoba znowu wejdzie na stronę."}</p>`;
       $("me-ach").hidden = false;
       $("me-ach").innerHTML = achievementsHTML(pg, sm, { days: pg.days || [], ach: pg.ach || {}, own: false });
@@ -4213,7 +4239,7 @@ async function friendAction(b) {
   if (act === "askdel" || act === "nodel") { frConfirm = act === "askdel" ? pid : null; return renderFriends(); }
   if (act === "view") {
     b.disabled = true;
-    try { const r = await meRpc("postep_znajomego", { p_kto: pid }); if (r && r[0]) return renderMe(r[0]); }
+    try { const r = await meRpc("postep_znajomego", { p_kto: pid }); if (r && r[0]) return renderMe(Object.assign(r[0], { pid })); }
     catch (e) { toast(e.code === "42501" ? "Ta osoba nie jest już Twoim znajomym" : frErrText(e)); loadFriends(); }
     b.disabled = false; return;
   }
@@ -4603,6 +4629,7 @@ const NEWSET_HTML = `<div class="rounds"><button type="button" class="round news
   <span class="range">wybierz fiszki z dowolnych grup i działów</span></button></div>`;
 function renderSets() {
   if (!user) return showLogin();
+  $("ws-share").checked = shareSets();
   const list = mySets();
   if (!list.length) {
     $("ws-settings-slot").hidden = true;
@@ -4652,6 +4679,61 @@ $("ws-body").addEventListener("keydown", e => {
   if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); r.click(); }
 });
 $("ws-back").addEventListener("click", renderSections);
+
+// --- zestawy znajomych ---
+// Udostępnione zestawy trafiają do postępu na koncie (buildProgress → zestawy), więc znajomy widzi je w profilu
+// (postep_znajomego) – bez zmian w bazie. store.share: { on, t }; domyślnie udostępnione.
+const shareSets = () => !store.share || store.share.on !== false;
+$("ws-share").addEventListener("change", e => {
+  store.share = { on: e.target.checked, t: Date.now() }; save();
+  toast(e.target.checked ? "Znajomi widzą Twoje zestawy" : "Twoje zestawy są ukryte przed znajomymi");
+});
+let frSets = [];   // zestawy oglądanego znajomego (poprawne w tej wersji strony)
+function friendSetsHTML(friend) {
+  const pg = friend.postep || {};
+  frSets = (Array.isArray(pg.zestawy) ? pg.zestawy : []).filter(z => z && z.id && typeof z.name === "string" && Array.isArray(z.keys) && scopeOf(z))
+    .map(z => ({ z, r: setRound(z), src: (friend.pid || "") + "/" + z.id })).filter(x => x.r.words.length);
+  if (!frSets.length) return "";
+  return `<div class="panel frsets"><h3>Udostępnione zestawy</h3>
+    <p class="note">Rozwiń zestaw, żeby zobaczyć jego fiszki. Możesz dodać kopię do swoich zestawów i uczyć się z niej z własnym postępem.</p>
+    ${frSets.map((x, i) => {
+      const sc = scopeOf(x.z);
+      const where = x.z.g ? groupLabel(sc.g) : x.r.groups.length === 1 ? groupLabel(x.r.groups[0])
+        : `${x.r.groups.length} ${plural(x.r.groups.length, "grupa", "grupy", "grup")}`;
+      return `<details class="frset" data-fi="${i}"><summary><b translate="no">${esc(x.z.name)}</b><small>${esc(sc.sec.name)} · ${esc(where)} · ${x.r.range}</small></summary><div class="fsbody"></div></details>`;
+    }).join("")}</div>`;
+}
+const isCopied = src => Object.values(store.sets || {}).some(z => !z.del && z.src === src);
+function friendSetBody(x) {
+  const sc = scopeOf(x.z), keys = new Set(x.z.keys);
+  let view;
+  if (sc.sec.images) {   // rysunki z zestawu (miniatury)
+    const seen = new Set(), pics = [];
+    for (const g of sc.groups) for (const w of allRound(g).words) for (const v of cardViews(w))
+      if (keys.has(qk(sc, g, v.img)) && !seen.has(v.img)) { seen.add(v.img); pics.push(v); }
+    view = `<div class="pickgrid">${pics.map(v => `<div class="pick"><img src="${esc(v.thumb)}" alt="" loading="lazy"><span class="cap" translate="no">${esc(v.desc)}</span></div>`).join("")}</div>`;
+  } else view = `<ul translate="no">${x.r.words.map(w => `<li>${esc(showL(w[0]))} – ${esc(w[1])}</li>`).join("")}</ul>`;
+  const done = isCopied(x.src);
+  return view + `<div class="fsact"><button type="button" class="sbtn${done ? "" : " primary"}" data-copy="1"${done ? " disabled" : ""}>${done ? "✓ w Twoich zestawach" : "Dodaj do moich zestawów"}</button></div>`;
+}
+$("me-body").addEventListener("toggle", e => {
+  const d = e.target.closest && e.target.closest("details.frset");
+  if (d && d.open && !d.querySelector(".fsbody").childElementCount) d.querySelector(".fsbody").innerHTML = friendSetBody(frSets[+d.dataset.fi]);
+}, true);
+$("me-body").addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  const x = frSets[+b.closest("details.frset").dataset.fi]; if (!x || isCopied(x.src)) return;
+  const sc = scopeOf(x.z), same = (sc.g ? mySets(sc.g) : sectionSets(sc.sec)).map(z => z.name.toLowerCase());
+  let name = x.z.name.slice(0, 50), n = 2;
+  while (same.includes(name.toLowerCase())) name = `${x.z.name.slice(0, 45)} (${n++})`;
+  const id = "ws-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  store.sets = store.sets || {};
+  store.sets[id] = Object.assign({ id, name, keys: x.z.keys.filter(k => typeof k === "string").slice(0, 5000), c: Date.now(), t: Date.now(), src: x.src },
+    x.z.g ? { g: x.z.g } : { s: x.z.s });
+  save();
+  b.disabled = true; b.classList.remove("primary"); b.textContent = "✓ w Twoich zestawach";
+  toast("Dodano zestaw „" + name + "” do Twoich zestawów");
+});
 
 // --- kreator zestawu ---
 let mk = null;   // { id (null – nowy), sc: zakres, keys: Set, from: "home" | "sets", open: Set otwartych grup, delArm }
